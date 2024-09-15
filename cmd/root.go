@@ -26,9 +26,6 @@ var (
 
 // Execute executes the root command.
 func Execute() error {
-	rootCmd.AddCommand(createCmd)
-	rootCmd.AddCommand(initialize())
-
 	return rootCmd.ExecuteContext(context.Background())
 }
 
