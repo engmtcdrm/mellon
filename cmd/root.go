@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -18,13 +19,17 @@ var (
 		Use:     env.AppNm,
 		Short:   env.AppShortDesc,
 		Long:    env.AppLongDesc,
+		Example: env.AppNm,
 		Version: env.AppVersion,
 	}
 )
 
 // Execute executes the root command.
 func Execute() error {
-	return rootCmd.Execute()
+	rootCmd.AddCommand(createCmd)
+	rootCmd.AddCommand(initialize())
+
+	return rootCmd.ExecuteContext(context.Background())
 }
 
 func init() {
