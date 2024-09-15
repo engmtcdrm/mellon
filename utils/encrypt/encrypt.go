@@ -206,6 +206,7 @@ func (tomb *Tomb) Encrypt(msg []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	msg = nil
 
 	e3, err := fernet.EncryptAndSign(hashSHA([]byte(tomb.hu)), &tomb.k)
 	if err != nil {
