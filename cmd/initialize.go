@@ -45,6 +45,10 @@ type Burger struct {
 	Spice    Spice
 }
 
+func init() {
+	rootCmd.AddCommand(initialize())
+}
+
 func initialize() *cobra.Command {
 	init := &cobra.Command{
 		Use:     "initialize",
