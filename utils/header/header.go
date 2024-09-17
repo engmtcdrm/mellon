@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/engmtcdrm/minno/utils/env"
+	"github.com/engmtcdrm/minno/env"
 	"github.com/fatih/color"
 )
 
