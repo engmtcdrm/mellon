@@ -13,12 +13,18 @@ const (
 	RepoUrl      = "https://github.com/engmtcdrm/minno"
 )
 
+var (
+	AppHomeDir string
+)
+
 // Returns the home directory for the application.
-func AppHomeDir() (string, error) {
+func SetAppHomeDir() error {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	return filepath.Join(home, "."+AppNm), nil
+	AppHomeDir = filepath.Join(home, "."+AppNm)
+
+	return nil
 }
