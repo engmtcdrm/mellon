@@ -8,34 +8,14 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/huh"
-	"github.com/engmtcdrm/minno/utils/encrypt"
-	"github.com/engmtcdrm/minno/utils/env"
+	"github.com/engmtcdrm/minno/credentials"
+	"github.com/engmtcdrm/minno/encrypt"
+	"github.com/engmtcdrm/minno/env"
+	"github.com/engmtcdrm/minno/utils/header"
 	pp "github.com/engmtcdrm/minno/utils/prettyprint"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
-
-var (
-	appHomeDir string
-	tomb       *encrypt.Tomb
-)
-
-func initApp() error {
-	var err error
-	appHomeDir, err = env.AppHomeDir()
-
-	if err != nil {
-		return err
-	}
-
-	tomb, err = encrypt.NewTomb(filepath.Join(appHomeDir, ".key"))
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 
 func init() {
 	rootCmd.AddCommand(createCmd)
@@ -43,31 +23,24 @@ func init() {
 
 var createCmd = &cobra.Command{
 	Use:     "create",
-	Short:   "Create a set of credentials",
-	Long:    "Create a set of credentials",
+	Short:   "Create a credential",
+	Long:    "Create a credential",
 	Example: env.AppNm + " create",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if err := initApp(); err != nil {
+		header.PrintBanner()
+
+		tomb, err := encrypt.NewTomb(filepath.Join(env.AppHomeDir, ".key"))
+		if err != nil {
 			return err
 		}
 
 		var cred string
 		var credFile string
-		var credFiles []string
 
-		filepath.WalkDir(appHomeDir, func(path string, d os.DirEntry, err error) error {
-			if err != nil {
-				return err
-			}
-
-			if !d.IsDir() && strings.HasSuffix(path, ".cred") {
-				path = filepath.Base(path)
-				path = strings.Replace(path, ".cred", "", 1)
-				credFiles = append(credFiles, path)
-			}
-
-			return nil
-		})
+		credFiles, err := credentials.GetCredFiles()
+		if err != nil {
+			return err
+		}
 
 		form := huh.NewForm(
 			huh.NewGroup(
@@ -81,21 +54,21 @@ var createCmd = &cobra.Command{
 					Value(&credFile).
 					Validate(func(s string) error {
 						if s == "" {
-							return fmt.Errorf("Filename cannot be empty")
+							return fmt.Errorf("filename cannot be empty")
 						}
 
 						if strings.HasSuffix(s, ".cred") {
-							return fmt.Errorf("Filename cannot end with .cred")
+							return fmt.Errorf("filename cannot end with .cred")
 						}
 
 						var re = regexp.MustCompile(`^[a-zA-Z0-9-_]+$`)
 						if !re.MatchString(s) {
-							return fmt.Errorf("Filename must be alphanumeric and can contain hyphens and underscores")
+							return fmt.Errorf("filename must be alphanumeric and can contain hyphens and underscores")
 						}
 
 						for _, f := range credFiles {
-							if f == s {
-								return fmt.Errorf("Credential file with that name already exists")
+							if f.Name == s {
+								return fmt.Errorf("credential file with that name already exists")
 							}
 						}
 
@@ -105,7 +78,7 @@ var createCmd = &cobra.Command{
 			),
 		)
 
-		err := form.
+		err = form.
 			WithTheme(pp.ThemeMinno()).
 			Run()
 		if err != nil {
@@ -116,6 +89,7 @@ var createCmd = &cobra.Command{
 				return err
 			}
 		}
+
 		encTest, err := tomb.Encrypt([]byte(strings.TrimSpace(cred)))
 		cred = ""
 		if err != nil {
@@ -124,7 +98,7 @@ var createCmd = &cobra.Command{
 
 		fmt.Println(pp.Complete("Credential encrypted"))
 
-		credFilePath := filepath.Join(appHomeDir, credFile+".cred")
+		credFilePath := filepath.Join(env.AppHomeDir, credFile+".cred")
 
 		if err = os.WriteFile(credFilePath, encTest, 0600); err != nil {
 			return err
