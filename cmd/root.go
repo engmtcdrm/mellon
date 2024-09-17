@@ -6,8 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/engmtcdrm/minno/utils/env"
-	"github.com/engmtcdrm/minno/utils/header"
+	"github.com/engmtcdrm/minno/env"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -22,6 +21,8 @@ var (
 		Example: env.AppNm,
 		Version: env.AppVersion,
 	}
+
+	credName string
 )
 
 // Execute executes the root command.
@@ -32,33 +33,32 @@ func Execute() error {
 func init() {
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 
-	cobra.OnInitialize(header.PrintBanner)
 	cobra.OnInitialize(configInit)
 
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "debug mode")
 }
 
 func configInit() {
-	appDir, err := env.AppHomeDir()
+	err := env.SetAppHomeDir()
 	if err != nil {
 		panic(err)
 	}
 
-	if _, err := os.Stat(appDir); os.IsNotExist(err) {
+	if _, err := os.Stat(env.AppHomeDir); os.IsNotExist(err) {
 		// Directory does not exist, create it
-		err = os.MkdirAll(appDir, 0700)
+		err = os.MkdirAll(env.AppHomeDir, 0700)
 		if err != nil {
 			panic(err)
 		}
 
 		// Change permission again to get rid of any sticky bits
-		err = os.Chmod(appDir, 0700)
+		err = os.Chmod(env.AppHomeDir, 0700)
 		if err != nil {
 			panic(err)
 		}
 	} else {
 		// Directory exists, make sure directories and files are secure
-		err = filepath.Walk(appDir, func(path string, info os.FileInfo, err error) error {
+		err = filepath.Walk(env.AppHomeDir, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
