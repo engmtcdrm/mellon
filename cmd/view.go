@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/charmbracelet/huh"
+	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/credentials"
 	"github.com/engmtcdrm/minno/credentials/prompts"
 	"github.com/engmtcdrm/minno/encrypt"
@@ -26,7 +27,7 @@ var viewCmd = &cobra.Command{
 	Use:     "view",
 	Short:   "View a credential",
 	Long:    "View a credential",
-	Example: env.AppNm + " view",
+	Example: app.Name + " view",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		tomb, err := encrypt.NewTomb(filepath.Join(env.AppHomeDir, ".key"))
 		if err != nil {
@@ -75,10 +76,10 @@ var viewCmd = &cobra.Command{
 			cred, err := tomb.Decrypt(data)
 			data = nil
 			if err != nil {
-				return err
+				fmt.Println(pp.Fail("Failed to decrypt credential. Encrypted credential may be corrupted"))
+				os.Exit(99)
 			}
 
-			fmt.Println()
 			fmt.Println(pp.Complete("Credential decrypted"))
 			fmt.Println()
 			fmt.Println(pp.Info("The credential is " + color.CyanString(string(cred))))
