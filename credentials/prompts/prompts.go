@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/charmbracelet/huh"
+	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/credentials"
-	"github.com/engmtcdrm/minno/env"
 	"github.com/fatih/color"
 )
 
@@ -19,7 +19,7 @@ func GetCredOptions(appHomeDir string) ([]huh.Option[credentials.Credential], er
 	if len(credFiles) == 0 {
 		fmt.Println("No credentials found")
 		fmt.Println()
-		fmt.Printf("Please run command %s to create a credential\n", color.GreenString(env.AppNm+" create"))
+		fmt.Printf("Please run command %s to create a credential\n", color.GreenString(app.Name+" create"))
 		os.Exit(0)
 	}
 

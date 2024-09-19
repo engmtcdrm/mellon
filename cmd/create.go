@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/huh"
+	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/credentials"
 	"github.com/engmtcdrm/minno/encrypt"
 	"github.com/engmtcdrm/minno/env"
@@ -25,7 +26,7 @@ var createCmd = &cobra.Command{
 	Use:     "create",
 	Short:   "Create a credential",
 	Long:    "Create a credential",
-	Example: env.AppNm + " create",
+	Example: app.Name + " create",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		header.PrintBanner()
 
@@ -107,7 +108,7 @@ var createCmd = &cobra.Command{
 		fmt.Println()
 		fmt.Println(pp.Complete("Credential saved"))
 		fmt.Println()
-		fmt.Printf("Please run the commmand %s to view the unencrypted credential\n", color.GreenString(env.AppNm+" view -f "+credFile))
+		fmt.Printf("Please run the commmand %s to view the unencrypted credential\n", color.GreenString(app.Name+" view -f "+credFile))
 
 		return nil
 	},

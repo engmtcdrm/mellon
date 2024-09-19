@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/huh"
+	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/credentials"
 	"github.com/engmtcdrm/minno/credentials/prompts"
 	"github.com/engmtcdrm/minno/encrypt"
@@ -27,7 +28,7 @@ var updateCmd = &cobra.Command{
 	Use:     "update",
 	Short:   "Update a credential",
 	Long:    "Update a credential",
-	Example: env.AppNm + " update",
+	Example: app.Name + " update",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		tomb, err := encrypt.NewTomb(filepath.Join(env.AppHomeDir, ".key"))
 		if err != nil {
@@ -102,7 +103,7 @@ var updateCmd = &cobra.Command{
 		fmt.Println()
 		fmt.Println(pp.Complete("Credential saved"))
 		fmt.Println()
-		fmt.Printf("Please run the commmand %s to view the unencrypted credential\n", color.GreenString(env.AppNm+" view -f "+selectedCredFile.Name))
+		fmt.Printf("Please run the commmand %s to view the unencrypted credential\n", color.GreenString(app.Name+" view -f "+selectedCredFile.Name))
 
 		return nil
 	},

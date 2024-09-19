@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/env"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -15,11 +16,11 @@ var (
 	debug bool
 
 	rootCmd = &cobra.Command{
-		Use:     env.AppNm,
-		Short:   env.AppShortDesc,
-		Long:    env.AppLongDesc,
-		Example: env.AppNm,
-		Version: env.AppVersion,
+		Use:     app.Name,
+		Short:   app.ShortDesc,
+		Long:    app.LongDesc,
+		Example: app.Name,
+		Version: app.Version,
 	}
 
 	credName string
