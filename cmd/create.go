@@ -64,7 +64,7 @@ var createCmd = &cobra.Command{
 
 						var re = regexp.MustCompile(`^[a-zA-Z0-9-_]+$`)
 						if !re.MatchString(s) {
-							return fmt.Errorf("filename must be alphanumeric and can contain hyphens and underscores")
+							return fmt.Errorf("filename must be alphanumeric, hyphens, and underscores only")
 						}
 
 						for _, f := range credFiles {
