@@ -18,7 +18,7 @@ import (
 )
 
 func init() {
-	viewCmd.Flags().StringVarP(&credName, "cred-name", "n", "", "The credential to view (optional)")
+	viewCmd.Flags().StringVarP(&credName, "cred-name", "n", "", "The name of the credential to view (optional)")
 
 	rootCmd.AddCommand(viewCmd)
 }
@@ -29,7 +29,12 @@ var viewCmd = &cobra.Command{
 	Long:    "View a credential",
 	Example: app.Name + " view",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		tomb, err := encrypt.NewTomb(filepath.Join(env.AppHomeDir, ".key"))
+		envVars, err := env.GetEnv()
+		if err != nil {
+			return err
+		}
+
+		tomb, err := encrypt.NewTomb(filepath.Join(envVars.AppHomeDir, ".key"))
 		if err != nil {
 			return err
 		}
@@ -39,7 +44,7 @@ var viewCmd = &cobra.Command{
 
 			var selectedCredFile credentials.Credential
 
-			options, err := prompts.GetCredOptions(env.AppHomeDir)
+			options, err := prompts.GetCredOptions(envVars.AppHomeDir)
 			if err != nil {
 				return err
 			}
@@ -84,7 +89,10 @@ var viewCmd = &cobra.Command{
 			fmt.Println()
 			fmt.Println(pp.Info("The credential is " + color.CyanString(string(cred))))
 		} else {
-			credName = credentials.ResolveCredName(credName)
+			credName, err = credentials.ResolveCredName(credName)
+			if err != nil {
+				return err
+			}
 
 			data, err := os.ReadFile(credName)
 			if err != nil {

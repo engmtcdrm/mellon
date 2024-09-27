@@ -30,7 +30,12 @@ var updateCmd = &cobra.Command{
 	Long:    "Update a credential",
 	Example: app.Name + " update",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		tomb, err := encrypt.NewTomb(filepath.Join(env.AppHomeDir, ".key"))
+		envVars, err := env.GetEnv()
+		if err != nil {
+			return err
+		}
+
+		tomb, err := encrypt.NewTomb(filepath.Join(envVars.AppHomeDir, ".key"))
 		if err != nil {
 			return err
 		}
@@ -38,11 +43,11 @@ var updateCmd = &cobra.Command{
 		header.PrintBanner()
 
 		var cred string
-		var selectedCredFile credentials.Credential
+		var selectedCred credentials.Credential
 		var form *huh.Form
 
 		if credName == "" {
-			options, err := prompts.GetCredOptions(env.AppHomeDir)
+			options, err := prompts.GetCredOptions(envVars.AppHomeDir)
 			if err != nil {
 				return err
 			}
@@ -53,7 +58,7 @@ var updateCmd = &cobra.Command{
 						Options(options...).
 						Title("Available Credentials").
 						Description("Choose a credential to update.").
-						Value(&selectedCredFile),
+						Value(&selectedCred),
 					huh.NewInput().
 						Title("Enter the updated credential").
 						Value(&cred).
@@ -62,8 +67,11 @@ var updateCmd = &cobra.Command{
 				),
 			)
 		} else {
-			selectedCredFile.Name = filepath.Base(credName)
-			selectedCredFile.Path = credentials.ResolveCredName(credName)
+			selectedCred.Name = filepath.Base(credName)
+			selectedCred.Path, err = credentials.ResolveCredName(credName)
+			if err != nil {
+				return err
+			}
 
 			form = huh.NewForm(
 				huh.NewGroup(
@@ -96,14 +104,12 @@ var updateCmd = &cobra.Command{
 
 		fmt.Println(pp.Complete("Credential encrypted"))
 
-		if err = os.WriteFile(selectedCredFile.Path, encTest, 0600); err != nil {
+		if err = os.WriteFile(selectedCred.Path, encTest, 0600); err != nil {
 			return err
 		}
-
-		fmt.Println()
 		fmt.Println(pp.Complete("Credential saved"))
 		fmt.Println()
-		fmt.Printf("Please run the commmand %s to view the unencrypted credential\n", color.GreenString(app.Name+" view -f "+selectedCredFile.Name))
+		fmt.Printf("You can run the commmand %s to view the unencrypted credential\n", color.GreenString(app.Name+" view -n "+selectedCred.Name))
 
 		return nil
 	},
