@@ -25,8 +25,8 @@ func GetCredOptions(appHomeDir string) ([]huh.Option[credentials.Credential], er
 
 	options := []huh.Option[credentials.Credential]{}
 
-	for _, c := range credFiles {
-		options = append(options, huh.NewOption(c.Name, c))
+	for _, cred := range credFiles {
+		options = append(options, huh.NewOption(cred.Name, cred))
 	}
 
 	return options, nil
