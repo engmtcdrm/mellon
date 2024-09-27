@@ -3,22 +3,36 @@ package env
 import (
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/engmtcdrm/minno/app"
 )
 
-var (
+type Env struct {
+	// AppHomeDir is the directory in the user's home directory where the app stores its data.
 	AppHomeDir string
+}
+
+var (
+	instance *Env
+	once     sync.Once
 )
 
-// Returns the home directory for the application.
-func SetAppHomeDir() error {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return err
-	}
+// GetEnv returns the singleton instance of Env.
+func GetEnv() (*Env, error) {
+	var err error
 
-	AppHomeDir = filepath.Join(home, "."+app.Name)
+	once.Do(func() {
+		home, e := os.UserHomeDir()
+		if e != nil {
+			err = e
+			return
+		}
 
-	return nil
+		instance = &Env{
+			AppHomeDir: filepath.Join(home, app.DotName),
+		}
+	})
+
+	return instance, err
 }
