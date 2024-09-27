@@ -47,7 +47,7 @@ var updateCmd = &cobra.Command{
 		var form *huh.Form
 
 		if credName == "" {
-			options, err := prompts.GetCredOptions(envVars.AppHomeDir)
+			options, err := prompts.GetCredOptions()
 			if err != nil {
 				return err
 			}

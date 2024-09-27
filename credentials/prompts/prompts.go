@@ -10,7 +10,7 @@ import (
 	"github.com/fatih/color"
 )
 
-func GetCredOptions(appHomeDir string) ([]huh.Option[credentials.Credential], error) {
+func GetCredOptions() ([]huh.Option[credentials.Credential], error) {
 	credFiles, err := credentials.GetCredFiles()
 	if err != nil {
 		return nil, err

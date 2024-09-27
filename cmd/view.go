@@ -44,7 +44,7 @@ var viewCmd = &cobra.Command{
 
 			var selectedCredFile credentials.Credential
 
-			options, err := prompts.GetCredOptions(envVars.AppHomeDir)
+			options, err := prompts.GetCredOptions()
 			if err != nil {
 				return err
 			}
