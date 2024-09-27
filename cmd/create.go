@@ -30,7 +30,12 @@ var createCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		header.PrintBanner()
 
-		tomb, err := encrypt.NewTomb(filepath.Join(env.AppHomeDir, ".key"))
+		envVars, err := env.GetEnv()
+		if err != nil {
+			return err
+		}
+
+		tomb, err := encrypt.NewTomb(filepath.Join(envVars.AppHomeDir, ".key"))
 		if err != nil {
 			return err
 		}
@@ -51,25 +56,21 @@ var createCmd = &cobra.Command{
 					EchoMode(huh.EchoModeNone).
 					Inline(true),
 				huh.NewInput().
-					Title("Enter a filename for the credential").
+					Title("Enter a name for the credential").
 					Value(&credFile).
 					Validate(func(s string) error {
 						if s == "" {
-							return fmt.Errorf("filename cannot be empty")
-						}
-
-						if strings.HasSuffix(s, ".cred") {
-							return fmt.Errorf("filename cannot end with .cred")
+							return fmt.Errorf("name cannot be empty")
 						}
 
 						var re = regexp.MustCompile(`^[a-zA-Z0-9-_]+$`)
 						if !re.MatchString(s) {
-							return fmt.Errorf("filename must be alphanumeric, hyphens, and underscores only")
+							return fmt.Errorf("name can only be alphanumeric, hyphens, and underscores")
 						}
 
 						for _, f := range credFiles {
 							if f.Name == s {
-								return fmt.Errorf("credential file with that name already exists")
+								return fmt.Errorf("credential with that name already exists")
 							}
 						}
 
@@ -99,16 +100,15 @@ var createCmd = &cobra.Command{
 
 		fmt.Println(pp.Complete("Credential encrypted"))
 
-		credFilePath := filepath.Join(env.AppHomeDir, credFile+".cred")
+		credFilePath := filepath.Join(envVars.AppHomeDir, credFile+".cred")
 
 		if err = os.WriteFile(credFilePath, encTest, 0600); err != nil {
 			return err
 		}
 
-		fmt.Println()
 		fmt.Println(pp.Complete("Credential saved"))
 		fmt.Println()
-		fmt.Printf("Please run the commmand %s to view the unencrypted credential\n", color.GreenString(app.Name+" view -f "+credFile))
+		fmt.Printf("You can run the commmand %s to view the unencrypted credential\n", color.GreenString(app.Name+" view -n "+credFile))
 
 		return nil
 	},
