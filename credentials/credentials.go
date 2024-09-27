@@ -14,17 +14,16 @@ type Credential struct {
 	Path string
 }
 
+// Returns a slice of all available credentials
 func GetCredFiles() ([]Credential, error) {
-	if env.AppHomeDir == "" {
-		err := env.SetAppHomeDir()
-		if err != nil {
-			return nil, err
-		}
+	envVars, err := env.GetEnv()
+	if err != nil {
+		return nil, err
 	}
 
 	var credFiles []Credential
 
-	err := filepath.WalkDir(env.AppHomeDir, func(path string, d os.DirEntry, err error) error {
+	err = filepath.WalkDir(envVars.AppHomeDir, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -47,24 +46,22 @@ func GetCredFiles() ([]Credential, error) {
 	return credFiles, nil
 }
 
-func ResolveCredName(credName string) string {
-	if env.AppHomeDir == "" {
-		err := env.SetAppHomeDir()
-		if err != nil {
-			return ""
-		}
+func ResolveCredName(credName string) (string, error) {
+	envVars, err := env.GetEnv()
+	if err != nil {
+		return "", err
 	}
 
 	if !filepath.IsAbs(credName) {
-		credName = filepath.Join(env.AppHomeDir, credName)
+		credName = filepath.Join(envVars.AppHomeDir, credName)
 	} else {
 		fmt.Println(fmt.Errorf("Credential name cannot be an absolute path").Error())
 		os.Exit(1)
 	}
 
-	if !strings.HasSuffix(credName, ".cred") {
+	if filepath.Ext(credName) != ".cred" {
 		credName = credName + ".cred"
 	}
 
-	return credName
+	return credName, nil
 }

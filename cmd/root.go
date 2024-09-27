@@ -40,26 +40,26 @@ func init() {
 }
 
 func configInit() {
-	err := env.SetAppHomeDir()
+	envVars, err := env.GetEnv()
 	if err != nil {
 		panic(err)
 	}
 
-	if _, err := os.Stat(env.AppHomeDir); os.IsNotExist(err) {
+	if _, err := os.Stat(envVars.AppHomeDir); os.IsNotExist(err) {
 		// Directory does not exist, create it
-		err = os.MkdirAll(env.AppHomeDir, 0700)
+		err = os.MkdirAll(envVars.AppHomeDir, 0700)
 		if err != nil {
 			panic(err)
 		}
 
 		// Change permission again to get rid of any sticky bits
-		err = os.Chmod(env.AppHomeDir, 0700)
+		err = os.Chmod(envVars.AppHomeDir, 0700)
 		if err != nil {
 			panic(err)
 		}
 	} else {
 		// Directory exists, make sure directories and files are secure
-		err = filepath.Walk(env.AppHomeDir, func(path string, info os.FileInfo, err error) error {
+		err = filepath.Walk(envVars.AppHomeDir, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
