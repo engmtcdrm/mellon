@@ -11,7 +11,7 @@ import (
 	"github.com/engmtcdrm/minno/credentials/prompts"
 	"github.com/engmtcdrm/minno/encrypt"
 	"github.com/engmtcdrm/minno/env"
-	"github.com/engmtcdrm/minno/utils/header"
+	"github.com/engmtcdrm/minno/header"
 	pp "github.com/engmtcdrm/minno/utils/prettyprint"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
