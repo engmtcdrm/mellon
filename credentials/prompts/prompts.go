@@ -5,9 +5,10 @@ import (
 	"os"
 
 	"github.com/charmbracelet/huh"
+
 	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/credentials"
-	"github.com/fatih/color"
+	pp "github.com/engmtcdrm/minno/utils/prettyprint"
 )
 
 func GetCredOptions() ([]huh.Option[credentials.Credential], error) {
@@ -19,7 +20,7 @@ func GetCredOptions() ([]huh.Option[credentials.Credential], error) {
 	if len(credFiles) == 0 {
 		fmt.Println("No credentials found")
 		fmt.Println()
-		fmt.Printf("Please run command %s to create a credential\n", color.GreenString(app.Name+" create"))
+		fmt.Printf("Please run command %s to create a credential\n", pp.Greenf("%s create", app.Name))
 		os.Exit(0)
 	}
 

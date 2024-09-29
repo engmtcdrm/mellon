@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/huh"
+	"github.com/spf13/cobra"
+
 	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/credentials"
 	"github.com/engmtcdrm/minno/credentials/prompts"
@@ -14,8 +16,6 @@ import (
 	"github.com/engmtcdrm/minno/env"
 	"github.com/engmtcdrm/minno/header"
 	pp "github.com/engmtcdrm/minno/utils/prettyprint"
-	"github.com/fatih/color"
-	"github.com/spf13/cobra"
 )
 
 func init() {
@@ -109,7 +109,7 @@ var updateCmd = &cobra.Command{
 		}
 		fmt.Println(pp.Complete("Credential saved"))
 		fmt.Println()
-		fmt.Printf("You can run the commmand %s to view the unencrypted credential\n", color.GreenString(app.Name+" view -n "+selectedCred.Name))
+		fmt.Printf("You can run the commmand %s to view the unencrypted credential\n", pp.Greenf("%s view -n %s", app.Name, selectedCred.Name))
 
 		return nil
 	},

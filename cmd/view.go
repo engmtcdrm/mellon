@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/charmbracelet/huh"
+	"github.com/spf13/cobra"
+
 	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/credentials"
 	"github.com/engmtcdrm/minno/credentials/prompts"
@@ -13,8 +15,6 @@ import (
 	"github.com/engmtcdrm/minno/env"
 	"github.com/engmtcdrm/minno/header"
 	pp "github.com/engmtcdrm/minno/utils/prettyprint"
-	"github.com/fatih/color"
-	"github.com/spf13/cobra"
 )
 
 func init() {
@@ -87,7 +87,7 @@ var viewCmd = &cobra.Command{
 
 			fmt.Println(pp.Complete("Credential decrypted"))
 			fmt.Println()
-			fmt.Println(pp.Info("The credential is " + color.CyanString(string(cred))))
+			fmt.Println(pp.Info("The credential is " + pp.Green(string(cred))))
 		} else {
 			credName, err = credentials.ResolveCredName(credName)
 			if err != nil {
