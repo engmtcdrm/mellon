@@ -6,10 +6,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/spf13/cobra"
+
 	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/env"
-	"github.com/fatih/color"
-	"github.com/spf13/cobra"
+	pp "github.com/engmtcdrm/minno/utils/prettyprint"
 )
 
 var (
@@ -75,6 +76,6 @@ func configInit() {
 
 	if debug {
 		slog.SetLogLoggerLevel(slog.LevelDebug)
-		slog.Debug(color.CyanString("Debug mode enabled"))
+		slog.Debug(pp.Cyan("Debug mode enabled"))
 	}
 }
