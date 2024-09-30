@@ -56,7 +56,7 @@ func ResolveCredName(credName string) (string, error) {
 		credName = filepath.Join(envVars.AppHomeDir, credName)
 	} else {
 		fmt.Println(fmt.Errorf("Credential name cannot be an absolute path").Error())
-		os.Exit(1)
+		os.Exit(99)
 	}
 
 	if filepath.Ext(credName) != ".cred" {
