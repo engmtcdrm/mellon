@@ -11,6 +11,7 @@ import (
 	pp "github.com/engmtcdrm/minno/utils/prettyprint"
 )
 
+// GetCredOptions returns a slice of huh.Options for all available credentials
 func GetCredOptions() ([]huh.Option[credentials.Credential], error) {
 	credFiles, err := credentials.GetCredFiles()
 	if err != nil {
