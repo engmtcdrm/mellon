@@ -11,10 +11,17 @@ import (
 )
 
 var (
+	// IconComplete is the icon for a completed task.
 	IconComplete = "[✓] "
-	IconAlert    = "[!] "
-	IconFailed   = "[✗] "
-	IconInfo     = "[i] "
+
+	// IconAlert is the icon for an alert.
+	IconAlert = "[!] "
+
+	// IconFailed is the icon for a failed task.
+	IconFailed = "[✗] "
+
+	// IconInfo is the icon for an informational message.
+	IconInfo = "[i] "
 )
 
 // Black formats using the default formats for its operands and returns the
@@ -156,6 +163,7 @@ func VarQuote(variable string, value string) string {
 	return Info(fmt.Sprintf("\"%s\" is set to \"%s\"", Cyan(variable), Green(value)))
 }
 
+// ThemeMinno returns a new theme based on the Minno color scheme.
 func ThemeMinno() *huh.Theme {
 	t := huh.ThemeBase()
 
