@@ -10,7 +10,16 @@
             "request": "launch",
             "mode": "auto",
             "program": ".",
-            "args": ["create"]
+            "console": "integratedTerminal",
+            "args": "${input:args}"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "args",
+            "type": "promptString",
+            "description": "Enter the arguments to pass to the program",
+            "default": ""
         }
     ]
 }
