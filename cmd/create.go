@@ -28,7 +28,7 @@ var createCmd = &cobra.Command{
 	Long:    "Create a credential",
 	Example: app.Name + " create",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		header.PrintBanner()
+		header.PrintHeader()
 
 		envVars, err := env.GetEnv()
 		if err != nil {

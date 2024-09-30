@@ -8,7 +8,8 @@ import (
 	pp "github.com/engmtcdrm/minno/utils/prettyprint"
 )
 
-func PrintBanner() {
+// PrintHeader prints the header of the application
+func PrintHeader() {
 	fmt.Println(pp.Magenta("       _"))
 	fmt.Println(pp.Magenta(" _____|_|___ ___ ___"))
 	fmt.Println(pp.Red("|     | |   |   | . |"))

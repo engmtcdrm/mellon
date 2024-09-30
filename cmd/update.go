@@ -40,7 +40,7 @@ var updateCmd = &cobra.Command{
 			return err
 		}
 
-		header.PrintBanner()
+		header.PrintHeader()
 
 		var cred string
 		var selectedCred credentials.Credential

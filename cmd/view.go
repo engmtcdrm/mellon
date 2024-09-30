@@ -40,7 +40,7 @@ var viewCmd = &cobra.Command{
 		}
 
 		if credName == "" {
-			header.PrintBanner()
+			header.PrintHeader()
 
 			var selectedCredFile credentials.Credential
 
