@@ -11,10 +11,10 @@ import (
 )
 
 var (
-	IconComplete = Green("[✓] ")
-	IconAlert    = Yellow("[!] ")
-	IconFailed   = Red("[✗] ")
-	IconInfo     = Cyan("[i] ")
+	IconComplete = "[✓] "
+	IconAlert    = "[!] "
+	IconFailed   = "[✗] "
+	IconInfo     = "[i] "
 )
 
 // Black formats using the default formats for its operands and returns the
@@ -121,24 +121,39 @@ func Whitef(format string, a ...any) string {
 	return ansi.White + fmt.Sprintf(format, a...) + ansi.Reset
 }
 
+// Complete returns a string with a green checkmark icon and the given message.
 func Complete(msg string) string {
-	return IconComplete + msg
+	return Green(IconComplete) + msg
 }
 
+// Alert returns a string with a yellow exclamation icon and the given message.
 func Alert(msg string) string {
-	return IconAlert + msg
+	return Yellow(IconAlert) + msg
 }
 
+// RedAlert returns a string with a red exclamation icon and the given message.
+func RedAlert(msg string) string {
+	return Red(IconAlert) + msg
+}
+
+// Fail returns a string with a red X icon and the given message.
 func Fail(msg string) string {
-	return IconFailed + msg
+	return Red(IconFailed) + msg
 }
 
+// Info returns a string with a cyan info icon and the given message.
 func Info(msg string) string {
-	return IconInfo + msg
+	return Cyan(IconInfo) + msg
 }
 
+// Var returns a string with the given variable and value.
 func Var(variable string, value string) string {
 	return Info(Cyan(variable) + " is set to " + Green(value))
+}
+
+// VarQuote returns a string with the given variable and value, quoted.
+func VarQuote(variable string, value string) string {
+	return Info(fmt.Sprintf("\"%s\" is set to \"%s\"", Cyan(variable), Green(value)))
 }
 
 func ThemeMinno() *huh.Theme {
@@ -151,7 +166,7 @@ func ThemeMinno() *huh.Theme {
 		magenta     = lipgloss.Color(strconv.Itoa(ansi.ANSIMagenta))
 		cyan        = lipgloss.Color(strconv.Itoa(ansi.ANSICyan))
 		white       = lipgloss.Color(strconv.Itoa(ansi.ANSIWhite))
-		blackBright = lipgloss.Color(strconv.Itoa(ansi.ANSIBrightBlack))
+		brightBlack = lipgloss.Color(strconv.Itoa(ansi.ANSIBrightBlack))
 		red         = lipgloss.Color(strconv.Itoa(ansi.ANSIBrightRed))
 	)
 
@@ -159,7 +174,7 @@ func ThemeMinno() *huh.Theme {
 	t.Focused.Title = t.Focused.Title.Foreground(cyan)
 	t.Focused.NoteTitle = t.Focused.NoteTitle.Foreground(cyan)
 	t.Focused.Directory = t.Focused.Directory.Foreground(cyan)
-	t.Focused.Description = t.Focused.Description.Foreground(blackBright)
+	t.Focused.Description = t.Focused.Description.Foreground(brightBlack)
 	t.Focused.ErrorIndicator = t.Focused.ErrorIndicator.Foreground(red)
 	t.Focused.ErrorMessage = t.Focused.ErrorMessage.Foreground(red)
 	t.Focused.SelectSelector = t.Focused.SelectSelector.Foreground(yellow)
@@ -174,16 +189,16 @@ func ThemeMinno() *huh.Theme {
 	t.Focused.FocusedButton = t.Focused.FocusedButton.Foreground(white).Background(magenta)
 	t.Focused.BlurredButton = t.Focused.BlurredButton.Foreground(white).Background(black)
 
-	t.Focused.TextInput.Cursor = t.Focused.TextInput.Cursor.Foreground(red)
-	t.Focused.TextInput.Placeholder = t.Focused.TextInput.Placeholder.Foreground(blackBright)
+	t.Focused.TextInput.Cursor = t.Focused.TextInput.Cursor.Foreground(green)
+	t.Focused.TextInput.Placeholder = t.Focused.TextInput.Placeholder.Foreground(brightBlack)
 	t.Focused.TextInput.Prompt = t.Focused.TextInput.Prompt.Foreground(yellow)
 
 	t.Blurred = t.Focused
 	t.Blurred.Base = t.Blurred.Base.BorderStyle(lipgloss.HiddenBorder())
-	t.Blurred.NoteTitle = t.Blurred.NoteTitle.Foreground(blackBright)
-	t.Blurred.Title = t.Blurred.NoteTitle.Foreground(blackBright)
+	t.Blurred.NoteTitle = t.Blurred.NoteTitle.Foreground(brightBlack)
+	t.Blurred.Title = t.Blurred.NoteTitle.Foreground(brightBlack)
 
-	t.Blurred.TextInput.Prompt = t.Blurred.TextInput.Prompt.Foreground(blackBright)
+	t.Blurred.TextInput.Prompt = t.Blurred.TextInput.Prompt.Foreground(brightBlack)
 	t.Blurred.TextInput.Text = t.Blurred.TextInput.Text.Foreground(white)
 
 	t.Blurred.NextIndicator = lipgloss.NewStyle()
