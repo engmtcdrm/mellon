@@ -1,6 +1,9 @@
 package ansi
 
-import "strconv"
+import (
+	"regexp"
+	"strconv"
+)
 
 var (
 	// Move the cursor to the top left corner of screen
@@ -224,4 +227,10 @@ func ScrollUpN(n int) string {
 // ScrollDownN scrolls the screen down n rows (lines).
 func ScrollDownN(n int) string {
 	return csi + strconv.Itoa(n) + "T"
+}
+
+// StripCodes removes all ANSI escape codes from the input string.
+func StripCodes(input string) string {
+	re := regexp.MustCompile(`\x1b\[[;?0-9]*[a-zA-Z]`)
+	return re.ReplaceAllString(input, "")
 }
