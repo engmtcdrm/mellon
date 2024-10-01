@@ -9,8 +9,12 @@ import (
 )
 
 type Env struct {
+	// Home is the user's home directory.
+	Home string
 	// AppHomeDir is the directory in the user's home directory where the app stores its data.
 	AppHomeDir string
+	// KeyPath is the path to the key file.
+	KeyPath string
 }
 
 var (
@@ -30,8 +34,11 @@ func GetEnv() (*Env, error) {
 		}
 
 		instance = &Env{
+			Home:       home,
 			AppHomeDir: filepath.Join(home, app.DotName),
 		}
+
+		instance.KeyPath = filepath.Join(instance.AppHomeDir, ".key")
 	})
 
 	return instance, err
