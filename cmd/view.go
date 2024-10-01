@@ -1,9 +1,9 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
@@ -18,7 +18,7 @@ import (
 )
 
 func init() {
-	viewCmd.Flags().StringVarP(&credName, "cred-name", "n", "", "The name of the credential to view (optional)")
+	viewCmd.Flags().StringVarP(&credName, "cred-name", "n", "", "The name of the credential to view. Only names containing alphanumeric, hyphens, and underscores are allowed. (optional)")
 
 	rootCmd.AddCommand(viewCmd)
 }
@@ -34,7 +34,7 @@ var viewCmd = &cobra.Command{
 			return err
 		}
 
-		tomb, err := encrypt.NewTomb(filepath.Join(envVars.AppHomeDir, ".key"))
+		tomb, err := encrypt.NewTomb(envVars.KeyPath)
 		if err != nil {
 			return err
 		}
@@ -63,17 +63,12 @@ var viewCmd = &cobra.Command{
 				WithTheme(pp.ThemeMinno()).
 				Run()
 			if err != nil {
-				if err.Error() == "user aborted" {
-					fmt.Println("User aborted")
-					os.Exit(0)
-				} else {
-					return err
-				}
+				return err
 			}
 
 			data, err := os.ReadFile(selectedCredFile.Path)
 			if err != nil {
-				return err
+				return errors.New("failed to read credential. Encrypted credential may be corrupted")
 			}
 
 			fmt.Println(pp.Complete("Credential read"))
@@ -81,8 +76,7 @@ var viewCmd = &cobra.Command{
 			cred, err := tomb.Decrypt(data)
 			data = nil
 			if err != nil {
-				fmt.Println(pp.Fail("Failed to decrypt credential. Encrypted credential may be corrupted"))
-				os.Exit(99)
+				return errors.New("failed to decrypt credential. Encrypted credential may be corrupted")
 			}
 
 			fmt.Println(pp.Complete("Credential decrypted"))
@@ -94,15 +88,19 @@ var viewCmd = &cobra.Command{
 				return err
 			}
 
+			if !credentials.IsExists(credName) {
+				return errors.New("credential name does not exist")
+			}
+
 			data, err := os.ReadFile(credName)
 			if err != nil {
-				return err
+				return errors.New("failed to read credential. Encrypted credential may be corrupted")
 			}
 
 			cred, err := tomb.Decrypt(data)
 			data = nil
 			if err != nil {
-				return err
+				return errors.New("failed to decrypt credential. Encrypted credential may be corrupted")
 			}
 
 			fmt.Print(string(cred))
