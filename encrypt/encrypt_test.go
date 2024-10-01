@@ -11,7 +11,8 @@ import (
 
 func TestHashSHA(t *testing.T) {
 	data := []byte("test data")
-	hashed := hashSHA(data)
+	hashed, err := hashSHA(data)
+	assert.NoError(t, err)
 	assert.NotNil(t, hashed)
 	assert.Equal(t, 64, len(hashed))
 }
@@ -71,7 +72,9 @@ func TestTomb_CheckPerms(t *testing.T) {
 	tomb, err := NewTomb(keyPath)
 	assert.NoError(t, err)
 
-	checkData := hashSHA([]byte(tomb.hu))
+	hashed, err := hashSHA([]byte(tomb.hu))
+	assert.NoError(t, err)
+	checkData := hashed
 	assert.True(t, tomb.CheckPerms(checkData))
 
 	// Clean up
