@@ -1,9 +1,11 @@
 package credentials
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/engmtcdrm/minno/env"
@@ -46,22 +48,34 @@ func GetCredFiles() ([]Credential, error) {
 	return credFiles, nil
 }
 
+// ResolveCredName resolves the full path of a credential name
 func ResolveCredName(credName string) (string, error) {
-	envVars, err := env.GetEnv()
-	if err != nil {
-		return "", err
+	if !IsValidName(credName) {
+		return "", errors.New("credential name can only contain alphanumeric, hyphens, and underscores")
 	}
 
-	if !filepath.IsAbs(credName) {
-		credName = filepath.Join(envVars.AppHomeDir, credName)
-	} else {
-		fmt.Println(fmt.Errorf("Credential name cannot be an absolute path").Error())
-		os.Exit(99)
+	envVars, err := env.GetEnv()
+	if err != nil {
+		return "", fmt.Errorf("error getting environment variables: %v", err)
 	}
+
+	credName = filepath.Join(envVars.AppHomeDir, credName)
 
 	if filepath.Ext(credName) != ".cred" {
 		credName = credName + ".cred"
 	}
 
 	return credName, nil
+}
+
+// IsValidName checks if a string is a valid credential name
+func IsValidName(s string) bool {
+	var re = regexp.MustCompile(`^[a-zA-Z0-9-_]+$`)
+	return re.MatchString(s)
+}
+
+// IsExists checks if a credential file exists
+func IsExists(path string) bool {
+	_, err := os.Stat(path)
+	return !os.IsNotExist(err)
 }
