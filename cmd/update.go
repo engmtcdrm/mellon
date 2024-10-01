@@ -73,6 +73,10 @@ var updateCmd = &cobra.Command{
 				return err
 			}
 
+			if !credentials.IsExists(selectedCred.Path) {
+				return fmt.Errorf("credential %s does not exist!\n\nUse command %s to create the credential", pp.Red(selectedCred.Name), pp.Greenf("%s create", app.Name))
+			}
+
 			form = huh.NewForm(
 				huh.NewGroup(
 					huh.NewInput().
@@ -88,12 +92,7 @@ var updateCmd = &cobra.Command{
 			WithTheme(pp.ThemeMinno()).
 			Run()
 		if err != nil {
-			if err.Error() == "user aborted" {
-				fmt.Println("User aborted")
-				os.Exit(0)
-			} else {
-				return err
-			}
+			return err
 		}
 
 		encTest, err := tomb.Encrypt([]byte(strings.TrimSpace(cred)))
