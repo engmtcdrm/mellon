@@ -1,10 +1,10 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/charmbracelet/huh"
@@ -60,17 +60,16 @@ var createCmd = &cobra.Command{
 					Value(&credFile).
 					Validate(func(s string) error {
 						if s == "" {
-							return fmt.Errorf("name cannot be empty")
+							return errors.New("name cannot be empty")
 						}
 
-						var re = regexp.MustCompile(`^[a-zA-Z0-9-_]+$`)
-						if !re.MatchString(s) {
-							return fmt.Errorf("name can only be alphanumeric, hyphens, and underscores")
+						if !credentials.IsValidName(s) {
+							return errors.New("name can only be alphanumeric, hyphens, and underscores")
 						}
 
 						for _, f := range credFiles {
 							if f.Name == s {
-								return fmt.Errorf("credential with that name already exists")
+								return errors.New("credential with that name already exists")
 							}
 						}
 
@@ -84,12 +83,7 @@ var createCmd = &cobra.Command{
 			WithTheme(pp.ThemeMinno()).
 			Run()
 		if err != nil {
-			if err.Error() == "user aborted" {
-				fmt.Println("User aborted")
-				os.Exit(0)
-			} else {
-				return err
-			}
+			return err
 		}
 
 		encTest, err := tomb.Encrypt([]byte(strings.TrimSpace(cred)))
