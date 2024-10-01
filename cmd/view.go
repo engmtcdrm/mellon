@@ -18,7 +18,13 @@ import (
 )
 
 func init() {
-	viewCmd.Flags().StringVarP(&credName, "cred-name", "n", "", "The name of the credential to view. Only names containing alphanumeric, hyphens, and underscores are allowed. (optional)")
+	viewCmd.Flags().StringVarP(
+		&credName,
+		"cred-name",
+		"n",
+		"",
+		"The name of the credential to view. Only names containing alphanumeric, hyphens, and underscores are allowed. (optional)",
+	)
 
 	rootCmd.AddCommand(viewCmd)
 }
