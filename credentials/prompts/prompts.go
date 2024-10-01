@@ -2,7 +2,6 @@ package prompts
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/charmbracelet/huh"
 
@@ -19,10 +18,7 @@ func GetCredOptions() ([]huh.Option[credentials.Credential], error) {
 	}
 
 	if len(credFiles) == 0 {
-		fmt.Println("No credentials found")
-		fmt.Println()
-		fmt.Printf("Please run command %s to create a credential\n", pp.Greenf("%s create", app.Name))
-		os.Exit(0)
+		return nil, fmt.Errorf("no credentials found to update\n\nPlease run command %s to create a credential", pp.Greenf("%s create", app.Name))
 	}
 
 	options := []huh.Option[credentials.Credential]{}
