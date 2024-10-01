@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"log/slog"
 	"os"
 	"path/filepath"
 
@@ -10,12 +9,9 @@ import (
 
 	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/env"
-	pp "github.com/engmtcdrm/minno/utils/prettyprint"
 )
 
 var (
-	debug bool
-
 	rootCmd = &cobra.Command{
 		Use:     app.Name,
 		Short:   app.ShortDesc,
@@ -37,8 +33,6 @@ func init() {
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 
 	cobra.OnInitialize(configInit)
-
-	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "debug mode")
 }
 
 func configInit() {
@@ -73,10 +67,5 @@ func configInit() {
 		if err != nil {
 			panic(err)
 		}
-	}
-
-	if debug {
-		slog.SetLogLoggerLevel(slog.LevelDebug)
-		slog.Debug(pp.Cyan("Debug mode enabled"))
 	}
 }

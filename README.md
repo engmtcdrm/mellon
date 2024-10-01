@@ -17,7 +17,6 @@ Available Commands:
   view        View a credential
 
 Flags:
-  -d, --debug     debug mode
   -h, --help      help for minno
   -v, --version   version for minno
 
