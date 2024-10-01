@@ -5,20 +5,25 @@ import (
 
 	"github.com/charmbracelet/huh"
 
-	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/credentials"
+	"github.com/engmtcdrm/minno/env"
 	pp "github.com/engmtcdrm/minno/utils/prettyprint"
 )
 
 // GetCredOptions returns a slice of huh.Options for all available credentials
 func GetCredOptions() ([]huh.Option[credentials.Credential], error) {
+	envVars, err := env.GetEnv()
+	if err != nil {
+		return nil, err
+	}
+
 	credFiles, err := credentials.GetCredFiles()
 	if err != nil {
 		return nil, err
 	}
 
 	if len(credFiles) == 0 {
-		return nil, fmt.Errorf("no credentials found to update\n\nPlease run command %s to create a credential", pp.Greenf("%s create", app.Name))
+		return nil, fmt.Errorf("no credentials found to update\n\nPlease run command %s to create a credential", pp.Greenf("%s create", envVars.ExeCmd))
 	}
 
 	options := []huh.Option[credentials.Credential]{}

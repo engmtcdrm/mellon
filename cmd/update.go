@@ -74,7 +74,7 @@ var updateCmd = &cobra.Command{
 			}
 
 			if !credentials.IsExists(selectedCred.Path) {
-				return fmt.Errorf("credential %s does not exist!\n\nUse command %s to create the credential", pp.Red(selectedCred.Name), pp.Greenf("%s create", app.Name))
+				return fmt.Errorf("credential %s does not exist!\n\nUse command %s to create the credential", pp.Red(selectedCred.Name), pp.Greenf("%s create", envVars.ExeCmd))
 			}
 
 			form = huh.NewForm(
@@ -108,7 +108,7 @@ var updateCmd = &cobra.Command{
 		}
 		fmt.Println(pp.Complete("Credential saved"))
 		fmt.Println()
-		fmt.Printf("You can run the commmand %s to view the unencrypted credential\n", pp.Greenf("%s view -n %s", app.Name, selectedCred.Name))
+		fmt.Printf("You can run the commmand %s to view the unencrypted credential\n", pp.Greenf("%s view -n %s", envVars.ExeCmd, selectedCred.Name))
 
 		return nil
 	},

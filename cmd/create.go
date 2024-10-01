@@ -102,7 +102,7 @@ var createCmd = &cobra.Command{
 
 		fmt.Println(pp.Complete("Credential saved"))
 		fmt.Println()
-		fmt.Printf("You can run the commmand %s to view the unencrypted credential\n", pp.Greenf("%s view -n %s", app.Name, credFile))
+		fmt.Printf("You can run the commmand %s to view the unencrypted credential\n", pp.Greenf("%s view -n %s", envVars.ExeCmd, credFile))
 
 		return nil
 	},
