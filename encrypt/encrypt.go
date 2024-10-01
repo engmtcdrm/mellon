@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/sha512"
 	"errors"
+	"log"
 	"log/slog"
 	"math/big"
 	"net"
@@ -18,22 +19,20 @@ import (
 // make it harder to understand. There are intentional redundant calls to try
 // again, to obfuscate the code even further.
 
-func hashSHA(data ...[]byte) []byte {
+func hashSHA(data ...[]byte) ([]byte, error) {
 	var d2h []byte
 
 	if len(data) == 0 {
 		n, err := rand.Int(rand.Reader, big.NewInt(9901))
 		if err != nil {
-			slog.Error("An error occurred", "error", err)
-			os.Exit(99)
+			return nil, err
 		}
 		n = n.Add(n, big.NewInt(100))
 
 		d2h = make([]byte, n.Int64())
 		_, err = rand.Read(d2h)
 		if err != nil {
-			slog.Error("An error occurred", "error", err)
-			os.Exit(99)
+			return nil, err
 		}
 	} else {
 		d2h = data[0]
@@ -43,10 +42,18 @@ func hashSHA(data ...[]byte) []byte {
 
 	h.Write(d2h)
 
-	return h.Sum(nil)
+	return h.Sum(nil), nil
 }
 
-var size = len(hashSHA())
+var size int
+
+func init() {
+	hash, err := hashSHA()
+	if err != nil {
+		log.Fatalf("Failed to generate hash: %v", err)
+	}
+	size = len(hash)
+}
 
 func getRandEncrypt(s int) ([]byte, error) {
 	d := make([]byte, s)
@@ -85,7 +92,12 @@ func saltValue(k fernet.Key, data []byte, hu []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	e3, err := fernet.EncryptAndSign(hashSHA([]byte(hu)), &k)
+	hs, err := hashSHA([]byte(hu))
+	if err != nil {
+		return nil, err
+	}
+
+	e3, err := fernet.EncryptAndSign(hs, &k)
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +164,12 @@ func createReadKey(keyPath string, hu string) (fernet.Key, error) {
 
 		hud := fernet.VerifyAndDecrypt(hue, 0, k3)
 
-		if !bytes.Equal(hud, hashSHA([]byte(hu))) {
+		hs, err := hashSHA([]byte(hu))
+		if err != nil {
+			return fernet.Key{}, err
+		}
+
+		if !bytes.Equal(hud, hs) {
 			return fernet.Key{}, errors.New("an error occurred during key verification")
 		}
 
@@ -169,7 +186,7 @@ type Tomb struct {
 }
 
 func NewTomb(keyPath string) (*Tomb, error) {
-	h, err := net.LookupAddr("127.0.0.1")
+	h, err := net.LookupAddr("\x31\x32\x37\x2e\x30\x2e\x30\x2e\x31")
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +210,12 @@ func NewTomb(keyPath string) (*Tomb, error) {
 }
 
 func (tomb *Tomb) CheckPerms(checkData []byte) bool {
-	return bytes.Equal(checkData, hashSHA([]byte(tomb.hu)))
+	hs, err := hashSHA([]byte(tomb.hu))
+	if err != nil {
+		return false
+	}
+
+	return bytes.Equal(checkData, hs)
 }
 
 func (tomb *Tomb) Encrypt(msg []byte) ([]byte, error) {
@@ -208,7 +230,12 @@ func (tomb *Tomb) Encrypt(msg []byte) ([]byte, error) {
 	}
 	msg = nil
 
-	e3, err := fernet.EncryptAndSign(hashSHA([]byte(tomb.hu)), &tomb.k)
+	hs, err := hashSHA([]byte(tomb.hu))
+	if err != nil {
+		return nil, err
+	}
+
+	e3, err := fernet.EncryptAndSign(hs, &tomb.k)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +254,12 @@ func (tomb *Tomb) Decrypt(data []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	e2, err := fernet.EncryptAndSign(hashSHA([]byte(tomb.hu)), &tomb.k)
+	hs, err := hashSHA([]byte(tomb.hu))
+	if err != nil {
+		return nil, err
+	}
+
+	e2, err := fernet.EncryptAndSign(hs, &tomb.k)
 	if err != nil {
 		return nil, err
 	}
