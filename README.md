@@ -1,4 +1,7 @@
 # minno
+
+[![Go](https://github.com/engmtcdrm/minno/actions/workflows/build.yml/badge.svg)](https://github.com/engmtcdrm/minno/actions/workflows/build.yml)
+
 Speak friend and enter - a lightweight CLI tool for securing and obtaining credentials
 
 ```
