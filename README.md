@@ -4,7 +4,7 @@
 
 Speak friend and enter - a lightweight CLI tool for securing and obtaining credentials
 
-```
+```sh
 A lightweight CLI tool for securing and obtaining credentials
 
 Usage:
