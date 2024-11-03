@@ -13,7 +13,7 @@ func PrintHeader() {
 	fmt.Println(pp.Magenta("       _"))
 	fmt.Println(pp.Magenta(" _____|_|___ ___ ___"))
 	fmt.Println(pp.Red("|     | |   |   | . |"))
-	fmt.Println(pp.Red("|_|_|_|_|_|_|_|_|___| ") + pp.Greenf("v%s", app.Version))
+	fmt.Println(pp.Red("|_|_|_|_|_|_|_|_|___| ") + pp.Green(app.Version))
 	fmt.Println(app.LongDesc)
 	fmt.Println(pp.Cyan(app.RepoUrl))
 	fmt.Println(strings.Repeat("-", max(len(app.LongDesc), len(app.RepoUrl))))
