@@ -8,9 +8,6 @@ const (
 	// DotName is the name of the application with a dot prefix
 	DotName = "." + Name
 
-	// Version of the application
-	Version = "0.0.1"
-
 	// LongDesc provides a detailed description of the application
 	LongDesc = "A lightweight CLI tool for securing and obtaining credentials"
 
@@ -19,4 +16,9 @@ const (
 
 	// RepoUrl is the URL of the application's repository
 	RepoUrl = "https://github.com/engmtcdrm/minno"
+)
+
+var (
+	// Version of the application
+	Version = "dev"
 )
