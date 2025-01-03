@@ -5,6 +5,8 @@ go 1.23.0
 require (
 	github.com/charmbracelet/huh v0.6.0
 	github.com/charmbracelet/lipgloss v0.13.0
+	github.com/engmtcdrm/go-ansi v1.0.1
+	github.com/engmtcdrm/go-prettyprint v1.1.0
 	github.com/fernet/fernet-go v0.0.0-20240119011108-303da6aec611
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
