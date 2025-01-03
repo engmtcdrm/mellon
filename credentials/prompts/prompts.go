@@ -5,9 +5,9 @@ import (
 
 	"github.com/charmbracelet/huh"
 
+	pp "github.com/engmtcdrm/go-prettyprint"
 	"github.com/engmtcdrm/minno/credentials"
 	"github.com/engmtcdrm/minno/env"
-	pp "github.com/engmtcdrm/minno/utils/prettyprint"
 )
 
 // GetCredOptions returns a slice of huh.Options for all available credentials

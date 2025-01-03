@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	pp "github.com/engmtcdrm/go-prettyprint"
 	"github.com/engmtcdrm/minno/app"
-	pp "github.com/engmtcdrm/minno/utils/prettyprint"
 )
 
 // PrintHeader prints the header of the application
