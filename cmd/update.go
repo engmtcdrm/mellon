@@ -9,13 +9,13 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 
+	pp "github.com/engmtcdrm/go-prettyprint"
 	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/credentials"
 	"github.com/engmtcdrm/minno/credentials/prompts"
 	"github.com/engmtcdrm/minno/encrypt"
 	"github.com/engmtcdrm/minno/env"
 	"github.com/engmtcdrm/minno/header"
-	pp "github.com/engmtcdrm/minno/utils/prettyprint"
 )
 
 func init() {
@@ -89,7 +89,7 @@ var updateCmd = &cobra.Command{
 		}
 
 		err = form.
-			WithTheme(pp.ThemeMinno()).
+			WithTheme(app.ThemeMinno()).
 			Run()
 		if err != nil {
 			return err
