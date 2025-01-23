@@ -19,7 +19,11 @@ func TestIsValidName(t *testing.T) {
 func TestIsExists(t *testing.T) {
 	// Create test data
 	os.MkdirAll("./testdata", os.ModePerm)
-	defer os.RemoveAll("./testdata")
+	defer func() {
+		if removeErr := os.RemoveAll("./testdata"); removeErr != nil {
+			t.Errorf("Failed to remove testdata directory: %v", removeErr)
+		}
+	}()
 
 	credFile := "./testdata/test.cred"
 	os.WriteFile(credFile, []byte("test"), os.ModePerm)
