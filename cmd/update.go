@@ -9,11 +9,11 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 
+	"github.com/engmtcdrm/go-entomb"
 	pp "github.com/engmtcdrm/go-prettyprint"
 	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/credentials"
 	"github.com/engmtcdrm/minno/credentials/prompts"
-	"github.com/engmtcdrm/minno/encrypt"
 	"github.com/engmtcdrm/minno/env"
 	"github.com/engmtcdrm/minno/header"
 )
@@ -35,7 +35,7 @@ var updateCmd = &cobra.Command{
 			return err
 		}
 
-		tomb, err := encrypt.NewTomb(filepath.Join(envVars.AppHomeDir, ".key"))
+		tomb, err := entomb.NewTomb(filepath.Join(envVars.AppHomeDir, ".key"))
 		if err != nil {
 			return err
 		}

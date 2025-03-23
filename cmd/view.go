@@ -8,11 +8,11 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 
+	"github.com/engmtcdrm/go-entomb"
 	pp "github.com/engmtcdrm/go-prettyprint"
 	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/credentials"
 	"github.com/engmtcdrm/minno/credentials/prompts"
-	"github.com/engmtcdrm/minno/encrypt"
 	"github.com/engmtcdrm/minno/env"
 	"github.com/engmtcdrm/minno/header"
 )
@@ -40,7 +40,7 @@ var viewCmd = &cobra.Command{
 			return err
 		}
 
-		tomb, err := encrypt.NewTomb(envVars.KeyPath)
+		tomb, err := entomb.NewTomb(envVars.KeyPath)
 		if err != nil {
 			return err
 		}
