@@ -19,7 +19,7 @@ import (
 )
 
 func init() {
-	updateCmd.Flags().StringVarP(&credName, "cred-name", "n", "", "The credential to update (optional)")
+	updateCmd.Flags().StringVarP(&credName, "cred-name", "n", "", "(optional) The credential to update")
 
 	rootCmd.AddCommand(updateCmd)
 }
