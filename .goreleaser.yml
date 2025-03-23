@@ -26,7 +26,7 @@ builds:
       - -X github.com/engmtcdrm/minno/app.Version={{ .Tag }}
 
 archives:
-  - format: zip
+  - formats: zip
     # this name template makes the OS and Arch compatible with the results of `uname`.
     name_template: >-
       {{ .ProjectName }}_
