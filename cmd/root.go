@@ -22,6 +22,7 @@ var (
 	}
 
 	credName string
+	output   string
 )
 
 // Execute executes the root command.
