@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
@@ -23,7 +24,14 @@ func init() {
 		"cred-name",
 		"n",
 		"",
-		"The name of the credential to view. Only names containing alphanumeric, hyphens, and underscores are allowed. (optional)",
+		"(optional) The name of the credential to view. Only names containing alphanumeric, hyphens, and underscores are allowed.",
+	)
+	viewCmd.Flags().StringVarP(
+		&output,
+		"output",
+		"o",
+		"",
+		"(optional) File to write decrypted credential to. Defaults to outputting to stdout. This only works with the option -n, --cred-name",
 	)
 
 	rootCmd.AddCommand(viewCmd)
@@ -109,7 +117,22 @@ var viewCmd = &cobra.Command{
 				return errors.New("failed to decrypt credential. Encrypted credential may be corrupted")
 			}
 
-			fmt.Print(string(cred))
+			if output == "" {
+				fmt.Print(string(cred))
+			} else {
+				outputDir := filepath.Dir(output)
+				if _, err := os.Stat(outputDir); os.IsNotExist(err) {
+					err = os.MkdirAll(outputDir, 0700)
+					if err != nil {
+						return errors.New("failed to create output directory for output file")
+					}
+				}
+
+				err = os.WriteFile(output, cred, 0600)
+				if err != nil {
+					return errors.New("failed to write credential to output file")
+				}
+			}
 			cred = nil
 		}
 

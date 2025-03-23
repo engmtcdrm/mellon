@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [v1.0.0] - 2024.11.03
+### Added
+
+- Added an option to output a decrypted credential to a file. This only works when the `-n`, `--cred-name` option is used when viewing a credential. If no output is specified, the output will be to stdout. (#3)
+
+## [v1.0.0] - 2024-11-03
 
 Initial release
