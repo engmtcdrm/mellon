@@ -8,7 +8,6 @@ require (
 	github.com/engmtcdrm/go-ansi v1.0.1
 	github.com/engmtcdrm/go-entomb v1.0.0
 	github.com/engmtcdrm/go-prettyprint v1.1.0
-	github.com/fernet/fernet-go v0.0.0-20240119011108-303da6aec611
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.10.0
 )
@@ -25,6 +24,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
+	github.com/fernet/fernet-go v0.0.0-20240119011108-303da6aec611 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
