@@ -11,13 +11,8 @@ import (
 )
 
 // GetCredOptions returns a slice of huh.Options for all available credentials
-func GetCredOptions() ([]huh.Option[credentials.Credential], error) {
+func GetCredOptions(credFiles []credentials.Credential) ([]huh.Option[credentials.Credential], error) {
 	envVars, err := env.GetEnv()
-	if err != nil {
-		return nil, err
-	}
-
-	credFiles, err := credentials.GetCredFiles()
 	if err != nil {
 		return nil, err
 	}
