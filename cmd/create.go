@@ -19,8 +19,8 @@ import (
 )
 
 func init() {
-	createCmd.Flags().StringVarP(&credName, "cred-name", "n", "", "(optional) The credential to create")
-	createCmd.Flags().StringVarP(&rawCredFile, "file", "f", "", "(optional) The file containing the plain text credential to encrypt")
+	createCmd.Flags().StringVarP(&credName, "cred-name", "n", "", "(optional) The name of the credential to create. If this is provided then -f/--file must also be provided")
+	createCmd.Flags().StringVarP(&rawCredFile, "file", "f", "", "(optional) The file containing the plain text credential to encrypt. If this is provided then -n/--cred-name must also be provided")
 
 	rootCmd.AddCommand(createCmd)
 }
@@ -46,17 +46,12 @@ func validateCredName(name string) error {
 var createCmd = &cobra.Command{
 	Use:     "create",
 	Short:   "Create a credential",
-	Long:    "Create a credential",
-	Example: app.Name + " create",
+	Long:    "Create a credential.\n\nWhen using the flags -n/--cred-name and -f/--file, the credential will be read from the specified file and encrypted.\n\nIf no flags are provided, an interactive prompt will be used to enter the credential and its name.",
+	Example: fmt.Sprintf("  %s create\n  %s create -n my_cred -f /path/to/cred.txt", app.Name, app.Name),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Enforce that --cred-name and --file must be provided together
 		if (credName != "" && rawCredFile == "") || (credName == "" && rawCredFile != "") {
 			return errors.New("flags -n/--cred-name and -f/--file must be provided together")
-		}
-
-		envVars, err := env.GetEnv()
-		if err != nil {
-			return err
 		}
 
 		tomb, err := entomb.NewTomb(filepath.Join(envVars.AppHomeDir, ".key"))

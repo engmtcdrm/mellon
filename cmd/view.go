@@ -14,7 +14,6 @@ import (
 	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/credentials"
 	"github.com/engmtcdrm/minno/credentials/prompts"
-	"github.com/engmtcdrm/minno/env"
 	"github.com/engmtcdrm/minno/header"
 )
 
@@ -41,13 +40,8 @@ var viewCmd = &cobra.Command{
 	Use:     "view",
 	Short:   "View a credential",
 	Long:    "View a credential",
-	Example: app.Name + " view",
+	Example: fmt.Sprintf("  %s view\n  %s view -n awesome-cred", app.Name, app.Name),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		envVars, err := env.GetEnv()
-		if err != nil {
-			return err
-		}
-
 		tomb, err := entomb.NewTomb(envVars.KeyPath)
 		if err != nil {
 			return err

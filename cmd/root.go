@@ -26,6 +26,7 @@ var (
 	rawCredFile string                   // The file containing the plain text credential to encrypt
 	output      string                   // The file to write decrypted credential to (only used with view command)
 	credFiles   []credentials.Credential // List of credentials available in the app
+	envVars     *env.Env                 // Environment variables for the app
 )
 
 // Execute executes the root command.
@@ -41,7 +42,9 @@ func init() {
 }
 
 func configInit() {
-	envVars, err := env.GetEnv()
+	var err error
+
+	envVars, err = env.GetEnv()
 	if err != nil {
 		panic(err)
 	}

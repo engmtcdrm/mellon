@@ -14,7 +14,6 @@ import (
 	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/credentials"
 	"github.com/engmtcdrm/minno/credentials/prompts"
-	"github.com/engmtcdrm/minno/env"
 	"github.com/engmtcdrm/minno/header"
 )
 
@@ -28,13 +27,8 @@ var updateCmd = &cobra.Command{
 	Use:     "update",
 	Short:   "Update a credential",
 	Long:    "Update a credential",
-	Example: app.Name + " update",
+	Example: fmt.Sprintf("  %s update", app.Name),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		envVars, err := env.GetEnv()
-		if err != nil {
-			return err
-		}
-
 		tomb, err := entomb.NewTomb(filepath.Join(envVars.AppHomeDir, ".key"))
 		if err != nil {
 			return err
