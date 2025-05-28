@@ -19,8 +19,20 @@ import (
 )
 
 func init() {
-	createCmd.Flags().StringVarP(&credName, "cred-name", "n", "", "(optional) The name of the credential to create. If this is provided then -f/--file must also be provided")
-	createCmd.Flags().StringVarP(&rawCredFile, "file", "f", "", "(optional) The file containing the plain text credential to encrypt. If this is provided then -n/--cred-name must also be provided")
+	createCmd.Flags().StringVarP(
+		&credName,
+		"cred-name",
+		"n",
+		"",
+		"(optional) The name of the credential to create. If this is provided then -f/--file must also be provided",
+	)
+	createCmd.Flags().StringVarP(
+		&rawCredFile,
+		"file",
+		"f",
+		"",
+		"(optional) The file containing the plain text credential to encrypt. If this is provided then -n/--cred-name must also be provided",
+	)
 
 	rootCmd.AddCommand(createCmd)
 }
