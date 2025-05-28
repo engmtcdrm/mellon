@@ -129,10 +129,6 @@ var createCmd = &cobra.Command{
 			return fmt.Errorf("could not read file '%s': %w", rawCredFile, err)
 		}
 
-		if err := os.Remove(rawCredFile); err != nil {
-			return err
-		}
-
 		encTest, err = tomb.Encrypt(credBytes)
 		credBytes = nil
 		if err != nil {
