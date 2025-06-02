@@ -11,14 +11,14 @@ import (
 )
 
 // GetCredOptions returns a slice of huh.Options for all available credentials
-func GetCredOptions(credFiles []credentials.Credential) ([]huh.Option[credentials.Credential], error) {
+func GetCredOptions(credFiles []credentials.Credential, action string) ([]huh.Option[credentials.Credential], error) {
 	envVars, err := env.GetEnv()
 	if err != nil {
 		return nil, err
 	}
 
 	if len(credFiles) == 0 {
-		return nil, fmt.Errorf("no credentials found to update\n\nPlease run command %s to create a credential", pp.Greenf("%s create", envVars.ExeCmd))
+		return nil, fmt.Errorf("no credentials found to %s\n\nPlease run command %s to create a credential", action, pp.Greenf("%s create", envVars.ExeCmd))
 	}
 
 	options := []huh.Option[credentials.Credential]{}
