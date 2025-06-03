@@ -24,6 +24,7 @@ var (
 
 	credName    string                   // The name of the credential to create/view/update/delete
 	rawCredFile string                   // The file containing the plain text credential to encrypt
+	cleanupFile bool                     // Whether to delete the raw credential file after encryption
 	output      string                   // The file to write decrypted credential to (only used with view command)
 	credFiles   []credentials.Credential // List of credentials available in the app
 	envVars     *env.Env                 // Environment variables for the app

@@ -33,6 +33,13 @@ func init() {
 		"",
 		"(optional) The file containing the plain text credential to encrypt. If this is provided then -n/--cred-name must also be provided",
 	)
+	createCmd.Flags().BoolVarP(
+		&cleanupFile,
+		"cleanup",
+		"c",
+		false,
+		"(optional) Whether to delete the plain text credential file after encryption. Defaults to false",
+	)
 
 	rootCmd.AddCommand(createCmd)
 }
@@ -61,9 +68,14 @@ var createCmd = &cobra.Command{
 	Long:    "Create a credential.\n\nWhen using the flags -n/--cred-name and -f/--file, the credential will be read from the specified file and encrypted.\n\nIf no flags are provided, an interactive prompt will be used to enter the credential and its name.",
 	Example: fmt.Sprintf("  %s create\n  %s create -n my_cred -f /path/to/cred.txt", app.Name, app.Name),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// Enforce that --cred-name and --file must be provided together
-		if (credName != "" && rawCredFile == "") || (credName == "" && rawCredFile != "") {
-			return errors.New("flags -n/--cred-name and -f/--file must be provided together")
+		// Make sure both flags are provided if one is used
+		if credName != "" && rawCredFile == "" {
+			return errors.New("flag -n/--cred-name must be provided with -f/--file")
+		}
+
+		// Make sure both flags are provided if one is used
+		if rawCredFile != "" && credName == "" {
+			return errors.New("flag -f/--file must be provided with -n/--cred-name")
 		}
 
 		tomb, err := entomb.NewTomb(filepath.Join(envVars.AppHomeDir, ".key"))
@@ -148,6 +160,12 @@ var createCmd = &cobra.Command{
 
 		if err = os.WriteFile(credFilePath, encTest, 0600); err != nil {
 			return err
+		}
+
+		if cleanupFile {
+			if err = os.Remove(rawCredFile); err != nil {
+				return fmt.Errorf("could not remove file '%s': %w", rawCredFile, err)
+			}
 		}
 
 		return nil
