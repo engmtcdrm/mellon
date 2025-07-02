@@ -1,4 +1,4 @@
-package credentials
+package secrets
 
 import (
 	"os"
@@ -25,9 +25,9 @@ func TestIsExists(t *testing.T) {
 		}
 	}()
 
-	credFile := "./testdata/test.cred"
-	os.WriteFile(credFile, []byte("test"), os.ModePerm)
+	secretFile := "./testdata/test.secret"
+	os.WriteFile(secretFile, []byte("test"), os.ModePerm)
 
-	assert.True(t, IsExists(credFile))
-	assert.False(t, IsExists("./testdata/nonexistent.cred"))
+	assert.True(t, IsExists(secretFile))
+	assert.False(t, IsExists("./testdata/nonexistent.secret"))
 }

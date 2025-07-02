@@ -12,18 +12,18 @@ import (
 	"github.com/engmtcdrm/go-entomb"
 	pp "github.com/engmtcdrm/go-prettyprint"
 	"github.com/engmtcdrm/minno/app"
-	"github.com/engmtcdrm/minno/credentials"
-	"github.com/engmtcdrm/minno/credentials/prompts"
 	"github.com/engmtcdrm/minno/header"
+	"github.com/engmtcdrm/minno/secrets"
+	"github.com/engmtcdrm/minno/secrets/prompts"
 )
 
 func init() {
 	updateCmd.Flags().StringVarP(
-		&credName,
-		"cred-name",
-		"n",
+		&secretName,
+		"secret",
+		"s",
 		"",
-		"(optional) The credential to update",
+		"(optional) The secret to update",
 	)
 
 	rootCmd.AddCommand(updateCmd)
@@ -31,8 +31,8 @@ func init() {
 
 var updateCmd = &cobra.Command{
 	Use:     "update",
-	Short:   "Update a credential",
-	Long:    "Update a credential",
+	Short:   "Update a secret",
+	Long:    "Update a secret",
 	Example: fmt.Sprintf("  %s update", app.Name),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		tomb, err := entomb.NewTomb(filepath.Join(envVars.AppHomeDir, ".key"))
@@ -42,46 +42,46 @@ var updateCmd = &cobra.Command{
 
 		header.PrintHeader()
 
-		var cred string
-		var selectedCred credentials.Credential
+		var secret string
+		var selectedSecret secrets.Secret
 		var form *huh.Form
 
-		if credName == "" {
-			options, err := prompts.GetCredOptions(credFiles, "update")
+		if secretName == "" {
+			options, err := prompts.GetSecretOptions(secretFiles, "update")
 			if err != nil {
 				return err
 			}
 
 			form = huh.NewForm(
 				huh.NewGroup(
-					huh.NewSelect[credentials.Credential]().
+					huh.NewSelect[secrets.Secret]().
 						Options(options...).
-						Title("Available Credentials").
-						Description("Choose a credential to update.").
-						Value(&selectedCred),
+						Title("Available Secrets").
+						Description("Choose a secret to update.").
+						Value(&selectedSecret),
 					huh.NewInput().
-						Title("Enter the updated credential").
-						Value(&cred).
+						Title("Enter the updated secret").
+						Value(&secret).
 						EchoMode(huh.EchoModeNone).
 						Inline(true),
 				),
 			)
 		} else {
-			selectedCred.Name = filepath.Base(credName)
-			selectedCred.Path, err = credentials.ResolveCredName(credName)
+			selectedSecret.Name = filepath.Base(secretName)
+			selectedSecret.Path, err = secrets.ResolveSecretName(secretName)
 			if err != nil {
 				return err
 			}
 
-			if !credentials.IsExists(selectedCred.Path) {
-				return fmt.Errorf("credential %s does not exist!\n\nUse command %s to create the credential", pp.Red(selectedCred.Name), pp.Greenf("%s create", envVars.ExeCmd))
+			if !secrets.IsExists(selectedSecret.Path) {
+				return fmt.Errorf("secret %s does not exist!\n\nUse command %s to create the secret", pp.Red(selectedSecret.Name), pp.Greenf("%s create", envVars.ExeCmd))
 			}
 
 			form = huh.NewForm(
 				huh.NewGroup(
 					huh.NewInput().
-						Title("Enter the updated credential").
-						Value(&cred).
+						Title("Enter the updated secret").
+						Value(&secret).
 						EchoMode(huh.EchoModeNone).
 						Inline(true),
 				),
@@ -95,20 +95,20 @@ var updateCmd = &cobra.Command{
 			return err
 		}
 
-		encTest, err := tomb.Encrypt([]byte(strings.TrimSpace(cred)))
-		cred = ""
+		encTest, err := tomb.Encrypt([]byte(strings.TrimSpace(secret)))
+		secret = ""
 		if err != nil {
 			return err
 		}
 
-		fmt.Println(pp.Complete("Credential encrypted"))
+		fmt.Println(pp.Complete("Secret encrypted"))
 
-		if err = os.WriteFile(selectedCred.Path, encTest, 0600); err != nil {
+		if err = os.WriteFile(selectedSecret.Path, encTest, 0600); err != nil {
 			return err
 		}
-		fmt.Println(pp.Complete("Credential saved"))
+		fmt.Println(pp.Complete("Secret saved"))
 		fmt.Println()
-		fmt.Printf("You can run the commmand %s to view the unencrypted credential\n", pp.Greenf("%s view -n %s", envVars.ExeCmd, selectedCred.Name))
+		fmt.Printf("You can run the commmand %s to view the unencrypted secret\n", pp.Greenf("%s view -n %s", envVars.ExeCmd, selectedSecret.Name))
 
 		return nil
 	},

@@ -12,25 +12,25 @@ import (
 	"github.com/engmtcdrm/go-entomb"
 	pp "github.com/engmtcdrm/go-prettyprint"
 	"github.com/engmtcdrm/minno/app"
-	"github.com/engmtcdrm/minno/credentials"
-	"github.com/engmtcdrm/minno/credentials/prompts"
 	"github.com/engmtcdrm/minno/header"
+	"github.com/engmtcdrm/minno/secrets"
+	"github.com/engmtcdrm/minno/secrets/prompts"
 )
 
 func init() {
 	viewCmd.Flags().StringVarP(
-		&credName,
-		"cred-name",
-		"n",
+		&secretName,
+		"secret",
+		"s",
 		"",
-		"(optional) The name of the credential to view. Only names containing alphanumeric, hyphens, and underscores are allowed.",
+		"(optional) The name of the secret to view. Only names containing alphanumeric, hyphens, and underscores are allowed.",
 	)
 	viewCmd.Flags().StringVarP(
 		&output,
 		"output",
 		"o",
 		"",
-		"(optional) File to write decrypted credential to. Defaults to outputting to stdout. This only works with the option -n, --cred-name",
+		"(optional) File to write decrypted secret to. Defaults to outputting to stdout. This only works with the option -s, --secret",
 	)
 
 	rootCmd.AddCommand(viewCmd)
@@ -38,32 +38,32 @@ func init() {
 
 var viewCmd = &cobra.Command{
 	Use:     "view",
-	Short:   "View a credential",
-	Long:    "View a credential",
-	Example: fmt.Sprintf("  %s view\n  %s view -n awesome-cred", app.Name, app.Name),
+	Short:   "View a secret",
+	Long:    "View a secret",
+	Example: fmt.Sprintf("  %s view\n  %s view -s awesome-secret", app.Name, app.Name),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		tomb, err := entomb.NewTomb(envVars.KeyPath)
 		if err != nil {
 			return err
 		}
 
-		if credName == "" {
+		if secretName == "" {
 			header.PrintHeader()
 
-			var selectedCredFile credentials.Credential
+			var selectedSecretFile secrets.Secret
 
-			options, err := prompts.GetCredOptions(credFiles, "view")
+			options, err := prompts.GetSecretOptions(secretFiles, "view")
 			if err != nil {
 				return err
 			}
 
 			form := huh.NewForm(
 				huh.NewGroup(
-					huh.NewSelect[credentials.Credential]().
+					huh.NewSelect[secrets.Secret]().
 						Options(options...).
-						Title("Available Credentials").
-						Description("Choose a credential to update.").
-						Value(&selectedCredFile),
+						Title("Available Secrets").
+						Description("Choose a secret to view.").
+						Value(&selectedSecretFile),
 				),
 			)
 
@@ -74,45 +74,45 @@ var viewCmd = &cobra.Command{
 				return err
 			}
 
-			data, err := os.ReadFile(selectedCredFile.Path)
+			data, err := os.ReadFile(selectedSecretFile.Path)
 			if err != nil {
-				return errors.New("failed to read credential. Encrypted credential may be corrupted")
+				return errors.New("failed to read secret. Encrypted secret may be corrupted")
 			}
 
-			fmt.Println(pp.Complete("Credential read"))
+			fmt.Println(pp.Complete("Secret read"))
 
-			cred, err := tomb.Decrypt(data)
+			secret, err := tomb.Decrypt(data)
 			data = nil
 			if err != nil {
-				return errors.New("failed to decrypt credential. Encrypted credential may be corrupted")
+				return errors.New("failed to decrypt secret. Encrypted secret may be corrupted")
 			}
 
-			fmt.Println(pp.Complete("Credential decrypted"))
+			fmt.Println(pp.Complete("Secret decrypted"))
 			fmt.Println()
-			fmt.Println(pp.Info("The credential is " + pp.Green(string(cred))))
+			fmt.Println(pp.Info("The secret is " + pp.Green(string(secret))))
 		} else {
-			credName, err = credentials.ResolveCredName(credName)
+			secretName, err = secrets.ResolveSecretName(secretName)
 			if err != nil {
 				return err
 			}
 
-			if !credentials.IsExists(credName) {
-				return errors.New("credential name does not exist")
+			if !secrets.IsExists(secretName) {
+				return errors.New("secret name does not exist")
 			}
 
-			data, err := os.ReadFile(credName)
+			data, err := os.ReadFile(secretName)
 			if err != nil {
-				return errors.New("failed to read credential. Encrypted credential may be corrupted")
+				return errors.New("failed to read secret. Encrypted secret may be corrupted")
 			}
 
-			cred, err := tomb.Decrypt(data)
+			secret, err := tomb.Decrypt(data)
 			data = nil
 			if err != nil {
-				return errors.New("failed to decrypt credential. Encrypted credential may be corrupted")
+				return errors.New("failed to decrypt secret. Encrypted secret may be corrupted")
 			}
 
 			if output == "" {
-				fmt.Print(string(cred))
+				fmt.Print(string(secret))
 			} else {
 				outputDir := filepath.Dir(output)
 				if _, err := os.Stat(outputDir); os.IsNotExist(err) {
@@ -122,12 +122,12 @@ var viewCmd = &cobra.Command{
 					}
 				}
 
-				err = os.WriteFile(output, cred, 0600)
+				err = os.WriteFile(output, secret, 0600)
 				if err != nil {
-					return errors.New("failed to write credential to output file")
+					return errors.New("failed to write secret to output file")
 				}
 			}
-			cred = nil
+			secret = nil
 		}
 
 		return nil
