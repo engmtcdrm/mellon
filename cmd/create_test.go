@@ -39,11 +39,11 @@ func TestCreateCommand_ValidFlags(t *testing.T) {
 	credName := "testcred"
 	credContent := "supersecret"
 	home, _ := os.UserHomeDir()
-	minnoDir := filepath.Join(home, ".minno")
-	credOut := filepath.Join(minnoDir, credName+".cred")
+	credOut := filepath.Join(home, ".minno", credName+".cred")
 	// Clean up before test
 	os.Remove(credOut)
 
+	// Test each permutation of flags
 	cases := [][]string{
 		{"--cred-name", credName, "--file", credFile},
 		{"--cred-name", credName, "-f", credFile},
@@ -75,16 +75,15 @@ func TestCreateCommand_ValidFlags(t *testing.T) {
 }
 
 func TestCreateCommand_CleanupFlag(t *testing.T) {
-	dir := t.TempDir()
-	credFile := filepath.Join(dir, "cred.txt")
+	credFile := filepath.Join(t.TempDir(), "cred.txt")
 	credName := "testcleanup"
 	credContent := "supersecret"
 	home, _ := os.UserHomeDir()
-	minnoDir := filepath.Join(home, ".minno")
-	credOut := filepath.Join(minnoDir, credName+".cred")
+	credOut := filepath.Join(home, ".minno", credName+".cred")
 	// Clean up before test
 	os.Remove(credOut)
 
+	// Test each permutation of flags with --cleanup flag added
 	cases := [][]string{
 		{"--cred-name", credName, "--file", credFile, "--cleanup"},
 		{"--cred-name", credName, "--file", credFile, "-c"},
@@ -121,20 +120,17 @@ func TestCreateCommand_CleanupFlag(t *testing.T) {
 }
 
 func TestCreateCommand_Permission0600(t *testing.T) {
-	// The credential is stored in ~/.minno
-	home, _ := os.UserHomeDir()
-	minnoDir := filepath.Join(home, ".minno")
 	credFile := filepath.Join(os.TempDir(), "cred.txt")
 	credName := "testperm"
 	credContent := "supersecret"
-	credOut := filepath.Join(minnoDir, credName+".cred")
+	home, _ := os.UserHomeDir()
+	credOut := filepath.Join(home, ".minno", credName+".cred")
 	// Clean up before test
 	os.Remove(credOut)
 
 	if err := os.WriteFile(credFile, []byte(credContent), 0644); err != nil {
 		t.Fatalf("failed to write temp file: %v", err)
 	}
-	defer os.Remove(credFile)
 
 	cmd := exec.Command(testBinary, "create", "--cred-name", credName, "--file", credFile)
 	_, err := cmd.CombinedOutput()
@@ -157,8 +153,7 @@ func TestCreateCommand_TildeExpansion(t *testing.T) {
 	credFile := filepath.Join(home, "credtilde.txt")
 	credName := "testtilde"
 	credContent := "supersecret"
-	minnoDir := filepath.Join(home, ".minno")
-	credOut := filepath.Join(minnoDir, credName+".cred")
+	credOut := filepath.Join(home, ".minno", credName+".cred")
 	// Clean up before test
 	os.Remove(credOut)
 
@@ -175,8 +170,7 @@ func TestCreateCommand_TildeExpansion(t *testing.T) {
 }
 
 func TestCreateCommand_MissingFlags(t *testing.T) {
-	dir := t.TempDir()
-	credFile := filepath.Join(dir, "cred.txt")
+	credFile := filepath.Join(t.TempDir(), "cred.txt")
 	credName := "testmissing"
 
 	cases := [][]string{
@@ -196,10 +190,10 @@ func TestCreateCommand_MissingFlags(t *testing.T) {
 }
 
 func TestCreateCommand_FileNotExist(t *testing.T) {
-	dir := t.TempDir()
+	credFile := filepath.Join(t.TempDir(), "doesnotexist.txt")
 	credName := "testnofile"
 
-	cmd := exec.Command(testBinary, "create", "--cred-name", credName, "--file", filepath.Join(dir, "doesnotexist.txt"))
+	cmd := exec.Command(testBinary, "create", "--cred-name", credName, "--file", credFile)
 	_, err := cmd.CombinedOutput()
 	if err == nil {
 		t.Errorf("expected error for non-existent file, got none")
@@ -207,8 +201,7 @@ func TestCreateCommand_FileNotExist(t *testing.T) {
 }
 
 func TestCreateCommand_FileNoReadAccess(t *testing.T) {
-	dir := t.TempDir()
-	credFile := filepath.Join(dir, "noread.txt")
+	credFile := filepath.Join(t.TempDir(), "noread.txt")
 	credName := "testnoread"
 	credContent := "supersecret"
 
@@ -238,7 +231,7 @@ func TestCreateCommand_CleanupNoWriteAccess(t *testing.T) {
 	if err := os.Chmod(dir, 0555); err != nil {
 		t.Fatalf("failed to remove write permission from dir: %v", err)
 	}
-	defer os.Chmod(dir, 0755) // Restore permissions so TempDir can be cleaned up
+	defer os.Chmod(dir, 0755)
 
 	cmd := exec.Command(testBinary, "create", "--cred-name", credName, "--file", credFile, "--cleanup")
 	_, err := cmd.CombinedOutput()
@@ -248,8 +241,7 @@ func TestCreateCommand_CleanupNoWriteAccess(t *testing.T) {
 }
 
 func TestCreateCommand_CleanupNoReadWriteAccess(t *testing.T) {
-	dir := t.TempDir()
-	credFile := filepath.Join(dir, "noreadwrite.txt")
+	credFile := filepath.Join(t.TempDir(), "noreadwrite.txt")
 	credName := "testnoreadwrite"
 	credContent := "supersecret"
 
@@ -266,13 +258,11 @@ func TestCreateCommand_CleanupNoReadWriteAccess(t *testing.T) {
 }
 
 func TestCreateCommand_AlreadyExists(t *testing.T) {
-	dir := t.TempDir()
-	credFile := filepath.Join(dir, "cred.txt")
+	credFile := filepath.Join(t.TempDir(), "cred.txt")
 	credName := "testexists"
 	credContent := "supersecret"
 	home, _ := os.UserHomeDir()
-	minnoDir := filepath.Join(home, ".minno")
-	credOut := filepath.Join(minnoDir, credName+".cred")
+	credOut := filepath.Join(home, ".minno", credName+".cred")
 	// Clean up before test
 	os.Remove(credOut)
 
@@ -298,15 +288,13 @@ func TestCreateCommand_AlreadyExists(t *testing.T) {
 }
 
 func TestCreateCommand_InvalidCredName(t *testing.T) {
-	dir := t.TempDir()
-	credFile := filepath.Join(dir, "cred.txt")
+	credFile := filepath.Join(t.TempDir(), "cred.txt")
 	credName := "invalid!name"
 	credContent := "supersecret"
 
 	if err := os.WriteFile(credFile, []byte(credContent), 0644); err != nil {
 		t.Fatalf("failed to write temp file: %v", err)
 	}
-	defer os.Remove(credFile)
 
 	cmd := exec.Command(testBinary, "create", "--cred-name", credName, "--file", credFile)
 	_, err := cmd.CombinedOutput()
