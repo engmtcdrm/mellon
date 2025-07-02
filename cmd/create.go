@@ -13,49 +13,49 @@ import (
 	"github.com/engmtcdrm/go-entomb"
 	pp "github.com/engmtcdrm/go-prettyprint"
 	"github.com/engmtcdrm/minno/app"
-	"github.com/engmtcdrm/minno/credentials"
 	"github.com/engmtcdrm/minno/env"
 	"github.com/engmtcdrm/minno/header"
+	"github.com/engmtcdrm/minno/secrets"
 )
 
 func init() {
 	createCmd.Flags().StringVarP(
-		&credName,
-		"cred-name",
-		"n",
+		&secretName,
+		"secret",
+		"s",
 		"",
-		"(optional) The name of the credential to create. If this is provided then -f/--file must also be provided",
+		"(optional) The name of the secret to create. If this is provided then -f/--file must also be provided",
 	)
 	createCmd.Flags().StringVarP(
-		&rawCredFile,
+		&rawSecretFile,
 		"file",
 		"f",
 		"",
-		"(optional) The file containing the plain text credential to encrypt. If this is provided then -n/--cred-name must also be provided",
+		"(optional) The file containing the plain text secret to encrypt. If this is provided then -s/--secret must also be provided",
 	)
 	createCmd.Flags().BoolVarP(
 		&cleanupFile,
 		"cleanup",
 		"c",
 		false,
-		"(optional) Whether to delete the plain text credential file after encryption. Defaults to false",
+		"(optional) Whether to delete the plain text secret file after encryption. Defaults to false",
 	)
 
 	rootCmd.AddCommand(createCmd)
 }
 
-func validateCredName(name string) error {
+func validateSecretName(name string) error {
 	if name == "" {
 		return errors.New("name cannot be empty")
 	}
 
-	if !credentials.IsValidName(name) {
+	if !secrets.IsValidName(name) {
 		return errors.New("name can only be alphanumeric, hyphens, and underscores")
 	}
 
-	for _, f := range credFiles {
+	for _, f := range secretFiles {
 		if f.Name == name {
-			return errors.New("credential with that name already exists")
+			return errors.New("secret with that name already exists")
 		}
 	}
 
@@ -64,18 +64,18 @@ func validateCredName(name string) error {
 
 var createCmd = &cobra.Command{
 	Use:     "create",
-	Short:   "Create a credential",
-	Long:    "Create a credential.\n\nWhen using the flags -n/--cred-name and -f/--file, the credential will be read from the specified file and encrypted.\n\nIf no flags are provided, an interactive prompt will be used to enter the credential and its name.",
-	Example: fmt.Sprintf("  %s create\n  %s create -n my_cred -f /path/to/cred.txt", app.Name, app.Name),
+	Short:   "Create a secret",
+	Long:    "Create a secret.\n\nWhen using the flags -s/--secret and -f/--file, the secret will be read from the specified file and encrypted.\n\nIf no flags are provided, an interactive prompt will be used to enter the secret and its name.",
+	Example: fmt.Sprintf("  %s create\n  %s create -n my_secret -f /path/to/secret.txt", app.Name, app.Name),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Make sure both flags are provided if one is used
-		if credName != "" && rawCredFile == "" {
-			return errors.New("flag -n/--cred-name must be provided with -f/--file")
+		if secretName != "" && rawSecretFile == "" {
+			return errors.New("flag -s/--secret must be provided with -f/--file")
 		}
 
 		// Make sure both flags are provided if one is used
-		if rawCredFile != "" && credName == "" {
-			return errors.New("flag -f/--file must be provided with -n/--cred-name")
+		if rawSecretFile != "" && secretName == "" {
+			return errors.New("flag -f/--file must be provided with -s/--secret")
 		}
 
 		tomb, err := entomb.NewTomb(filepath.Join(envVars.AppHomeDir, ".key"))
@@ -83,25 +83,25 @@ var createCmd = &cobra.Command{
 			return err
 		}
 
-		var cred string
-		var credFile string
+		var secret string
+		var secretFile string
 		var encTest []byte
 
 		// Interactive mode if no flags are provided
-		if credName == "" && rawCredFile == "" {
+		if secretName == "" && rawSecretFile == "" {
 			header.PrintHeader()
 
 			form := huh.NewForm(
 				huh.NewGroup(
 					huh.NewInput().
-						Title("Enter a credential to secure").
-						Value(&cred).
+						Title("Enter a secret to secure").
+						Value(&secret).
 						EchoMode(huh.EchoModeNone).
 						Inline(true),
 					huh.NewInput().
-						Title("Enter a name for the credential").
-						Value(&credFile).
-						Validate(validateCredName).
+						Title("Enter a name for the secret").
+						Value(&secretFile).
+						Validate(validateSecretName).
 						Inline(true),
 				),
 			)
@@ -113,58 +113,58 @@ var createCmd = &cobra.Command{
 				return err
 			}
 
-			encTest, err = tomb.Encrypt([]byte(strings.TrimSpace(cred)))
-			cred = ""
+			encTest, err = tomb.Encrypt([]byte(strings.TrimSpace(secret)))
+			secret = ""
 			if err != nil {
 				return err
 			}
 
-			fmt.Println(pp.Complete("Credential encrypted"))
+			fmt.Println(pp.Complete("Secret encrypted"))
 
-			credFilePath := filepath.Join(envVars.AppHomeDir, credFile+".cred")
+			secretFilePath := filepath.Join(envVars.AppHomeDir, secretFile+".secret")
 
-			if err = os.WriteFile(credFilePath, encTest, 0600); err != nil {
+			if err = os.WriteFile(secretFilePath, encTest, 0600); err != nil {
 				return err
 			}
 
-			fmt.Println(pp.Complete("Credential saved"))
+			fmt.Println(pp.Complete("Secret saved"))
 			fmt.Println()
-			fmt.Printf("You can run the commmand %s to view the unencrypted credential\n", pp.Greenf("%s view -n %s", envVars.ExeCmd, credFile))
+			fmt.Printf("You can run the commmand %s to view the unencrypted secret\n", pp.Greenf("%s view -n %s", envVars.ExeCmd, secretFile))
 
 			return nil
 		}
 
-		if err := validateCredName(credName); err != nil {
+		if err := validateSecretName(secretName); err != nil {
 			return err
 		}
 
-		rawCredFile, err := env.ExpandTilde(strings.TrimSpace(rawCredFile))
+		rawSecretFile, err := env.ExpandTilde(strings.TrimSpace(rawSecretFile))
 		if err != nil {
 			return err
 		}
 
-		credBytes, err := os.ReadFile(rawCredFile)
+		secretBytes, err := os.ReadFile(rawSecretFile)
 		if err != nil {
-			return fmt.Errorf("could not read file '%s': %w", rawCredFile, err)
+			return fmt.Errorf("could not read file '%s': %w", rawSecretFile, err)
 		}
 
-		encTest, err = tomb.Encrypt(credBytes)
-		credBytes = nil
+		encTest, err = tomb.Encrypt(secretBytes)
+		secretBytes = nil
 		if err != nil {
 			return err
 		}
 
-		credFile = credName
+		secretFile = secretName
 
-		credFilePath := filepath.Join(envVars.AppHomeDir, credFile+".cred")
+		secretFilePath := filepath.Join(envVars.AppHomeDir, secretFile+".secret")
 
-		if err = os.WriteFile(credFilePath, encTest, 0600); err != nil {
+		if err = os.WriteFile(secretFilePath, encTest, 0600); err != nil {
 			return err
 		}
 
 		if cleanupFile {
-			if err = os.Remove(rawCredFile); err != nil {
-				return fmt.Errorf("could not remove file '%s': %w", rawCredFile, err)
+			if err = os.Remove(rawSecretFile); err != nil {
+				return fmt.Errorf("could not remove file '%s': %w", rawSecretFile, err)
 			}
 		}
 

@@ -35,24 +35,24 @@ func TestMain(m *testing.M) {
 // TestCreateCommand_ValidFlags tests the create command with valid flags.
 func TestCreateCommand_ValidFlags(t *testing.T) {
 	dir := t.TempDir()
-	credFile := filepath.Join(dir, "cred.txt")
-	credName := "testcred"
-	credContent := "supersecret"
+	secretFile := filepath.Join(dir, "secret.txt")
+	secretName := "testsecret"
+	secretContent := "supersecret"
 	home, _ := os.UserHomeDir()
-	credOut := filepath.Join(home, ".minno", credName+".cred")
+	secretOut := filepath.Join(home, ".minno", secretName+".secret")
 	// Clean up before test
-	os.Remove(credOut)
+	os.Remove(secretOut)
 
 	// Test each permutation of flags
 	cases := [][]string{
-		{"--cred-name", credName, "--file", credFile},
-		{"--cred-name", credName, "-f", credFile},
-		{"-n", credName, "--file", credFile},
-		{"-n", credName, "-f", credFile},
+		{"--secret", secretName, "--file", secretFile},
+		{"--secret", secretName, "-f", secretFile},
+		{"-s", secretName, "--file", secretFile},
+		{"-s", secretName, "-f", secretFile},
 	}
 
 	for _, args := range cases {
-		if err := os.WriteFile(credFile, []byte(credContent), 0644); err != nil {
+		if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
 			t.Fatalf("failed to write temp file: %v", err)
 		}
 
@@ -62,41 +62,41 @@ func TestCreateCommand_ValidFlags(t *testing.T) {
 			t.Errorf("expected success, got error: %v, output: %s", err, output)
 		}
 
-		if _, err := os.Stat(credFile); os.IsNotExist(err) {
+		if _, err := os.Stat(secretFile); os.IsNotExist(err) {
 			t.Errorf("file should not be deleted")
 		}
 
-		if _, err := os.Stat(credOut); os.IsNotExist(err) {
-			t.Errorf("expected output file %s to exist, got error: %v", credOut, err)
+		if _, err := os.Stat(secretOut); os.IsNotExist(err) {
+			t.Errorf("expected output file %s to exist, got error: %v", secretOut, err)
 		} else {
-			os.Remove(credOut)
+			os.Remove(secretOut)
 		}
 	}
 }
 
 func TestCreateCommand_CleanupFlag(t *testing.T) {
-	credFile := filepath.Join(t.TempDir(), "cred.txt")
-	credName := "testcleanup"
-	credContent := "supersecret"
+	secretFile := filepath.Join(t.TempDir(), "secret.txt")
+	secretName := "testcleanup"
+	secretContent := "supersecret"
 	home, _ := os.UserHomeDir()
-	credOut := filepath.Join(home, ".minno", credName+".cred")
+	secretOut := filepath.Join(home, ".minno", secretName+".secret")
 	// Clean up before test
-	os.Remove(credOut)
+	os.Remove(secretOut)
 
 	// Test each permutation of flags with --cleanup flag added
 	cases := [][]string{
-		{"--cred-name", credName, "--file", credFile, "--cleanup"},
-		{"--cred-name", credName, "--file", credFile, "-c"},
-		{"--cred-name", credName, "-f", credFile, "--cleanup"},
-		{"--cred-name", credName, "-f", credFile, "-c"},
-		{"-n", credName, "--file", credFile, "--cleanup"},
-		{"-n", credName, "--file", credFile, "-c"},
-		{"-n", credName, "-f", credFile, "--cleanup"},
-		{"-n", credName, "-f", credFile, "-c"},
+		{"--secret", secretName, "--file", secretFile, "--cleanup"},
+		{"--secret", secretName, "--file", secretFile, "-c"},
+		{"--secret", secretName, "-f", secretFile, "--cleanup"},
+		{"--secret", secretName, "-f", secretFile, "-c"},
+		{"-s", secretName, "--file", secretFile, "--cleanup"},
+		{"-s", secretName, "--file", secretFile, "-c"},
+		{"-s", secretName, "-f", secretFile, "--cleanup"},
+		{"-s", secretName, "-f", secretFile, "-c"},
 	}
 
 	for _, args := range cases {
-		if err := os.WriteFile(credFile, []byte(credContent), 0644); err != nil {
+		if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
 			t.Fatalf("failed to write temp file: %v", err)
 		}
 
@@ -106,39 +106,39 @@ func TestCreateCommand_CleanupFlag(t *testing.T) {
 			t.Errorf("expected success, got error: %v, output: %s", err, output)
 		}
 
-		if _, err := os.Stat(credFile); !os.IsNotExist(err) {
+		if _, err := os.Stat(secretFile); !os.IsNotExist(err) {
 			t.Errorf("file should be deleted with --cleanup")
 		}
 
-		if _, err := os.Stat(credOut); os.IsNotExist(err) {
-			t.Errorf("expected output file %s to exist, got error: %v", credOut, err)
+		if _, err := os.Stat(secretOut); os.IsNotExist(err) {
+			t.Errorf("expected output file %s to exist, got error: %v", secretOut, err)
 		} else {
 			// Clean up after test
-			os.Remove(credOut)
+			os.Remove(secretOut)
 		}
 	}
 }
 
 func TestCreateCommand_Permission0600(t *testing.T) {
-	credFile := filepath.Join(os.TempDir(), "cred.txt")
-	credName := "testperm"
-	credContent := "supersecret"
+	secretFile := filepath.Join(os.TempDir(), "secret.txt")
+	secretName := "testperm"
+	secretContent := "supersecret"
 	home, _ := os.UserHomeDir()
-	credOut := filepath.Join(home, ".minno", credName+".cred")
+	secretOut := filepath.Join(home, ".minno", secretName+".secret")
 	// Clean up before test
-	os.Remove(credOut)
+	os.Remove(secretOut)
 
-	if err := os.WriteFile(credFile, []byte(credContent), 0644); err != nil {
+	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
 		t.Fatalf("failed to write temp file: %v", err)
 	}
 
-	cmd := exec.Command(testBinary, "create", "--cred-name", credName, "--file", credFile)
+	cmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
 	_, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("expected success, got error: %v", err)
 	}
 
-	info, err := os.Stat(credOut)
+	info, err := os.Stat(secretOut)
 	if err != nil {
 		t.Fatalf("expected output file, got error: %v", err)
 	}
@@ -150,19 +150,19 @@ func TestCreateCommand_Permission0600(t *testing.T) {
 
 func TestCreateCommand_TildeExpansion(t *testing.T) {
 	home, _ := os.UserHomeDir()
-	credFile := filepath.Join(home, "credtilde.txt")
-	credName := "testtilde"
-	credContent := "supersecret"
-	credOut := filepath.Join(home, ".minno", credName+".cred")
+	secretFile := filepath.Join(home, "secrettilde.txt")
+	secretName := "testtilde"
+	secretContent := "supersecret"
+	secretOut := filepath.Join(home, ".minno", secretName+".secret")
 	// Clean up before test
-	os.Remove(credOut)
+	os.Remove(secretOut)
 
-	if err := os.WriteFile(credFile, []byte(credContent), 0644); err != nil {
+	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
 		t.Fatalf("failed to write temp file: %v", err)
 	}
-	defer os.Remove(credFile)
+	defer os.Remove(secretFile)
 
-	cmd := exec.Command(testBinary, "create", "--cred-name", credName, "--file", "~/credtilde.txt")
+	cmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", "~/secrettilde.txt")
 	_, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("expected success, got error: %v", err)
@@ -170,14 +170,14 @@ func TestCreateCommand_TildeExpansion(t *testing.T) {
 }
 
 func TestCreateCommand_MissingFlags(t *testing.T) {
-	credFile := filepath.Join(t.TempDir(), "cred.txt")
-	credName := "testmissing"
+	secretFile := filepath.Join(t.TempDir(), "secret.txt")
+	secretName := "testmissing"
 
 	cases := [][]string{
-		{"--cred-name", credName},
-		{"--file", credFile},
-		{"-n", credName},
-		{"-f", credFile},
+		{"--secret", secretName},
+		{"--file", secretFile},
+		{"-s", secretName},
+		{"-f", secretFile},
 	}
 
 	for _, args := range cases {
@@ -190,10 +190,10 @@ func TestCreateCommand_MissingFlags(t *testing.T) {
 }
 
 func TestCreateCommand_FileNotExist(t *testing.T) {
-	credFile := filepath.Join(t.TempDir(), "doesnotexist.txt")
-	credName := "testnofile"
+	secretFile := filepath.Join(t.TempDir(), "doesnotexist.txt")
+	secretName := "testnofile"
 
-	cmd := exec.Command(testBinary, "create", "--cred-name", credName, "--file", credFile)
+	cmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
 	_, err := cmd.CombinedOutput()
 	if err == nil {
 		t.Errorf("expected error for non-existent file, got none")
@@ -201,16 +201,16 @@ func TestCreateCommand_FileNotExist(t *testing.T) {
 }
 
 func TestCreateCommand_FileNoReadAccess(t *testing.T) {
-	credFile := filepath.Join(t.TempDir(), "noread.txt")
-	credName := "testnoread"
-	credContent := "supersecret"
+	secretFile := filepath.Join(t.TempDir(), "noread.txt")
+	secretName := "testnoread"
+	secretContent := "supersecret"
 
-	if err := os.WriteFile(credFile, []byte(credContent), 0000); err != nil {
+	if err := os.WriteFile(secretFile, []byte(secretContent), 0000); err != nil {
 		t.Fatalf("failed to write temp file: %v", err)
 	}
-	defer os.Chmod(credFile, 0644)
+	defer os.Chmod(secretFile, 0644)
 
-	cmd := exec.Command(testBinary, "create", "--cred-name", credName, "--file", credFile)
+	cmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
 	_, err := cmd.CombinedOutput()
 	if err == nil {
 		t.Fatalf("expected error for no read access, got none")
@@ -219,11 +219,11 @@ func TestCreateCommand_FileNoReadAccess(t *testing.T) {
 
 func TestCreateCommand_CleanupNoWriteAccess(t *testing.T) {
 	dir := t.TempDir()
-	credFile := filepath.Join(dir, "nowrite.txt")
-	credName := "testnowrite"
-	credContent := "supersecret"
+	secretFile := filepath.Join(dir, "nowrite.txt")
+	secretName := "testnowrite"
+	secretContent := "supersecret"
 
-	if err := os.WriteFile(credFile, []byte(credContent), 0444); err != nil {
+	if err := os.WriteFile(secretFile, []byte(secretContent), 0444); err != nil {
 		t.Fatalf("failed to write temp file: %v", err)
 	}
 
@@ -233,7 +233,7 @@ func TestCreateCommand_CleanupNoWriteAccess(t *testing.T) {
 	}
 	defer os.Chmod(dir, 0755)
 
-	cmd := exec.Command(testBinary, "create", "--cred-name", credName, "--file", credFile, "--cleanup")
+	cmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile, "--cleanup")
 	_, err := cmd.CombinedOutput()
 	if err == nil {
 		t.Errorf("expected error for no write access to directory, got none")
@@ -241,16 +241,16 @@ func TestCreateCommand_CleanupNoWriteAccess(t *testing.T) {
 }
 
 func TestCreateCommand_CleanupNoReadWriteAccess(t *testing.T) {
-	credFile := filepath.Join(t.TempDir(), "noreadwrite.txt")
-	credName := "testnoreadwrite"
-	credContent := "supersecret"
+	secretFile := filepath.Join(t.TempDir(), "noreadwrite.txt")
+	secretName := "testnoreadwrite"
+	secretContent := "supersecret"
 
-	if err := os.WriteFile(credFile, []byte(credContent), 0000); err != nil {
+	if err := os.WriteFile(secretFile, []byte(secretContent), 0000); err != nil {
 		t.Fatalf("failed to write temp file: %v", err)
 	}
-	defer os.Chmod(credFile, 0644)
+	defer os.Chmod(secretFile, 0644)
 
-	cmd := exec.Command(testBinary, "create", "--cred-name", credName, "--file", credFile, "--cleanup")
+	cmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile, "--cleanup")
 	_, err := cmd.CombinedOutput()
 	if err == nil {
 		t.Errorf("expected error for no read/write access, got none")
@@ -258,47 +258,47 @@ func TestCreateCommand_CleanupNoReadWriteAccess(t *testing.T) {
 }
 
 func TestCreateCommand_AlreadyExists(t *testing.T) {
-	credFile := filepath.Join(t.TempDir(), "cred.txt")
-	credName := "testexists"
-	credContent := "supersecret"
+	secretFile := filepath.Join(t.TempDir(), "secret.txt")
+	secretName := "testexists"
+	secretContent := "supersecret"
 	home, _ := os.UserHomeDir()
-	credOut := filepath.Join(home, ".minno", credName+".cred")
+	secretOut := filepath.Join(home, ".minno", secretName+".secret")
 	// Clean up before test
-	os.Remove(credOut)
+	os.Remove(secretOut)
 
-	if err := os.WriteFile(credFile, []byte(credContent), 0644); err != nil {
+	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
 		t.Fatalf("failed to write temp file: %v", err)
 	}
 
 	// First create
-	cmd := exec.Command(testBinary, "create", "--cred-name", credName, "--file", credFile)
+	cmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
 	_, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("expected success, got error: %v", err)
 	}
 
 	// Try again with same name
-	cmd = exec.Command(testBinary, "create", "--cred-name", credName, "--file", credFile)
+	cmd = exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
 	_, err = cmd.CombinedOutput()
 	if err == nil {
-		t.Errorf("expected error for existing cred-name, got none")
+		t.Errorf("expected error for existing secret, got none")
 	}
 	// Clean up after test
-	os.Remove(credOut)
+	os.Remove(secretOut)
 }
 
-func TestCreateCommand_InvalidCredName(t *testing.T) {
-	credFile := filepath.Join(t.TempDir(), "cred.txt")
-	credName := "invalid!name"
-	credContent := "supersecret"
+func TestCreateCommand_InvalidSecretName(t *testing.T) {
+	secretFile := filepath.Join(t.TempDir(), "secret.txt")
+	secretName := "invalid!name"
+	secretContent := "supersecret"
 
-	if err := os.WriteFile(credFile, []byte(credContent), 0644); err != nil {
+	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
 		t.Fatalf("failed to write temp file: %v", err)
 	}
 
-	cmd := exec.Command(testBinary, "create", "--cred-name", credName, "--file", credFile)
+	cmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
 	_, err := cmd.CombinedOutput()
 	if err == nil {
-		t.Errorf("expected error for invalid cred-name, got none")
+		t.Errorf("expected error for invalid secret, got none")
 	}
 }
