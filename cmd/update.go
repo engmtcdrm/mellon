@@ -14,12 +14,17 @@ import (
 	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/credentials"
 	"github.com/engmtcdrm/minno/credentials/prompts"
-	"github.com/engmtcdrm/minno/env"
 	"github.com/engmtcdrm/minno/header"
 )
 
 func init() {
-	updateCmd.Flags().StringVarP(&credName, "cred-name", "n", "", "(optional) The credential to update")
+	updateCmd.Flags().StringVarP(
+		&credName,
+		"cred-name",
+		"n",
+		"",
+		"(optional) The credential to update",
+	)
 
 	rootCmd.AddCommand(updateCmd)
 }
@@ -28,13 +33,8 @@ var updateCmd = &cobra.Command{
 	Use:     "update",
 	Short:   "Update a credential",
 	Long:    "Update a credential",
-	Example: app.Name + " update",
+	Example: fmt.Sprintf("  %s update", app.Name),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		envVars, err := env.GetEnv()
-		if err != nil {
-			return err
-		}
-
 		tomb, err := entomb.NewTomb(filepath.Join(envVars.AppHomeDir, ".key"))
 		if err != nil {
 			return err
@@ -47,7 +47,7 @@ var updateCmd = &cobra.Command{
 		var form *huh.Form
 
 		if credName == "" {
-			options, err := prompts.GetCredOptions()
+			options, err := prompts.GetCredOptions(credFiles, "update")
 			if err != nil {
 				return err
 			}

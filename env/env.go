@@ -3,22 +3,17 @@ package env
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/engmtcdrm/minno/app"
 )
 
 type Env struct {
-	// Home is the user's home directory.
-	Home string
-	// AppHomeDir is the directory in the user's home directory where the app
-	// stores its data.
-	AppHomeDir string
-	// KeyPath is the path to the key file.
-	KeyPath string
-	// ExeCmd is the command to run the executable. If the executable is in the
-	// PATH environment variable, this will be the executable name.
-	ExeCmd string
+	Home       string // Home is the user's home directory.
+	AppHomeDir string // AppHomeDir is the directory in the user's home directory where the app stores its data.
+	KeyPath    string // KeyPath is the path to the key file.
+	ExeCmd     string // ExeCmd is the command to run the executable. If the executable is in the PATH environment variable, this will be the executable name.
 }
 
 var (
@@ -62,8 +57,7 @@ func GetEnv() (*Env, error) {
 	return instance, err
 }
 
-// IsInPath checks if the directory of the executable is in the PATH
-// environment variable
+// IsInPath checks if the directory of the executable is in the PATH environment variable
 func IsInPath(executablePath string) bool {
 	executableDir := filepath.Dir(executablePath)
 	pathEnv := os.Getenv("PATH")
@@ -73,4 +67,17 @@ func IsInPath(executablePath string) bool {
 		}
 	}
 	return false
+}
+
+// ExpandTilde expands the tilde (~) in the given path to the user's home directory.
+func ExpandTilde(path string) (string, error) {
+	if strings.HasPrefix(path, "~") {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", err
+		}
+		return filepath.Join(home, path[1:]), nil
+	}
+
+	return path, nil
 }

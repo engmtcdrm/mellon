@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/engmtcdrm/minno/app"
+	"github.com/engmtcdrm/minno/credentials"
 	"github.com/engmtcdrm/minno/env"
 )
 
@@ -21,8 +22,12 @@ var (
 		Version: getSemVer(app.Version),
 	}
 
-	credName string
-	output   string
+	credName    string                   // The name of the credential to create/view/update/delete
+	rawCredFile string                   // The file containing the plain text credential to encrypt
+	cleanupFile bool                     // Whether to delete the raw credential file after encryption
+	output      string                   // The file to write decrypted credential to (only used with view command)
+	credFiles   []credentials.Credential // List of credentials available in the app
+	envVars     *env.Env                 // Environment variables for the app
 )
 
 // Execute executes the root command.
@@ -38,7 +43,9 @@ func init() {
 }
 
 func configInit() {
-	envVars, err := env.GetEnv()
+	var err error
+
+	envVars, err = env.GetEnv()
 	if err != nil {
 		panic(err)
 	}
@@ -69,6 +76,11 @@ func configInit() {
 		if err != nil {
 			panic(err)
 		}
+	}
+
+	credFiles, err = credentials.GetCredFiles()
+	if err != nil {
+		panic(err)
 	}
 }
 

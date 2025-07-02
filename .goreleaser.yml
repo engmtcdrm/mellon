@@ -23,7 +23,7 @@ builds:
       - windows
       - darwin
     ldflags:
-      - -X github.com/engmtcdrm/minno/app.Version={{ .Tag }}
+      - -s -w -X github.com/engmtcdrm/minno/app.Version={{ .Tag }}
 
 archives:
   - formats: zip

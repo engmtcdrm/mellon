@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added options to create new credential without having to interactive with minno. When the options `-n`, `--cred-name` and `-f`, `--file` are used with the `create` command, it will run without requiring any user input. (#6)
+
 ## [v1.1.0] - 2025-03-22
 
 ### Added
