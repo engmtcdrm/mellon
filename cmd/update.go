@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -23,10 +24,42 @@ func init() {
 		"secret",
 		"s",
 		"",
-		"(optional) The secret to update",
+		"(optional) The name of the secret to update. If -f/--file is provided with this flag, the secret will be updated from the file. If this flag is not provided, you will be prompted to select a secret to update.",
+	)
+	updateCmd.Flags().StringVarP(
+		&rawSecretFile,
+		"file",
+		"f",
+		"",
+		"(optional) The file containing the unencrypted secret to encrypt. If this is provided then -s/--secret must also be provided",
+	)
+	updateCmd.Flags().BoolVarP(
+		&cleanupFile,
+		"cleanup",
+		"c",
+		false,
+		"(optional) Whether to delete the unencrypted secret file after encryption. Defaults to false",
 	)
 
 	rootCmd.AddCommand(updateCmd)
+}
+
+func validateUpdateFlags(cmd *cobra.Command, args []string) error {
+	// Make sure both flags are provided if one is used
+	if secretName != "" && rawSecretFile == "" {
+		return errors.New("flag -s/--secret must be provided with -f/--file")
+	}
+
+	// Make sure both flags are provided if one is used
+	if rawSecretFile != "" && secretName == "" {
+		return errors.New("flag -f/--file must be provided with -s/--secret")
+	}
+
+	if secretName == "" && rawSecretFile == "" && cleanupFile {
+		return errors.New("flag -c/--cleanup can only be used when -s/--secret and -f/--file are provided")
+	}
+
+	return nil
 }
 
 var updateCmd = &cobra.Command{
@@ -34,6 +67,7 @@ var updateCmd = &cobra.Command{
 	Short:   "Update a secret",
 	Long:    "Update a secret",
 	Example: fmt.Sprintf("  %s update", app.Name),
+	PreRunE: validateUpdateFlags,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		tomb, err := entomb.NewTomb(filepath.Join(envVars.AppHomeDir, ".key"))
 		if err != nil {
