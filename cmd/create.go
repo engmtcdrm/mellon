@@ -129,7 +129,7 @@ var createCmd = &cobra.Command{
 
 			fmt.Println(pp.Complete("Secret saved"))
 			fmt.Println()
-			fmt.Printf("You can run the commmand %s to view the unencrypted secret\n", pp.Greenf("%s view -n %s", envVars.ExeCmd, secretFile))
+			fmt.Printf("You can run the commmand %s to view the unencrypted secret\n", pp.Greenf("%s view -s %s", envVars.ExeCmd, secretFile))
 
 			return nil
 		}
