@@ -30,7 +30,7 @@ func init() {
 		"output",
 		"o",
 		"",
-		"(optional) File to write decrypted secret to. Defaults to outputting to stdout. This only works with the option -s, --secret",
+		"(optional) File to write decrypted secret to. Defaults to outputting to stdout. This only works with the option -s/--secret",
 	)
 
 	rootCmd.AddCommand(viewCmd)
