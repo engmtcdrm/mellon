@@ -101,15 +101,15 @@ var updateCmd = &cobra.Command{
 				),
 			)
 		} else {
-			selectedSecret.Name = filepath.Base(secretName)
-			selectedSecret.Path, err = secrets.ResolveSecretName(secretName)
-			if err != nil {
-				return err
+			if err := secrets.ValidateName(secretName); err != nil {
+				return fmt.Errorf("%s\n\nThe secret name provided was %s", err, pp.Red(secretName))
 			}
 
-			if !secrets.IsExists(selectedSecret.Path) {
-				return fmt.Errorf("secret %s does not exist!\n\nUse command %s to create the secret", pp.Red(selectedSecret.Name), pp.Greenf("%s create", envVars.ExeCmd))
+			secretPtr := secrets.FindSecretByName(secretName, secretFiles)
+			if secretPtr == nil {
+				return fmt.Errorf("secret %s does not exist!\n\nUse command %s to create the secret", pp.Red(secretName), pp.Greenf("%s create", envVars.ExeCmd))
 			}
+			selectedSecret = *secretPtr
 
 			form = huh.NewForm(
 				huh.NewGroup(
@@ -137,7 +137,7 @@ var updateCmd = &cobra.Command{
 
 		fmt.Println(pp.Complete("Secret encrypted"))
 
-		if err = os.WriteFile(selectedSecret.Path, encTest, 0600); err != nil {
+		if err = os.WriteFile(selectedSecret.Path, encTest, secretMode); err != nil {
 			return err
 		}
 		fmt.Println(pp.Complete("Secret saved"))
