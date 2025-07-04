@@ -1,33 +1,20 @@
 package secrets
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIsValidName(t *testing.T) {
-	assert.True(t, IsValidName("valid_name"))
-	assert.True(t, IsValidName("valid-name"))
-	assert.True(t, IsValidName("validname123"))
-	assert.False(t, IsValidName("invalid name"))
-	assert.False(t, IsValidName("invalid/name"))
-	assert.False(t, IsValidName("invalid.name"))
-}
+func TestValidateName(t *testing.T) {
+	// Valid names
+	assert.NoError(t, ValidateName("valid_name"))
+	assert.NoError(t, ValidateName("valid-name"))
+	assert.NoError(t, ValidateName("validname123"))
 
-func TestIsExists(t *testing.T) {
-	// Create test data
-	os.MkdirAll("./testdata", os.ModePerm)
-	defer func() {
-		if removeErr := os.RemoveAll("./testdata"); removeErr != nil {
-			t.Errorf("Failed to remove testdata directory: %v", removeErr)
-		}
-	}()
-
-	secretFile := "./testdata/test.secret"
-	os.WriteFile(secretFile, []byte("test"), os.ModePerm)
-
-	assert.True(t, IsExists(secretFile))
-	assert.False(t, IsExists("./testdata/nonexistent.secret"))
+	// Invalid names
+	assert.Error(t, ValidateName(""))
+	assert.Error(t, ValidateName("invalid name"))
+	assert.Error(t, ValidateName("invalid/name"))
+	assert.Error(t, ValidateName("invalid.name"))
 }
