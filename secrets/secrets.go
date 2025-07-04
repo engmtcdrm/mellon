@@ -2,7 +2,6 @@ package secrets
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -48,34 +47,24 @@ func GetSecretFiles() ([]Secret, error) {
 	return secretFiles, nil
 }
 
-// ResolveSecretName resolves the full path of a secret name
-func ResolveSecretName(secretName string) (string, error) {
-	if !IsValidName(secretName) {
-		return "", errors.New("secret name can only contain alphanumeric, hyphens, and underscores")
-	}
-
-	envVars, err := env.GetEnv()
-	if err != nil {
-		return "", fmt.Errorf("error getting environment variables: %v", err)
-	}
-
-	secretName = filepath.Join(envVars.AppHomeDir, secretName)
-
-	if filepath.Ext(secretName) != ".secret" {
-		secretName = secretName + ".secret"
-	}
-
-	return secretName, nil
-}
-
-// IsValidName checks if a string is a valid secret name
-func IsValidName(s string) bool {
+// ValidateName checks if a string is a valid secret name
+func ValidateName(s string) error {
 	var re = regexp.MustCompile(`^[a-zA-Z0-9-_]+$`)
-	return re.MatchString(s)
+
+	if re.MatchString(s) {
+		return nil
+	}
+
+	return errors.New("secret name can only contain alphanumeric, hyphens, and underscores")
 }
 
-// IsExists checks if a secret file exists
-func IsExists(path string) bool {
-	_, err := os.Stat(path)
-	return !os.IsNotExist(err)
+// FindSecretByName searches for a secret by its name in the provided slice of secrets.
+func FindSecretByName(name string, secretFiles []Secret) *Secret {
+	for _, f := range secretFiles {
+		if f.Name == name {
+			return &f
+		}
+	}
+
+	return nil
 }
