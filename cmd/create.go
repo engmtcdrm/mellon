@@ -49,14 +49,12 @@ func validateSecretName(name string) error {
 		return errors.New("name cannot be empty")
 	}
 
-	if !secrets.IsValidName(name) {
-		return errors.New("name can only be alphanumeric, hyphens, and underscores")
+	if err := secrets.ValidateName(name); err != nil {
+		return err
 	}
 
-	for _, f := range secretFiles {
-		if f.Name == name {
-			return errors.New("secret with that name already exists")
-		}
+	if secretPtr := secrets.FindSecretByName(name, secretFiles); secretPtr != nil {
+		return errors.New("secret with that name already exists")
 	}
 
 	return nil
@@ -85,7 +83,7 @@ var createCmd = &cobra.Command{
 
 		var secret string
 		var secretFile string
-		var encTest []byte
+		var encSecret []byte
 
 		// Interactive mode if no flags are provided
 		if secretName == "" && rawSecretFile == "" {
@@ -113,7 +111,7 @@ var createCmd = &cobra.Command{
 				return err
 			}
 
-			encTest, err = tomb.Encrypt([]byte(strings.TrimSpace(secret)))
+			encSecret, err = tomb.Encrypt([]byte(strings.TrimSpace(secret)))
 			secret = ""
 			if err != nil {
 				return err
@@ -123,7 +121,7 @@ var createCmd = &cobra.Command{
 
 			secretFilePath := filepath.Join(envVars.AppHomeDir, secretFile+".secret")
 
-			if err = os.WriteFile(secretFilePath, encTest, 0600); err != nil {
+			if err = os.WriteFile(secretFilePath, encSecret, secretMode); err != nil {
 				return err
 			}
 
@@ -148,17 +146,18 @@ var createCmd = &cobra.Command{
 			return fmt.Errorf("could not read file '%s': %w", rawSecretFile, err)
 		}
 
-		encTest, err = tomb.Encrypt(secretBytes)
+		secret = strings.TrimSpace(string(secretBytes))
 		secretBytes = nil
+
+		encSecret, err = tomb.Encrypt([]byte(secret))
 		if err != nil {
 			return err
 		}
 
 		secretFile = secretName
-
 		secretFilePath := filepath.Join(envVars.AppHomeDir, secretFile+".secret")
 
-		if err = os.WriteFile(secretFilePath, encTest, 0600); err != nil {
+		if err = os.WriteFile(secretFilePath, encSecret, secretMode); err != nil {
 			return err
 		}
 
