@@ -28,6 +28,10 @@ var (
 	output        string           // The file to write decrypted secret to (only used with view command)
 	secretFiles   []secrets.Secret // List of secrets available in the app
 	envVars       *env.Env         // Environment variables for the app
+
+	// Modes for files and directories
+	dirMode    os.FileMode = 0700 // Default directory mode for app home directory as well as output of secret directories
+	secretMode os.FileMode = 0600 // Default file mode for secret files
 )
 
 // Execute executes the root command.
@@ -52,13 +56,13 @@ func configInit() {
 
 	if _, err := os.Stat(envVars.AppHomeDir); os.IsNotExist(err) {
 		// Directory does not exist, create it
-		err = os.MkdirAll(envVars.AppHomeDir, 0700)
+		err = os.MkdirAll(envVars.AppHomeDir, dirMode)
 		if err != nil {
 			panic(err)
 		}
 
 		// Change permission again to get rid of any sticky bits
-		err = os.Chmod(envVars.AppHomeDir, 0700)
+		err = os.Chmod(envVars.AppHomeDir, dirMode)
 		if err != nil {
 			panic(err)
 		}
@@ -71,7 +75,7 @@ func configInit() {
 			if info.IsDir() {
 				return os.Chmod(path, 0700)
 			}
-			return os.Chmod(path, 0600)
+			return os.Chmod(path, secretMode)
 		})
 		if err != nil {
 			panic(err)
