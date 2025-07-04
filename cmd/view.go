@@ -47,10 +47,10 @@ var viewCmd = &cobra.Command{
 			return err
 		}
 
+		var selectedSecretFile secrets.Secret
+
 		if secretName == "" {
 			header.PrintHeader()
-
-			var selectedSecretFile secrets.Secret
 
 			options, err := prompts.GetSecretOptions(secretFiles, "view")
 			if err != nil {
@@ -91,16 +91,18 @@ var viewCmd = &cobra.Command{
 			fmt.Println()
 			fmt.Println(pp.Info("The secret is " + pp.Green(string(secret))))
 		} else {
-			secretName, err = secrets.ResolveSecretName(secretName)
-			if err != nil {
-				return err
+			if err := secrets.ValidateName(secretName); err != nil {
+				return fmt.Errorf("%s\n\nThe secret name provided was %s", err, pp.Red(secretName))
 			}
 
-			if !secrets.IsExists(secretName) {
-				return errors.New("secret name does not exist")
+			secretPtr := secrets.FindSecretByName(secretName, secretFiles)
+			if secretPtr == nil {
+				return fmt.Errorf("secret %s does not exist!\n\nUse command %s to create the secret", pp.Red(secretName), pp.Greenf("%s create", envVars.ExeCmd))
 			}
 
-			data, err := os.ReadFile(secretName)
+			selectedSecretFile = *secretPtr
+
+			data, err := os.ReadFile(selectedSecretFile.Path)
 			if err != nil {
 				return errors.New("failed to read secret. Encrypted secret may be corrupted")
 			}
@@ -116,13 +118,13 @@ var viewCmd = &cobra.Command{
 			} else {
 				outputDir := filepath.Dir(output)
 				if _, err := os.Stat(outputDir); os.IsNotExist(err) {
-					err = os.MkdirAll(outputDir, 0700)
+					err = os.MkdirAll(outputDir, dirMode)
 					if err != nil {
 						return errors.New("failed to create output directory for output file")
 					}
 				}
 
-				err = os.WriteFile(output, secret, 0600)
+				err = os.WriteFile(output, secret, secretMode)
 				if err != nil {
 					return errors.New("failed to write secret to output file")
 				}
