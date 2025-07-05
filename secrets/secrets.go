@@ -24,14 +24,14 @@ func GetSecretFiles() ([]Secret, error) {
 
 	var secretFiles []Secret
 
-	err = filepath.WalkDir(envVars.AppHomeDir, func(path string, d os.DirEntry, err error) error {
+	err = filepath.WalkDir(envVars.SecretsPath, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
-		if filepath.Ext(path) == ".secret" {
+		if filepath.Ext(path) == envVars.SecretExt && !d.IsDir() {
 			c := Secret{
-				Name: strings.TrimSuffix(filepath.Base(path), ".secret"),
+				Name: strings.TrimSuffix(filepath.Base(path), envVars.SecretExt),
 				Path: path,
 			}
 			secretFiles = append(secretFiles, c)
@@ -55,7 +55,7 @@ func ValidateName(s string) error {
 		return nil
 	}
 
-	return errors.New("secret name can only contain alphanumeric, hyphens, and underscores")
+	return errors.New("invalid secret name: Secret name can only contain alphanumeric, hyphens, and underscores")
 }
 
 // FindSecretByName searches for a secret by its name in the provided slice of secrets.
