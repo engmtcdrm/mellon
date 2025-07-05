@@ -44,6 +44,19 @@ func init() {
 	rootCmd.AddCommand(createCmd)
 }
 
+func validateCreateFlags(cmd *cobra.Command, args []string) error {
+	// Make sure both flags are provided if one is used
+	if rawSecretFile != "" && secretName == "" {
+		return errors.New("flag -f/--file must be provided with -s/--secret")
+	}
+
+	if cleanupFile && (secretName == "" || rawSecretFile == "") {
+		return errors.New("flag -c/--cleanup can only be used when -s/--secret and -f/--file are provided")
+	}
+
+	return nil
+}
+
 func validateSecretName(name string) error {
 	if name == "" {
 		return errors.New("name cannot be empty")
@@ -65,18 +78,9 @@ var createCmd = &cobra.Command{
 	Short:   "Create a secret",
 	Long:    "Create a secret.\n\nWhen using the flags -s/--secret and -f/--file, the secret will be read from the specified file and encrypted.\n\nIf no flags are provided, an interactive prompt will be used to enter the secret and its name.",
 	Example: fmt.Sprintf("  %s create\n  %s create -n my_secret -f /path/to/secret.txt", app.Name, app.Name),
+	PreRunE: validateCreateFlags,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// Make sure both flags are provided if one is used
-		if secretName != "" && rawSecretFile == "" {
-			return errors.New("flag -s/--secret must be provided with -f/--file")
-		}
-
-		// Make sure both flags are provided if one is used
-		if rawSecretFile != "" && secretName == "" {
-			return errors.New("flag -f/--file must be provided with -s/--secret")
-		}
-
-		tomb, err := entomb.NewTomb(filepath.Join(envVars.AppHomeDir, ".key"))
+		tomb, err := entomb.NewTomb(envVars.KeyPath)
 		if err != nil {
 			return err
 		}
@@ -85,11 +89,52 @@ var createCmd = &cobra.Command{
 		var secretFile string
 		var encSecret []byte
 
-		// Interactive mode if no flags are provided
-		if secretName == "" && rawSecretFile == "" {
-			header.PrintHeader()
+		if secretName != "" && rawSecretFile != "" {
+			if err := validateSecretName(secretName); err != nil {
+				return err
+			}
 
-			form := huh.NewForm(
+			rawSecretFile, err := env.ExpandTilde(strings.TrimSpace(rawSecretFile))
+			if err != nil {
+				return err
+			}
+
+			secretBytes, err := os.ReadFile(rawSecretFile)
+			if err != nil {
+				return fmt.Errorf("could not read file '%s': %w", rawSecretFile, err)
+			}
+
+			secret = strings.TrimSpace(string(secretBytes))
+			secretBytes = nil
+
+			encSecret, err = tomb.Encrypt([]byte(secret))
+			if err != nil {
+				return err
+			}
+
+			secretFile = secretName
+			secretFilePath := filepath.Join(envVars.SecretsPath, secretFile+envVars.SecretExt)
+
+			if err = os.WriteFile(secretFilePath, encSecret, secretMode); err != nil {
+				return err
+			}
+
+			if cleanupFile {
+				if err = os.Remove(rawSecretFile); err != nil {
+					return fmt.Errorf("could not remove file '%s': %w", rawSecretFile, err)
+				}
+			}
+
+			return nil
+		}
+
+		header.PrintHeader()
+
+		var form *huh.Form
+
+		// Interactive mode if no flags are provided
+		if secretName == "" {
+			form = huh.NewForm(
 				huh.NewGroup(
 					huh.NewInput().
 						Title("Enter a secret to secure").
@@ -104,68 +149,53 @@ var createCmd = &cobra.Command{
 				),
 			)
 
-			err = form.
-				WithTheme(app.ThemeMinno()).
-				Run()
-			if err != nil {
-				return err
+		} else {
+			if err := secrets.ValidateName(secretName); err != nil {
+				return fmt.Errorf("%s\n\nThe secret name provided was %s", err, pp.Red(secretName))
 			}
 
-			encSecret, err = tomb.Encrypt([]byte(strings.TrimSpace(secret)))
-			secret = ""
-			if err != nil {
-				return err
+			secretPtr := secrets.FindSecretByName(secretName, secretFiles)
+			if secretPtr != nil {
+				return fmt.Errorf("secret %s already exists", pp.Red(secretName))
 			}
 
-			fmt.Println(pp.Complete("Secret encrypted"))
+			secretFile = secretName
 
-			secretFilePath := filepath.Join(envVars.AppHomeDir, secretFile+".secret")
-
-			if err = os.WriteFile(secretFilePath, encSecret, secretMode); err != nil {
-				return err
-			}
-
-			fmt.Println(pp.Complete("Secret saved"))
-			fmt.Println()
-			fmt.Printf("You can run the commmand %s to view the unencrypted secret\n", pp.Greenf("%s view -s %s", envVars.ExeCmd, secretFile))
-
-			return nil
+			form = huh.NewForm(
+				huh.NewGroup(
+					huh.NewInput().
+						Title("Enter a secret to secure").
+						Value(&secret).
+						EchoMode(huh.EchoModeNone).
+						Inline(true),
+				),
+			)
 		}
 
-		if err := validateSecretName(secretName); err != nil {
-			return err
-		}
-
-		rawSecretFile, err := env.ExpandTilde(strings.TrimSpace(rawSecretFile))
+		err = form.
+			WithTheme(app.ThemeMinno()).
+			Run()
 		if err != nil {
 			return err
 		}
 
-		secretBytes, err := os.ReadFile(rawSecretFile)
-		if err != nil {
-			return fmt.Errorf("could not read file '%s': %w", rawSecretFile, err)
-		}
-
-		secret = strings.TrimSpace(string(secretBytes))
-		secretBytes = nil
-
-		encSecret, err = tomb.Encrypt([]byte(secret))
+		encSecret, err = tomb.Encrypt([]byte(strings.TrimSpace(secret)))
+		secret = ""
 		if err != nil {
 			return err
 		}
 
-		secretFile = secretName
-		secretFilePath := filepath.Join(envVars.AppHomeDir, secretFile+".secret")
+		fmt.Println(pp.Complete("Secret encrypted"))
+
+		secretFilePath := filepath.Join(envVars.SecretsPath, secretFile+envVars.SecretExt)
 
 		if err = os.WriteFile(secretFilePath, encSecret, secretMode); err != nil {
 			return err
 		}
 
-		if cleanupFile {
-			if err = os.Remove(rawSecretFile); err != nil {
-				return fmt.Errorf("could not remove file '%s': %w", rawSecretFile, err)
-			}
-		}
+		fmt.Println(pp.Complete("Secret saved"))
+		fmt.Println()
+		fmt.Printf("You can run the commmand %s to view the unencrypted secret\n", pp.Greenf("%s view -s %s", envVars.ExeCmd, secretFile))
 
 		return nil
 	},
