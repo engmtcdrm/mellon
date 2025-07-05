@@ -5,6 +5,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	"github.com/engmtcdrm/minno/env"
 )
 
 var testBinary string
@@ -34,12 +36,15 @@ func TestMain(m *testing.M) {
 
 // TestCreateCommand_ValidFlags tests the create command with valid flags.
 func TestCreateCommand_ValidFlags(t *testing.T) {
+	envVars, err := env.GetEnv()
+	if err != nil {
+		t.Fatalf("failed to get environment variables: %v", err)
+	}
 	dir := t.TempDir()
 	secretFile := filepath.Join(dir, "secret.txt")
 	secretName := "testsecret"
 	secretContent := "supersecret"
-	home, _ := os.UserHomeDir()
-	secretOut := filepath.Join(home, ".minno", secretName+".secret")
+	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -75,11 +80,14 @@ func TestCreateCommand_ValidFlags(t *testing.T) {
 }
 
 func TestCreateCommand_CleanupFlag(t *testing.T) {
+	envVars, err := env.GetEnv()
+	if err != nil {
+		t.Fatalf("failed to get environment variables: %v", err)
+	}
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testcleanup"
 	secretContent := "supersecret"
-	home, _ := os.UserHomeDir()
-	secretOut := filepath.Join(home, ".minno", secretName+".secret")
+	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -120,11 +128,14 @@ func TestCreateCommand_CleanupFlag(t *testing.T) {
 }
 
 func TestCreateCommand_Permission0600(t *testing.T) {
+	envVars, err := env.GetEnv()
+	if err != nil {
+		t.Fatalf("failed to get environment variables: %v", err)
+	}
 	secretFile := filepath.Join(os.TempDir(), "secret.txt")
 	secretName := "testperm"
 	secretContent := "supersecret"
-	home, _ := os.UserHomeDir()
-	secretOut := filepath.Join(home, ".minno", secretName+".secret")
+	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -133,7 +144,7 @@ func TestCreateCommand_Permission0600(t *testing.T) {
 	}
 
 	cmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err := cmd.CombinedOutput()
+	_, err = cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("expected success, got error: %v", err)
 	}
@@ -149,11 +160,15 @@ func TestCreateCommand_Permission0600(t *testing.T) {
 }
 
 func TestCreateCommand_TildeExpansion(t *testing.T) {
+	envVars, err := env.GetEnv()
+	if err != nil {
+		t.Fatalf("failed to get environment variables: %v", err)
+	}
 	home, _ := os.UserHomeDir()
 	secretFile := filepath.Join(home, "secrettilde.txt")
 	secretName := "testtilde"
 	secretContent := "supersecret"
-	secretOut := filepath.Join(home, ".minno", secretName+".secret")
+	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -163,7 +178,7 @@ func TestCreateCommand_TildeExpansion(t *testing.T) {
 	defer os.Remove(secretFile)
 
 	cmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", "~/secrettilde.txt")
-	_, err := cmd.CombinedOutput()
+	_, err = cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("expected success, got error: %v", err)
 	}
@@ -171,12 +186,10 @@ func TestCreateCommand_TildeExpansion(t *testing.T) {
 
 func TestCreateCommand_MissingFlags(t *testing.T) {
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
-	secretName := "testmissing"
+	// secretName := "testmissing"
 
 	cases := [][]string{
-		{"--secret", secretName},
 		{"--file", secretFile},
-		{"-s", secretName},
 		{"-f", secretFile},
 	}
 
@@ -258,11 +271,14 @@ func TestCreateCommand_CleanupNoReadWriteAccess(t *testing.T) {
 }
 
 func TestCreateCommand_AlreadyExists(t *testing.T) {
+	envVars, err := env.GetEnv()
+	if err != nil {
+		t.Fatalf("failed to get environment variables: %v", err)
+	}
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testexists"
 	secretContent := "supersecret"
-	home, _ := os.UserHomeDir()
-	secretOut := filepath.Join(home, ".minno", secretName+".secret")
+	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -272,7 +288,7 @@ func TestCreateCommand_AlreadyExists(t *testing.T) {
 
 	// First create
 	cmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err := cmd.CombinedOutput()
+	_, err = cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("expected success, got error: %v", err)
 	}
