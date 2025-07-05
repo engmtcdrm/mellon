@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/charmbracelet/huh"
@@ -13,6 +12,7 @@ import (
 	"github.com/engmtcdrm/go-entomb"
 	pp "github.com/engmtcdrm/go-prettyprint"
 	"github.com/engmtcdrm/minno/app"
+	"github.com/engmtcdrm/minno/env"
 	"github.com/engmtcdrm/minno/header"
 	"github.com/engmtcdrm/minno/secrets"
 	"github.com/engmtcdrm/minno/secrets/prompts"
@@ -46,16 +46,11 @@ func init() {
 
 func validateUpdateFlags(cmd *cobra.Command, args []string) error {
 	// Make sure both flags are provided if one is used
-	if secretName != "" && rawSecretFile == "" {
-		return errors.New("flag -s/--secret must be provided with -f/--file")
-	}
-
-	// Make sure both flags are provided if one is used
 	if rawSecretFile != "" && secretName == "" {
 		return errors.New("flag -f/--file must be provided with -s/--secret")
 	}
 
-	if secretName == "" && rawSecretFile == "" && cleanupFile {
+	if cleanupFile && (secretName == "" || rawSecretFile == "") {
 		return errors.New("flag -c/--cleanup can only be used when -s/--secret and -f/--file are provided")
 	}
 
@@ -69,15 +64,59 @@ var updateCmd = &cobra.Command{
 	Example: fmt.Sprintf("  %s update", app.Name),
 	PreRunE: validateUpdateFlags,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		tomb, err := entomb.NewTomb(filepath.Join(envVars.AppHomeDir, ".key"))
+		tomb, err := entomb.NewTomb(envVars.KeyPath)
 		if err != nil {
 			return err
 		}
 
-		header.PrintHeader()
-
 		var secret string
 		var selectedSecret secrets.Secret
+		var encSecret []byte
+
+		if secretName != "" && rawSecretFile != "" {
+			if err := secrets.ValidateName(secretName); err != nil {
+				return fmt.Errorf("%s. The secret name provided was '%s'", err, secretName)
+			}
+
+			secretPtr := secrets.FindSecretByName(secretName, secretFiles)
+			if secretPtr == nil {
+				return fmt.Errorf("could not update secret '%s': does not exist", secretName)
+			}
+			selectedSecret = *secretPtr
+
+			rawSecretFile, err := env.ExpandTilde(strings.TrimSpace(rawSecretFile))
+			if err != nil {
+				return err
+			}
+
+			secretBytes, err := os.ReadFile(rawSecretFile)
+			if err != nil {
+				return fmt.Errorf("could not read file '%s': %w", rawSecretFile, err)
+			}
+
+			secret = strings.TrimSpace(string(secretBytes))
+			secretBytes = nil
+
+			encSecret, err = tomb.Encrypt([]byte(secret))
+			if err != nil {
+				return err
+			}
+
+			if err = os.WriteFile(selectedSecret.Path, encSecret, secretMode); err != nil {
+				return err
+			}
+
+			if cleanupFile {
+				if err = os.Remove(rawSecretFile); err != nil {
+					return fmt.Errorf("could not remove file '%s': %w", rawSecretFile, err)
+				}
+			}
+
+			return nil
+		}
+
+		header.PrintHeader()
+
 		var form *huh.Form
 
 		if secretName == "" {
@@ -129,7 +168,7 @@ var updateCmd = &cobra.Command{
 			return err
 		}
 
-		encTest, err := tomb.Encrypt([]byte(strings.TrimSpace(secret)))
+		encSecret, err = tomb.Encrypt([]byte(strings.TrimSpace(secret)))
 		secret = ""
 		if err != nil {
 			return err
@@ -137,7 +176,7 @@ var updateCmd = &cobra.Command{
 
 		fmt.Println(pp.Complete("Secret encrypted"))
 
-		if err = os.WriteFile(selectedSecret.Path, encTest, secretMode); err != nil {
+		if err = os.WriteFile(selectedSecret.Path, encSecret, secretMode); err != nil {
 			return err
 		}
 		fmt.Println(pp.Complete("Secret saved"))
