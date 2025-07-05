@@ -10,10 +10,12 @@ import (
 )
 
 type Env struct {
-	Home       string // Home is the user's home directory.
-	AppHomeDir string // AppHomeDir is the directory in the user's home directory where the app stores its data.
-	KeyPath    string // KeyPath is the path to the key file.
-	ExeCmd     string // ExeCmd is the command to run the executable. If the executable is in the PATH environment variable, this will be the executable name.
+	Home        string // Home is the user's home directory.
+	AppHomeDir  string // AppHomeDir is the directory in the user's home directory where the app stores its data.
+	KeyPath     string // KeyPath is the path to the key file.
+	SecretsPath string // SecretsPath is the path to the directory where secrets are stored.
+	SecretExt   string
+	ExeCmd      string // ExeCmd is the command to run the executable. If the executable is in the PATH environment variable, this will be the executable name.
 }
 
 var (
@@ -52,6 +54,8 @@ func GetEnv() (*Env, error) {
 		}
 
 		instance.KeyPath = filepath.Join(instance.AppHomeDir, ".key")
+		instance.SecretExt = ".thurin"
+		instance.SecretsPath = filepath.Join(instance.AppHomeDir, instance.SecretExt)
 	})
 
 	return instance, err
