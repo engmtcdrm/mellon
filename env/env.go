@@ -37,6 +37,7 @@ func GetEnv() (*Env, error) {
 		instance = &Env{
 			Home:       home,
 			AppHomeDir: filepath.Join(home, app.DotName),
+			SecretExt:  ".thurin",
 		}
 
 		executablePath, e := os.Executable()
@@ -54,7 +55,6 @@ func GetEnv() (*Env, error) {
 		}
 
 		instance.KeyPath = filepath.Join(instance.AppHomeDir, ".key")
-		instance.SecretExt = ".thurin"
 		instance.SecretsPath = filepath.Join(instance.AppHomeDir, instance.SecretExt)
 	})
 
