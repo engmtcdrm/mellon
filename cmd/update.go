@@ -94,10 +94,8 @@ var updateCmd = &cobra.Command{
 				return fmt.Errorf("could not read file '%s': %w", rawSecretFile, err)
 			}
 
-			secret = strings.TrimSpace(string(secretBytes))
-			secretBytes = nil
-
-			encSecret, err = tomb.Encrypt([]byte(secret))
+			secretBytes = secrets.TrimSpaceBytes(secretBytes)
+			encSecret, err = tomb.Encrypt(secretBytes)
 			if err != nil {
 				return err
 			}
@@ -168,7 +166,7 @@ var updateCmd = &cobra.Command{
 			return err
 		}
 
-		encSecret, err = tomb.Encrypt([]byte(strings.TrimSpace(secret)))
+		encSecret, err = tomb.Encrypt(secrets.TrimSpaceBytes([]byte(secret)))
 		secret = ""
 		if err != nil {
 			return err

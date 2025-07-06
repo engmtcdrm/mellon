@@ -68,3 +68,20 @@ func FindSecretByName(name string, secretFiles []Secret) *Secret {
 
 	return nil
 }
+
+// TrimSpaceBytes trims leading and trailing ASCII whitespace from a byte slice in-place.
+// Returns a subslice of the original slice, so the underlying array is not copied.
+func TrimSpaceBytes(b []byte) []byte {
+	start := 0
+	end := len(b)
+
+	// Trim leading spaces
+	for start < end && (b[start] == ' ' || b[start] == '\t' || b[start] == '\n' || b[start] == '\r') {
+		start++
+	}
+	// Trim trailing spaces
+	for end > start && (b[end-1] == ' ' || b[end-1] == '\t' || b[end-1] == '\n' || b[end-1] == '\r') {
+		end--
+	}
+	return b[start:end]
+}
