@@ -1,18 +1,13 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
-	"os"
-	"strings"
 
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 
-	"github.com/engmtcdrm/go-entomb"
 	pp "github.com/engmtcdrm/go-prettyprint"
 	"github.com/engmtcdrm/minno/app"
-	"github.com/engmtcdrm/minno/env"
 	"github.com/engmtcdrm/minno/header"
 	"github.com/engmtcdrm/minno/secrets"
 	"github.com/engmtcdrm/minno/secrets/prompts"
@@ -27,7 +22,7 @@ func init() {
 		"(optional) The name of the secret to update. If -f/--file is provided with this flag, the secret will be updated from the file. If this flag is not provided, you will be prompted to select a secret to update.",
 	)
 	updateCmd.Flags().StringVarP(
-		&rawSecretFile,
+		&secretFile,
 		"file",
 		"f",
 		"",
@@ -44,71 +39,23 @@ func init() {
 	rootCmd.AddCommand(updateCmd)
 }
 
-func validateUpdateFlags(cmd *cobra.Command, args []string) error {
-	// Make sure both flags are provided if one is used
-	if rawSecretFile != "" && secretName == "" {
-		return errors.New("flag -f/--file must be provided with -s/--secret")
-	}
-
-	if cleanupFile && (secretName == "" || rawSecretFile == "") {
-		return errors.New("flag -c/--cleanup can only be used when -s/--secret and -f/--file are provided")
-	}
-
-	return nil
-}
-
 var updateCmd = &cobra.Command{
 	Use:     "update",
 	Short:   "Update a secret",
 	Long:    "Update a secret",
 	Example: fmt.Sprintf("  %s update", app.Name),
-	PreRunE: validateUpdateFlags,
+	PreRunE: validateUpdateCreateFlags,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		tomb, err := entomb.NewTomb(envVars.KeyPath)
-		if err != nil {
-			return err
-		}
-
-		var secret string
+		var err error
 		var selectedSecret secrets.Secret
-		var encSecret []byte
 
-		if secretName != "" && rawSecretFile != "" {
-			if err := secrets.ValidateName(secretName); err != nil {
-				return fmt.Errorf("%s. The secret name provided was '%s'", err, secretName)
-			}
-
+		if secretName != "" && secretFile != "" {
 			secretPtr := secrets.FindSecretByName(secretName, secretFiles)
 			if secretPtr == nil {
 				return fmt.Errorf("could not update secret '%s': does not exist", secretName)
 			}
 			selectedSecret = *secretPtr
-
-			rawSecretFile, err := env.ExpandTilde(strings.TrimSpace(rawSecretFile))
-			if err != nil {
-				return err
-			}
-
-			secretBytes, err := os.ReadFile(rawSecretFile)
-			if err != nil {
-				return fmt.Errorf("could not read file '%s': %w", rawSecretFile, err)
-			}
-
-			secretBytes = secrets.TrimSpaceBytes(secretBytes)
-			encSecret, err = tomb.Encrypt(secretBytes)
-			if err != nil {
-				return err
-			}
-
-			if err = os.WriteFile(selectedSecret.Path, encSecret, secretMode); err != nil {
-				return err
-			}
-
-			if cleanupFile {
-				if err = os.Remove(rawSecretFile); err != nil {
-					return fmt.Errorf("could not remove file '%s': %w", rawSecretFile, err)
-				}
-			}
+			selectedSecret.EncryptFromFile(secretFile, cleanupFile)
 
 			return nil
 		}
@@ -116,6 +63,7 @@ var updateCmd = &cobra.Command{
 		header.PrintHeader()
 
 		var form *huh.Form
+		var secret string
 
 		if secretName == "" {
 			options, err := prompts.GetSecretOptions(secretFiles, "update")
@@ -138,10 +86,6 @@ var updateCmd = &cobra.Command{
 				),
 			)
 		} else {
-			if err := secrets.ValidateName(secretName); err != nil {
-				return fmt.Errorf("%s\n\nThe secret name provided was %s", err, pp.Red(secretName))
-			}
-
 			secretPtr := secrets.FindSecretByName(secretName, secretFiles)
 			if secretPtr == nil {
 				return fmt.Errorf("secret %s does not exist!\n\nUse command %s to create the secret", pp.Red(secretName), pp.Greenf("%s create", envVars.ExeCmd))
@@ -166,18 +110,11 @@ var updateCmd = &cobra.Command{
 			return err
 		}
 
-		encSecret, err = tomb.Encrypt(secrets.TrimSpaceBytes([]byte(secret)))
-		secret = ""
-		if err != nil {
-			return err
+		if err := selectedSecret.EncryptFromString(secret); err != nil {
+			return fmt.Errorf("could not encrypt secret: %w", err)
 		}
 
-		fmt.Println(pp.Complete("Secret encrypted"))
-
-		if err = os.WriteFile(selectedSecret.Path, encSecret, secretMode); err != nil {
-			return err
-		}
-		fmt.Println(pp.Complete("Secret saved"))
+		fmt.Println(pp.Complete("Secret encrypted and saved"))
 		fmt.Println()
 		fmt.Printf("You can run the commmand %s to view the unencrypted secret\n", pp.Greenf("%s view -s %s", envVars.ExeCmd, selectedSecret.Name))
 
