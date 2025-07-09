@@ -51,7 +51,10 @@ var deleteCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var selectedSecret secrets.Secret
 
+		// TODO: Add logic to delete all secrets if deleteAll is true.
+
 		if secretName != "" {
+			// TODO: Add force logic into this to prompt user.
 			secretPtr := secrets.FindSecretByName(secretName, secretFiles)
 			if secretPtr == nil {
 				return fmt.Errorf("could not delete secret '%s': does not exist", secretName)
