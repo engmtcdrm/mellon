@@ -2,17 +2,45 @@ package secrets
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 
+	"github.com/engmtcdrm/go-entomb"
 	"github.com/engmtcdrm/minno/env"
 )
 
 type Secret struct {
 	Name string
 	Path string
+	tomb *entomb.Tomb
+}
+
+var (
+	secretMode os.FileMode = 0600 // Default file mode for secret files
+)
+
+func NewSecret(keyPath string, name string, path string) (*Secret, error) {
+	if keyPath == "" {
+		return nil, errors.New("key path cannot be empty")
+	}
+
+	tomb, err := entomb.NewTomb(keyPath)
+	if err != nil {
+		return nil, fmt.Errorf("could not create tomb: %w", err)
+	}
+
+	if err := ValidateName(name); err != nil {
+		return nil, fmt.Errorf("%s. The secret name provided was '%s'", err, name)
+	}
+
+	if path == "" {
+		return nil, errors.New("path cannot be empty")
+	}
+
+	return &Secret{Name: name, Path: path, tomb: tomb}, nil
 }
 
 // Returns a slice of all available secrets
@@ -30,11 +58,11 @@ func GetSecretFiles() ([]Secret, error) {
 		}
 
 		if filepath.Ext(path) == envVars.SecretExt && !d.IsDir() {
-			c := Secret{
-				Name: strings.TrimSuffix(filepath.Base(path), envVars.SecretExt),
-				Path: path,
+			c, err := NewSecret(envVars.KeyPath, strings.TrimSuffix(filepath.Base(path), envVars.SecretExt), path)
+			if err != nil {
+				return err
 			}
-			secretFiles = append(secretFiles, c)
+			secretFiles = append(secretFiles, *c)
 		}
 
 		return nil
@@ -69,9 +97,9 @@ func FindSecretByName(name string, secretFiles []Secret) *Secret {
 	return nil
 }
 
-// TrimSpaceBytes trims leading and trailing ASCII whitespace from a byte slice in-place.
+// trimSpaceBytes trims leading and trailing ASCII whitespace from a byte slice in-place.
 // Returns a subslice of the original slice, so the underlying array is not copied.
-func TrimSpaceBytes(b []byte) []byte {
+func trimSpaceBytes(b []byte) []byte {
 	start := 0
 	end := len(b)
 
@@ -84,4 +112,78 @@ func TrimSpaceBytes(b []byte) []byte {
 		end--
 	}
 	return b[start:end]
+}
+
+// EncryptFromFile reads a secret from a file, trims leading and trailing whitespace
+// and encrypts it before writing it to the secret's path.
+func (s *Secret) EncryptFromFile(file string, cleanup bool) error {
+	var encSecret []byte
+
+	rawFile, err := env.ExpandTilde(strings.TrimSpace(file))
+	if err != nil {
+		return err
+	}
+
+	secretBytes, err := os.ReadFile(rawFile)
+	if err != nil {
+		return fmt.Errorf("could not read file '%s': %w", rawFile, err)
+	}
+
+	secretBytes = trimSpaceBytes(secretBytes)
+	encSecret, err = s.tomb.Encrypt(secretBytes)
+	if err != nil {
+		return err
+	}
+
+	if err = os.WriteFile(s.Path, encSecret, secretMode); err != nil {
+		return err
+	}
+
+	if cleanup {
+		if err = os.Remove(rawFile); err != nil {
+			return fmt.Errorf("could not remove file '%s': %w", rawFile, err)
+		}
+	}
+
+	return nil
+}
+
+// EncryptFromString encrypts a secret from a string and writes it to the secret's path.
+// The string is trimmed of leading and trailing whitespace before encryption.
+func (s *Secret) EncryptFromString(secret string) error {
+	encSecret, err := s.tomb.Encrypt(trimSpaceBytes([]byte(secret)))
+	secret = ""
+	if err != nil {
+		return err
+	}
+
+	if err = os.WriteFile(s.Path, encSecret, secretMode); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Decrypt reads the encrypted secret from the file and decrypts it.
+func (s *Secret) Decrypt() ([]byte, error) {
+	data, err := os.ReadFile(s.Path)
+	if err != nil {
+		if os.IsPermission(err) {
+			return nil, fmt.Errorf("failed to read secret '%s': permission denied", s.Name)
+		}
+
+		if os.IsNotExist(err) {
+			return nil, fmt.Errorf("failed to read secret '%s': secret does not exist", s.Name)
+		}
+
+		return nil, err
+	}
+
+	secret, err := s.tomb.Decrypt(data)
+	data = nil
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt secret '%s'. Encrypted secret may be corrupted", s.Name)
+	}
+
+	return secret, nil
 }
