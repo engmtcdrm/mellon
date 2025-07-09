@@ -3,8 +3,6 @@ package cmd
 import (
 	"context"
 	"os"
-	"path/filepath"
-	"regexp"
 
 	"github.com/spf13/cobra"
 
@@ -22,12 +20,16 @@ var (
 		Version: getSemVer(app.Version),
 	}
 
-	secretName    string           // The name of the secret to create/view/update/delete
-	rawSecretFile string           // The file containing the plain text secret to encrypt
-	cleanupFile   bool             // Whether to delete the raw secret file after encryption
-	output        string           // The file to write decrypted secret to (only used with view command)
-	secretFiles   []secrets.Secret // List of secrets available in the app
-	envVars       *env.Env         // Environment variables for the app
+	secretName  string // The name of the secret to create/view/update/delete
+	secretFile  string // The file containing the plain text secret to encrypt
+	cleanupFile bool   // Whether to delete the raw secret file after encryption
+	forceDelete bool   // Whether to force overwrite an existing secret file (only used with delete command)
+	deleteAll   bool   // Whether to delete all secrets (only used with delete command)
+	output      string // The file to write decrypted secret to (only used with view command)
+	print       bool   // Whether to print only the names of the secrets without additional information (only used with list command)
+
+	secretFiles []secrets.Secret // List of secrets available in the app
+	envVars     *env.Env         // Environment variables for the app
 
 	// Modes for files and directories
 	dirMode    os.FileMode = 0700 // Default directory mode for app home directory as well as output of secret directories
@@ -54,53 +56,12 @@ func configInit() {
 		panic(err)
 	}
 
-	if _, err := os.Stat(envVars.AppHomeDir); os.IsNotExist(err) {
-		// Directory does not exist, create it
-		err = os.MkdirAll(envVars.AppHomeDir, dirMode)
-		if err != nil {
-			panic(err)
-		}
-
-		// Change permission again to get rid of any sticky bits
-		err = os.Chmod(envVars.AppHomeDir, dirMode)
-		if err != nil {
-			panic(err)
-		}
-	} else {
-		// Directory exists, make sure directories and files are secure
-		err = filepath.Walk(envVars.AppHomeDir, func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-			if info.IsDir() {
-				return os.Chmod(path, 0700)
-			}
-			return os.Chmod(path, secretMode)
-		})
-		if err != nil {
-			panic(err)
-		}
-	}
+	mkdir(envVars.AppHomeDir, dirMode)
+	mkdir(envVars.SecretsPath, dirMode)
+	secureFiles(envVars.AppHomeDir, dirMode, secretMode)
 
 	secretFiles, err = secrets.GetSecretFiles()
 	if err != nil {
 		panic(err)
 	}
-}
-
-// getSemVer returns the semantic version of the input string if it
-// matches the pattern `vX.Y.Z`. Otherwise, it returns the input string.
-func getSemVer(input string) string {
-	// Define the regular expression for semantic versioning
-	re := regexp.MustCompile(`^v?(\d+\.\d+\.\d+)$`)
-
-	match := re.FindStringSubmatch(input)
-
-	// If there's a match return the semantic version
-	if len(match) > 1 {
-		return match[1]
-	}
-
-	// If no match, return the original input
-	return input
 }
