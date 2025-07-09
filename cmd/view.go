@@ -9,7 +9,6 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 
-	"github.com/engmtcdrm/go-entomb"
 	pp "github.com/engmtcdrm/go-prettyprint"
 	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/header"
@@ -51,11 +50,6 @@ var viewCmd = &cobra.Command{
 	Example: fmt.Sprintf("  %s view\n  %s view -s awesome-secret", app.Name, app.Name),
 	PreRunE: validateViewFlags,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		tomb, err := entomb.NewTomb(envVars.KeyPath)
-		if err != nil {
-			return err
-		}
-
 		var selectedSecretFile secrets.Secret
 
 		if secretName == "" {
@@ -83,15 +77,7 @@ var viewCmd = &cobra.Command{
 				return err
 			}
 
-			data, err := os.ReadFile(selectedSecretFile.Path)
-			if err != nil {
-				return errors.New("failed to read secret. Encrypted secret may be corrupted")
-			}
-
-			fmt.Println(pp.Complete("Secret read"))
-
-			secret, err := tomb.Decrypt(data)
-			data = nil
+			secret, err := selectedSecretFile.Decrypt()
 			if err != nil {
 				return errors.New("failed to decrypt secret. Encrypted secret may be corrupted")
 			}
@@ -103,10 +89,6 @@ var viewCmd = &cobra.Command{
 			return nil
 		}
 
-		if err := secrets.ValidateName(secretName); err != nil {
-			return fmt.Errorf("%s\n\nThe secret name provided was '%s'", err, secretName)
-		}
-
 		secretPtr := secrets.FindSecretByName(secretName, secretFiles)
 		if secretPtr == nil {
 			return fmt.Errorf("failed to read secret '%s': secret does not exist", secretName)
@@ -114,21 +96,7 @@ var viewCmd = &cobra.Command{
 
 		selectedSecretFile = *secretPtr
 
-		data, err := os.ReadFile(selectedSecretFile.Path)
-		if err != nil {
-			if os.IsPermission(err) {
-				return fmt.Errorf("failed to read secret '%s': permission denied", secretName)
-			}
-
-			if os.IsNotExist(err) {
-				return fmt.Errorf("failed to read secret '%s': secret does not exist", secretName)
-			}
-
-			return err
-		}
-
-		secret, err := tomb.Decrypt(data)
-		data = nil
+		secret, err := selectedSecretFile.Decrypt()
 		if err != nil {
 			return fmt.Errorf("failed to decrypt secret '%s'. Encrypted secret may be corrupted", secretName)
 		}
