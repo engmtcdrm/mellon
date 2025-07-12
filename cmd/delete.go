@@ -70,7 +70,7 @@ var deleteCmd = &cobra.Command{
 				)
 
 				err := form.
-					WithTheme(app.ThemeMinno()).
+					WithTheme(huh.ThemeBase16()).
 					Run()
 				if err != nil {
 					return err
@@ -117,7 +117,7 @@ var deleteCmd = &cobra.Command{
 		form := huh.NewForm(groups...)
 
 		err = form.
-			WithTheme(app.ThemeMinno()).
+			WithTheme(huh.ThemeBase16()).
 			Run()
 		if err != nil {
 			return err

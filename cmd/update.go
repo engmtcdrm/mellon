@@ -107,7 +107,7 @@ var updateCmd = &cobra.Command{
 		}
 
 		err = form.
-			WithTheme(app.ThemeMinno()).
+			WithTheme(huh.ThemeBase16()).
 			Run()
 		if err != nil {
 			return err
