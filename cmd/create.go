@@ -34,8 +34,11 @@ func init() {
 		"cleanup",
 		"c",
 		false,
-		"(optional) Whether to delete the plain text secret file after encryption. Defaults to false",
+		"(optional) Whether to delete the plain text secret file after encryption",
 	)
+
+	createCmd.MarkFlagsRequiredTogether("file", "secret")
+	createCmd.MarkFlagFilename("file")
 
 	rootCmd.AddCommand(createCmd)
 }

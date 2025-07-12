@@ -12,11 +12,6 @@ import (
 
 // validateUpdateCreateFlags checks if the flags for creating or updating a secret are valid.
 func validateUpdateCreateFlags(cmd *cobra.Command, args []string) error {
-	// Make sure both flags are provided if one is used
-	if secretFile != "" && secretName == "" {
-		return errors.New("flag -f/--file must be provided with -s/--secret")
-	}
-
 	if cleanupFile && (secretName == "" || secretFile == "") {
 		return errors.New("flag -c/--cleanup can only be used when -s/--secret and -f/--file are provided")
 	}

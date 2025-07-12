@@ -19,7 +19,7 @@ func init() {
 		"secret",
 		"s",
 		"",
-		"(optional) The name of the secret to update. If -f/--file is provided with this flag, the secret will be updated from the file. If this flag is not provided, you will be prompted to select a secret to update.",
+		"(optional) The name of the secret to update. If -f/--file is provided with this flag, the secret will be updated from the file. If this flag is not provided, you will be prompted to select a secret to update",
 	)
 	updateCmd.Flags().StringVarP(
 		&secretFile,
@@ -35,6 +35,9 @@ func init() {
 		false,
 		"(optional) Whether to delete the unencrypted secret file after encryption. Defaults to false",
 	)
+
+	createCmd.MarkFlagsRequiredTogether("file", "secret")
+	createCmd.MarkFlagFilename("file")
 
 	rootCmd.AddCommand(updateCmd)
 }
