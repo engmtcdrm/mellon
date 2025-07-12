@@ -18,28 +18,26 @@ func init() {
 		"secret",
 		"s",
 		"",
-		"(optional) The name of the secret to delete.",
+		"(optional) The name of the secret to delete",
 	)
 	deleteCmd.Flags().BoolVarP(
 		&forceDelete,
 		"force",
 		"f",
 		false,
-		"(optional) Whether to force delete the secret without confirmation. Defaults to false.",
+		"(optional) Whether to force delete the secrets without confirmation",
 	)
 	deleteCmd.Flags().BoolVarP(
 		&deleteAll,
 		"all",
 		"a",
 		false,
-		"(optional) Whether to delete all secrets. Defaults to false.",
+		"(optional) Whether to delete all secrets",
 	)
 
-	rootCmd.AddCommand(deleteCmd)
-}
+	deleteCmd.MarkFlagsMutuallyExclusive("secret", "all")
 
-func validateDeleteFlags(cmd *cobra.Command, args []string) error {
-	return nil
+	rootCmd.AddCommand(deleteCmd)
 }
 
 var deleteCmd = &cobra.Command{
@@ -47,22 +45,42 @@ var deleteCmd = &cobra.Command{
 	Short:   "Delete a secret",
 	Long:    "Delete a secret",
 	Example: fmt.Sprintf("  %s delete", app.Name),
-	PreRunE: validateDeleteFlags,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var selectedSecret secrets.Secret
 
 		// TODO: Add logic to delete all secrets if deleteAll is true.
 
 		if secretName != "" {
-			// TODO: Add force logic into this to prompt user.
 			secretPtr := secrets.FindSecretByName(secretName, secretFiles)
 			if secretPtr == nil {
 				return fmt.Errorf("could not delete secret '%s': does not exist", secretName)
 			}
 			selectedSecret = *secretPtr
 
-			if err := os.Remove(selectedSecret.Path); err != nil {
-				return fmt.Errorf("could not remove secret '%s': %w", selectedSecret.Name, err)
+			confirmDelete := true
+			if !forceDelete {
+				confirmDelete = false
+				form := huh.NewForm(
+					huh.NewGroup(
+						huh.NewConfirm().
+							Title(fmt.Sprintf("Are you sure you want to delete '%s'?", secretName)).
+							Description("This action cannot be undone.").
+							Value(&confirmDelete),
+					),
+				)
+
+				err := form.
+					WithTheme(app.ThemeMinno()).
+					Run()
+				if err != nil {
+					return err
+				}
+			}
+
+			if confirmDelete {
+				if err := os.Remove(selectedSecret.Path); err != nil {
+					return fmt.Errorf("could not remove secret '%s': %w", selectedSecret.Name, err)
+				}
 			}
 
 			return nil
