@@ -22,7 +22,7 @@ func init() {
 		"secret",
 		"s",
 		"",
-		"(optional) The name of the secret to view. Only names containing alphanumeric, hyphens, and underscores are allowed.",
+		"(optional) The name of the secret to view. Only names containing alphanumeric, hyphens, and underscores are allowed",
 	)
 	viewCmd.Flags().StringVarP(
 		&output,
@@ -71,7 +71,8 @@ var viewCmd = &cobra.Command{
 			)
 
 			err = form.
-				WithTheme(app.ThemeMinno()).
+				// WithTheme(app.ThemeMinno()).
+				WithTheme(huh.ThemeBase16()).
 				Run()
 			if err != nil {
 				return err

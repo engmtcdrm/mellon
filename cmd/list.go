@@ -15,7 +15,7 @@ func init() {
 		"print",
 		"p",
 		false,
-		"(optional) Whether to print only the names of the secrets without additional information. Defaults to false.",
+		"(optional) Whether to print only the names of the secrets without additional information",
 	)
 
 	rootCmd.AddCommand(listCmd)
