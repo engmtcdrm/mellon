@@ -148,11 +148,10 @@ func (s *Secret) EncryptFromFile(file string, cleanup bool) error {
 	return nil
 }
 
-// EncryptFromString encrypts a secret from a string and writes it to the secret's path.
-// The string is trimmed of leading and trailing whitespace before encryption.
-func (s *Secret) EncryptFromString(secret string) error {
-	encSecret, err := s.tomb.Encrypt(trimSpaceBytes([]byte(secret)))
-	secret = ""
+// Encrypt encrypts a secret and writes it to the secret's path.
+// The secret is trimmed of leading and trailing whitespace before encryption.
+func (s *Secret) Encrypt(secret []byte) error {
+	encSecret, err := s.tomb.Encrypt(trimSpaceBytes(secret))
 	if err != nil {
 		return err
 	}

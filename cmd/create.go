@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 
+	"github.com/engmtcdrm/go-pardon"
 	pp "github.com/engmtcdrm/go-prettyprint"
 	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/header"
@@ -74,48 +74,31 @@ var createCmd = &cobra.Command{
 
 		header.PrintHeader()
 
-		var form *huh.Form
-		var secret string
+		var secret []byte
 
-		// Interactive mode if no flags are provided
+		promptSecret := pardon.NewPassword().
+			Title(pp.Cyan("Enter a secret to secure:")).
+			Value(&secret)
+
+		if err := promptSecret.Ask(); err != nil {
+			return err
+		}
+
 		if secretName == "" {
-			form = huh.NewForm(
-				huh.NewGroup(
-					huh.NewInput().
-						Title("Enter a secret to secure").
-						Value(&secret).
-						EchoMode(huh.EchoModeNone).
-						Inline(true),
-					huh.NewInput().
-						Title("Enter a name for the secret").
-						Value(&secretName).
-						Validate(validateSecretName).
-						Inline(true),
-				),
-			)
+			promptQuestion := pardon.NewQuestion().
+				Title(pp.Cyan("Enter a name for the secret:")).
+				Value(&secretName).
+				Validate(validateSecretName)
+
+			if err := promptQuestion.Ask(); err != nil {
+				return err
+			}
 
 		} else {
 			secretPtr := secrets.FindSecretByName(secretName, secretFiles)
 			if secretPtr != nil {
 				return fmt.Errorf("secret %s already exists", pp.Red(secretName))
 			}
-
-			form = huh.NewForm(
-				huh.NewGroup(
-					huh.NewInput().
-						Title("Enter a secret to secure").
-						Value(&secret).
-						EchoMode(huh.EchoModeNone).
-						Inline(true),
-				),
-			)
-		}
-
-		err = form.
-			WithTheme(huh.ThemeBase16()).
-			Run()
-		if err != nil {
-			return err
 		}
 
 		newSecret, err = secrets.NewSecret(envVars.KeyPath, secretName, filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt))
@@ -123,7 +106,7 @@ var createCmd = &cobra.Command{
 			return fmt.Errorf("could not create secret: %w", err)
 		}
 
-		if err := newSecret.EncryptFromString(secret); err != nil {
+		if err := newSecret.Encrypt(secret); err != nil {
 			return fmt.Errorf("could not encrypt secret: %w", err)
 		}
 

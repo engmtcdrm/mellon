@@ -3,9 +3,9 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 
+	"github.com/engmtcdrm/go-pardon"
 	pp "github.com/engmtcdrm/go-prettyprint"
 	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/header"
@@ -49,7 +49,6 @@ var updateCmd = &cobra.Command{
 	Example: fmt.Sprintf("  %s update", app.Name),
 	PreRunE: validateUpdateCreateFlags,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var err error
 		var selectedSecret secrets.Secret
 
 		if secretName != "" && secretFile != "" {
@@ -65,8 +64,11 @@ var updateCmd = &cobra.Command{
 
 		header.PrintHeader()
 
-		var form *huh.Form
-		var secret string
+		var secret []byte
+
+		promptSecret := pardon.NewPassword().
+			Title(pp.Cyan("Enter the updated secret:")).
+			Value(&secret)
 
 		if secretName == "" {
 			options, err := prompts.GetSecretOptions(secretFiles, "update")
@@ -74,49 +76,34 @@ var updateCmd = &cobra.Command{
 				return err
 			}
 
-			form = huh.NewForm(
-				huh.NewGroup(
-					huh.NewSelect[secrets.Secret]().
-						Options(options...).
-						Title("Available Secrets").
-						Description("Choose a secret to update.").
-						Value(&selectedSecret),
-					huh.NewInput().
-						Title("Enter the updated secret").
-						Value(&secret).
-						EchoMode(huh.EchoModeNone).
-						Inline(true),
-				),
-			)
+			promptSelect := pardon.NewSelect[secrets.Secret]().
+				Title(pp.Cyan("Available Secrets")).
+				Options(options...).
+				Value(&selectedSecret).
+				SelectFunc(
+					func(s string) string {
+						return pp.Yellow(s)
+					})
+			if err := promptSelect.Ask(); err != nil {
+				return err
+			}
 		} else {
 			secretPtr := secrets.FindSecretByName(secretName, secretFiles)
 			if secretPtr == nil {
 				return fmt.Errorf("secret %s does not exist!\n\nUse command %s to create the secret", pp.Red(secretName), pp.Greenf("%s create", envVars.ExeCmd))
 			}
 			selectedSecret = *secretPtr
-
-			form = huh.NewForm(
-				huh.NewGroup(
-					huh.NewInput().
-						Title("Enter the updated secret").
-						Value(&secret).
-						EchoMode(huh.EchoModeNone).
-						Inline(true),
-				),
-			)
 		}
 
-		err = form.
-			WithTheme(huh.ThemeBase16()).
-			Run()
-		if err != nil {
+		if err := promptSecret.Ask(); err != nil {
 			return err
 		}
 
-		if err := selectedSecret.EncryptFromString(secret); err != nil {
+		if err := selectedSecret.Encrypt(secret); err != nil {
 			return fmt.Errorf("could not encrypt secret: %w", err)
 		}
 
+		fmt.Println()
 		fmt.Println(pp.Complete("Secret encrypted and saved"))
 		fmt.Println()
 		fmt.Printf("You can run the commmand %s to view the unencrypted secret\n", pp.Greenf("%s view -s %s", envVars.ExeCmd, selectedSecret.Name))

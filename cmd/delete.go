@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/charmbracelet/huh"
+	"github.com/engmtcdrm/go-pardon"
+	pp "github.com/engmtcdrm/go-prettyprint"
 	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/header"
 	"github.com/engmtcdrm/minno/secrets"
@@ -60,19 +61,10 @@ var deleteCmd = &cobra.Command{
 			confirmDelete := true
 			if !forceDelete {
 				confirmDelete = false
-				form := huh.NewForm(
-					huh.NewGroup(
-						huh.NewConfirm().
-							Title(fmt.Sprintf("Are you sure you want to delete '%s'?", secretName)).
-							Description("This action cannot be undone.").
-							Value(&confirmDelete),
-					),
-				)
-
-				err := form.
-					WithTheme(huh.ThemeBase16()).
-					Run()
-				if err != nil {
+				promptConfirm := pardon.NewConfirm().
+					Title(fmt.Sprintf("Are you sure you want to delete '%s'?", secretName)).
+					Value(&confirmDelete)
+				if err := promptConfirm.Ask(); err != nil {
 					return err
 				}
 			}
@@ -93,34 +85,29 @@ var deleteCmd = &cobra.Command{
 			return err
 		}
 
-		groups := []*huh.Group{
-			huh.NewGroup(
-				huh.NewSelect[secrets.Secret]().
-					Options(options...).
-					Title("Available Secrets").
-					Description("Choose a secret to delete.").
-					Value(&selectedSecret),
-			),
+		promptSelect := pardon.NewSelect[secrets.Secret]().
+			Title(pp.Cyan("Available Secrets")).
+			Options(options...).
+			Value(&selectedSecret).
+			SelectFunc(
+				func(s string) string {
+					return pp.Yellow(s)
+				})
+
+		if err := promptSelect.Ask(); err != nil {
+			return err
 		}
 
 		confirmDelete := true
 		if !forceDelete {
 			confirmDelete = false
-			groups = append(groups, huh.NewGroup(
-				huh.NewConfirm().
-					Title(fmt.Sprintf("Are you sure you want to delete '%s'?", selectedSecret.Name)).
-					Description("This action cannot be undone.").
-					Value(&confirmDelete),
-			))
-		}
-
-		form := huh.NewForm(groups...)
-
-		err = form.
-			WithTheme(huh.ThemeBase16()).
-			Run()
-		if err != nil {
-			return err
+			promptConfirm := pardon.NewConfirm().
+				Title(fmt.Sprintf("Are you sure you want to delete '%s'?", pp.Cyan(selectedSecret.Name))).
+				QuestionMark(pp.Cyan("[?] ")).
+				Value(&confirmDelete)
+			if err := promptConfirm.Ask(); err != nil {
+				return err
+			}
 		}
 
 		if confirmDelete {

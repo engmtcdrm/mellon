@@ -6,9 +6,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 
+	"github.com/engmtcdrm/go-pardon"
 	pp "github.com/engmtcdrm/go-prettyprint"
 	"github.com/engmtcdrm/minno/app"
 	"github.com/engmtcdrm/minno/header"
@@ -60,20 +60,15 @@ var viewCmd = &cobra.Command{
 				return err
 			}
 
-			form := huh.NewForm(
-				huh.NewGroup(
-					huh.NewSelect[secrets.Secret]().
-						Options(options...).
-						Title("Available Secrets").
-						Description("Choose a secret to view.").
-						Value(&selectedSecretFile),
-				),
-			)
-
-			err = form.
-				WithTheme(huh.ThemeBase16()).
-				Run()
-			if err != nil {
+			promptSelect := pardon.NewSelect[secrets.Secret]().
+				Options(options...).
+				Title(pp.Cyan("Available Secrets")).
+				Value(&selectedSecretFile).
+				SelectFunc(
+					func(s string) string {
+						return pp.Yellow(s)
+					})
+			if err := promptSelect.Ask(); err != nil {
 				return err
 			}
 
