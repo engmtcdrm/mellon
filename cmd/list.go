@@ -38,9 +38,7 @@ var listCmd = &cobra.Command{
 		header.PrintHeader()
 
 		if len(secretFiles) == 0 {
-			fmt.Printf("No available secrets. Use command %s to create a secret\n", pp.Greenf("%s create", envVars.ExeCmd))
-
-			return nil
+			return fmt.Errorf("no available secrets to list\n\nUse command %s to create a secret", pp.Greenf("%s create", envVars.ExeCmd))
 		}
 
 		fmt.Println(pp.Cyan("Available Secrets"))
