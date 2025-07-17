@@ -16,7 +16,9 @@ minno
 
 Available Commands:
   create      Create a secret
+  delete      Delete a secret
   help        Help about any command
+  list        List available secrets
   update      Update a secret
   view        View a secret
 
