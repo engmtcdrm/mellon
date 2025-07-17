@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/engmtcdrm/go-entomb v1.0.0
-	github.com/engmtcdrm/go-pardon v0.0.0-20250717011742-cbe966627e8f
+	github.com/engmtcdrm/go-pardon v0.0.0-20250717020630-7d7e015723a5
 	github.com/engmtcdrm/go-prettyprint v1.1.0
 	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.10.0
