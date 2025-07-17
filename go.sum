@@ -5,8 +5,8 @@ github.com/engmtcdrm/go-ansi v1.0.1 h1:EuCZwIIjBxIPZECCsLqW7oix1OajU84yhfLMdrhHn
 github.com/engmtcdrm/go-ansi v1.0.1/go.mod h1:JU8Qdj73+kwuR7TVUGywKJiiw7oiLLg9L1tsOTsDecE=
 github.com/engmtcdrm/go-entomb v1.0.0 h1:hlNDSALsMlobnpsbYjke2pYSLVwccG7v8vKqcmf/RXE=
 github.com/engmtcdrm/go-entomb v1.0.0/go.mod h1:vneLpjH45aqAyTHYf5heZRPH1lUm0BfflNRoojAd8EY=
-github.com/engmtcdrm/go-pardon v0.0.0-20250716004054-881e575e7155 h1:9fFlfcRyODH4K3D3trL9O5A7hmKz16YDbaBNQYqYk0s=
-github.com/engmtcdrm/go-pardon v0.0.0-20250716004054-881e575e7155/go.mod h1:LdFxFAVG7O4YT4kWZJ3toljKzTGkhctblf5/759P5Dg=
+github.com/engmtcdrm/go-pardon v0.0.0-20250717011742-cbe966627e8f h1:7Fypj9TE7kqLXsKChg2UTBGh6lQbfPq9uqoDPz0geO8=
+github.com/engmtcdrm/go-pardon v0.0.0-20250717011742-cbe966627e8f/go.mod h1:LdFxFAVG7O4YT4kWZJ3toljKzTGkhctblf5/759P5Dg=
 github.com/engmtcdrm/go-prettyprint v1.1.0 h1:Cbr+XjM7lwVqh+Nmd0CxPFmnsOnKMXti2ogbfWLMYO4=
 github.com/engmtcdrm/go-prettyprint v1.1.0/go.mod h1:/U40kVhDdncIcY1ao+8BogPn4JWbpix+gXHAGKEQAuE=
 github.com/fernet/fernet-go v0.0.0-20240119011108-303da6aec611 h1:JwYtKJ/DVEoIA5dH45OEU7uoryZY/gjd/BQiwwAOImM=
@@ -18,8 +18,9 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/spf13/cobra v1.9.1 h1:CXSaggrXdbHK9CF+8ywj8Amf7PBRmPCOJugH954Nnlo=
 github.com/spf13/cobra v1.9.1/go.mod h1:nDyEzZ8ogv936Cinf6g1RU9MRY64Ir93oCnqb9wxYW0=
-github.com/spf13/pflag v1.0.6 h1:jFzHGLGAlb3ruxLB8MhbI6A8+AQX/2eW4qeyNZXNp2o=
 github.com/spf13/pflag v1.0.6/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
+github.com/spf13/pflag v1.0.7 h1:vN6T9TfwStFPFM5XzjsvmzZkLuaLX+HS+0SeFLRgU6M=
+github.com/spf13/pflag v1.0.7/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
 github.com/stretchr/testify v1.10.0 h1:Xv5erBjTwe/5IxqUQTdXv5kgmIvbHo3QQyRwhJsOfJA=
 github.com/stretchr/testify v1.10.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 golang.org/x/sys v0.34.0 h1:H5Y5sJ2L2JRdyv7ROF1he/lPdvFsd0mJHFw2ThKHxLA=
