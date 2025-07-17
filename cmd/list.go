@@ -48,7 +48,6 @@ var listCmd = &cobra.Command{
 		for _, secret := range secretFiles {
 			fmt.Printf("%s\n", secret.Name)
 		}
-		fmt.Println()
 
 		return nil
 	},
