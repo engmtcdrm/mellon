@@ -62,12 +62,13 @@ var viewCmd = &cobra.Command{
 
 			promptSelect := pardon.NewSelect[secrets.Secret]().
 				Options(options...).
-				Title(pp.Cyan("Available Secrets")).
+				Title("What secret do you want to view?").
 				Value(&selectedSecretFile).
 				SelectFunc(
 					func(s string) string {
 						return pp.Yellow(s)
-					})
+					}).
+				Icon(pp.Cyan(pardon.Icons.QuestionMark))
 			if err := promptSelect.Ask(); err != nil {
 				return err
 			}

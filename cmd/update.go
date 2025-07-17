@@ -67,7 +67,7 @@ var updateCmd = &cobra.Command{
 		var secret []byte
 
 		promptSecret := pardon.NewPassword().
-			Title(pp.Cyan("Enter the updated secret:")).
+			Title("Enter the updated secret:").
 			Value(&secret)
 
 		if secretName == "" {
@@ -77,13 +77,14 @@ var updateCmd = &cobra.Command{
 			}
 
 			promptSelect := pardon.NewSelect[secrets.Secret]().
-				Title(pp.Cyan("Available Secrets")).
+				Title("What secret do you want to update?").
 				Options(options...).
 				Value(&selectedSecret).
 				SelectFunc(
 					func(s string) string {
 						return pp.Yellow(s)
-					})
+					}).
+				Icon(pp.Cyan(pardon.Icons.QuestionMark))
 			if err := promptSelect.Ask(); err != nil {
 				return err
 			}

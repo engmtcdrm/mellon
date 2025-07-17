@@ -46,7 +46,7 @@ var listCmd = &cobra.Command{
 		fmt.Println(pp.Cyan("Available Secrets"))
 		fmt.Println()
 		for _, secret := range secretFiles {
-			fmt.Printf("  %s\n", secret.Name)
+			fmt.Printf("%s\n", secret.Name)
 		}
 		fmt.Println()
 
