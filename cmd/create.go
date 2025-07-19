@@ -90,8 +90,7 @@ var createCmd = &cobra.Command{
 			promptQuestion := pardon.NewQuestion().
 				Title("Enter a name for the secret:").
 				Value(&secretName).
-				Validate(validateSecretName).
-				Icon(pp.Cyan(pardon.Icons.QuestionMark))
+				Validate(validateSecretName)
 
 			if err := promptQuestion.Ask(); err != nil {
 				return err

@@ -63,12 +63,7 @@ var viewCmd = &cobra.Command{
 			promptSelect := pardon.NewSelect[secrets.Secret]().
 				Options(options...).
 				Title("What secret do you want to view?").
-				Value(&selectedSecretFile).
-				SelectFunc(
-					func(s string) string {
-						return pp.Yellow(s)
-					}).
-				Icon(pp.Cyan(pardon.Icons.QuestionMark))
+				Value(&selectedSecretFile)
 			if err := promptSelect.Ask(); err != nil {
 				return err
 			}
@@ -78,6 +73,7 @@ var viewCmd = &cobra.Command{
 				return errors.New("failed to decrypt secret. Encrypted secret may be corrupted")
 			}
 
+			fmt.Println()
 			fmt.Println(pp.Complete("Secret decrypted"))
 			fmt.Println()
 			fmt.Println(pp.Info("The secret is " + pp.Green(string(secret))))

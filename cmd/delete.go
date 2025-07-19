@@ -88,12 +88,7 @@ var deleteCmd = &cobra.Command{
 		promptSelect := pardon.NewSelect[secrets.Secret]().
 			Title("What secret do you want to delete?").
 			Options(options...).
-			Value(&selectedSecret).
-			SelectFunc(
-				func(s string) string {
-					return pp.Yellow(s)
-				}).
-			Icon(pp.Cyan(pardon.Icons.QuestionMark))
+			Value(&selectedSecret)
 
 		if err := promptSelect.Ask(); err != nil {
 			return err
@@ -101,10 +96,11 @@ var deleteCmd = &cobra.Command{
 
 		confirmDelete := true
 		if !forceDelete {
+			fmt.Println()
+
 			confirmDelete = false
 			promptConfirm := pardon.NewConfirm().
 				Title(fmt.Sprintf("Are you sure you want to delete %s?", pp.Cyan(selectedSecret.Name))).
-				Icon(pp.Cyan(pardon.Icons.QuestionMark)).
 				Value(&confirmDelete)
 			if err := promptConfirm.Ask(); err != nil {
 				return err

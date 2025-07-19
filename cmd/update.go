@@ -79,15 +79,12 @@ var updateCmd = &cobra.Command{
 			promptSelect := pardon.NewSelect[secrets.Secret]().
 				Title("What secret do you want to update?").
 				Options(options...).
-				Value(&selectedSecret).
-				SelectFunc(
-					func(s string) string {
-						return pp.Yellow(s)
-					}).
-				Icon(pp.Cyan(pardon.Icons.QuestionMark))
+				Value(&selectedSecret)
 			if err := promptSelect.Ask(); err != nil {
 				return err
 			}
+
+			fmt.Println()
 		} else {
 			secretPtr := secrets.FindSecretByName(secretName, secretFiles)
 			if secretPtr == nil {
