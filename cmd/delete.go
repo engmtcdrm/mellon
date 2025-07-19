@@ -62,7 +62,7 @@ var deleteCmd = &cobra.Command{
 			if !forceDelete {
 				confirmDelete = false
 				promptConfirm := pardon.NewConfirm().
-					Title(fmt.Sprintf("Are you sure you want to delete '%s'?", secretName)).
+					Title(fmt.Sprintf("Are you sure you want to delete %s?", pp.Cyan(secretName))).
 					Value(&confirmDelete)
 				if err := promptConfirm.Ask(); err != nil {
 					return err
