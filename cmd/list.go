@@ -41,10 +41,10 @@ var listCmd = &cobra.Command{
 			return fmt.Errorf("no available secrets to list\n\nUse command %s to create a secret", pp.Greenf("%s create", envVars.ExeCmd))
 		}
 
-		fmt.Println(pp.Cyan("Available Secrets"))
+		fmt.Println(pp.Info("Available secrets"))
 		fmt.Println()
 		for _, secret := range secretFiles {
-			fmt.Printf("%s\n", secret.Name)
+			fmt.Printf("  - %s\n", pp.Green(secret.Name))
 		}
 
 		return nil
