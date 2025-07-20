@@ -28,10 +28,9 @@ func init() {
 		false,
 		"(optional) Whether to force delete the secrets without confirmation",
 	)
-	deleteCmd.Flags().BoolVarP(
+	deleteCmd.Flags().BoolVar(
 		&deleteAll,
 		"all",
-		"a",
 		false,
 		"(optional) Whether to delete all secrets",
 	)
@@ -49,7 +48,60 @@ var deleteCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var selectedSecret secrets.Secret
 
-		// TODO: Add logic to delete all secrets if deleteAll is true.
+		if !forceDelete {
+			header.PrintHeader()
+		}
+
+		if deleteAll {
+			confirmDelete := "NAVAER"
+			if !forceDelete {
+				confirmDelete2 := false
+				promptConfirm2 := pardon.NewConfirm().
+					Title(fmt.Sprintf("Are you sure you want to delete ALL secrets? %s", pp.Red("There is no going back."))).
+					Value(&confirmDelete2)
+				if err := promptConfirm2.Ask(); err != nil {
+					return err
+				}
+
+				if !confirmDelete2 {
+					fmt.Println()
+					fmt.Println(pp.Fail("Aborted deleting all secrets"))
+					return nil
+				}
+
+				fmt.Println()
+
+				confirmDelete = ""
+				promptConfirm := pardon.NewQuestion().
+					Title(fmt.Sprintf("To confirm, type %s:", pp.Red("NAVAER"))).
+					Icon("").
+					Value(&confirmDelete)
+				if err := promptConfirm.Ask(); err != nil {
+					return err
+				}
+			}
+
+			fmt.Println()
+
+			if confirmDelete == "NAVAER" {
+				secrets, err := secrets.GetSecretFiles()
+				if err != nil {
+					return fmt.Errorf("could not retrieve secrets: %w", err)
+				}
+
+				for _, secret := range secrets {
+					if err := os.Remove(secret.Path); err != nil {
+						return fmt.Errorf("could not remove secret '%s': %w", secret.Name, err)
+					}
+				}
+
+				fmt.Println(pp.Complete("All secrets deleted successfully"))
+			} else {
+				fmt.Println(pp.Fail("Aborted deleting all secrets"))
+			}
+
+			return nil
+		}
 
 		if secretName != "" {
 			secretPtr := secrets.FindSecretByName(secretName, secretFiles)
@@ -69,10 +121,16 @@ var deleteCmd = &cobra.Command{
 				}
 			}
 
+			fmt.Println()
+
 			if confirmDelete {
 				if err := os.Remove(selectedSecret.Path); err != nil {
 					return fmt.Errorf("could not remove secret '%s': %w", selectedSecret.Name, err)
 				}
+
+				fmt.Println(pp.Complete("All secrets deleted successfully"))
+			} else {
+				fmt.Println(pp.Fail("Aborted deleting secret"))
 			}
 
 			return nil
@@ -107,10 +165,17 @@ var deleteCmd = &cobra.Command{
 			}
 		}
 
+		fmt.Println()
+
 		if confirmDelete {
 			if err := os.Remove(selectedSecret.Path); err != nil {
 				return fmt.Errorf("could not remove secret '%s': %w", selectedSecret.Name, err)
 			}
+
+			fmt.Println(pp.Complete("All secrets deleted successfully"))
+		} else {
+
+			fmt.Println(pp.Fail("Aborted deleting secret"))
 		}
 
 		return nil
