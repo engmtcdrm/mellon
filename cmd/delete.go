@@ -119,9 +119,9 @@ var deleteCmd = &cobra.Command{
 				if err := promptConfirm.Ask(); err != nil {
 					return err
 				}
-			}
 
-			fmt.Println()
+				fmt.Println()
+			}
 
 			if confirmDelete {
 				if err := os.Remove(selectedSecret.Path); err != nil {
