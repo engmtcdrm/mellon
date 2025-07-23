@@ -79,9 +79,9 @@ var deleteCmd = &cobra.Command{
 				if err := promptConfirm.Ask(); err != nil {
 					return err
 				}
-			}
 
-			fmt.Println()
+				fmt.Println()
+			}
 
 			if confirmDelete == "NAVAER" {
 				secrets, err := secrets.GetSecretFiles()
@@ -114,7 +114,7 @@ var deleteCmd = &cobra.Command{
 			if !forceDelete {
 				confirmDelete = false
 				promptConfirm := pardon.NewConfirm().
-					Title(fmt.Sprintf("Are you sure you want to delete %s?", pp.Cyan(secretName))).
+					Title(fmt.Sprintf("Are you sure you want to delete %s?", pp.Red(secretName))).
 					Value(&confirmDelete)
 				if err := promptConfirm.Ask(); err != nil {
 					return err
@@ -158,7 +158,7 @@ var deleteCmd = &cobra.Command{
 
 			confirmDelete = false
 			promptConfirm := pardon.NewConfirm().
-				Title(fmt.Sprintf("Are you sure you want to delete %s?", pp.Cyan(selectedSecret.Name))).
+				Title(fmt.Sprintf("Are you sure you want to delete %s?", pp.Red(selectedSecret.Name))).
 				Value(&confirmDelete)
 			if err := promptConfirm.Ask(); err != nil {
 				return err
