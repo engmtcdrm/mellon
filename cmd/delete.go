@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/engmtcdrm/go-pardon"
 	pp "github.com/engmtcdrm/go-prettyprint"
@@ -84,13 +83,13 @@ var deleteCmd = &cobra.Command{
 			}
 
 			if confirmDelete == "NAVAER" {
-				secrets, err := secrets.GetSecretFiles()
+				secretFiles, err := secrets.GetSecretFiles()
 				if err != nil {
 					return fmt.Errorf("could not retrieve secrets: %w", err)
 				}
 
-				for _, secret := range secrets {
-					if err := os.Remove(secret.Path); err != nil {
+				for _, secret := range secretFiles {
+					if err := secrets.RemoveSecret(secret); err != nil {
 						return fmt.Errorf("could not remove secret '%s': %w", secret.Name, err)
 					}
 				}
@@ -124,7 +123,7 @@ var deleteCmd = &cobra.Command{
 			}
 
 			if confirmDelete {
-				if err := os.Remove(selectedSecret.Path); err != nil {
+				if err := secrets.RemoveSecret(selectedSecret); err != nil {
 					return fmt.Errorf("could not remove secret '%s': %w", selectedSecret.Name, err)
 				}
 
@@ -168,7 +167,7 @@ var deleteCmd = &cobra.Command{
 		fmt.Println()
 
 		if confirmDelete {
-			if err := os.Remove(selectedSecret.Path); err != nil {
+			if err := secrets.RemoveSecret(selectedSecret); err != nil {
 				return fmt.Errorf("could not remove secret '%s': %w", selectedSecret.Name, err)
 			}
 
