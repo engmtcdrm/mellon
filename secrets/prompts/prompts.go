@@ -5,8 +5,8 @@ import (
 
 	"github.com/engmtcdrm/go-pardon"
 	pp "github.com/engmtcdrm/go-prettyprint"
-	"github.com/engmtcdrm/minno/env"
-	"github.com/engmtcdrm/minno/secrets"
+	"github.com/engmtcdrm/mellon/env"
+	"github.com/engmtcdrm/mellon/secrets"
 )
 
 func GetSecretOptions(secretFiles []secrets.Secret, action string) ([]pardon.Option[secrets.Secret], error) {

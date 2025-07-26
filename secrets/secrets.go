@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/engmtcdrm/go-entomb"
-	"github.com/engmtcdrm/minno/env"
+	"github.com/engmtcdrm/mellon/env"
 )
 
 type Secret struct {

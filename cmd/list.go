@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	pp "github.com/engmtcdrm/go-prettyprint"
-	"github.com/engmtcdrm/minno/app"
-	"github.com/engmtcdrm/minno/header"
+	"github.com/engmtcdrm/mellon/app"
+	"github.com/engmtcdrm/mellon/header"
 	"github.com/spf13/cobra"
 )
 

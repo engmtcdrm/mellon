@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"regexp"
 
-	"github.com/engmtcdrm/minno/secrets"
+	"github.com/engmtcdrm/mellon/secrets"
 	"github.com/spf13/cobra"
 )
 

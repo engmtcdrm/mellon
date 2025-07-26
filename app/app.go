@@ -3,7 +3,7 @@ package app
 // Application constants
 const (
 	// Name of the application
-	Name = "minno"
+	Name = "mellon"
 
 	// DotName is the name of the application with a dot prefix
 	DotName = "." + Name
@@ -15,7 +15,7 @@ const (
 	ShortDesc = "A lightweight CLI tool for securing and obtaining secrets"
 
 	// RepoUrl is the URL of the application's repository
-	RepoUrl = "https://github.com/engmtcdrm/minno"
+	RepoUrl = "https://github.com/engmtcdrm/mellon"
 )
 
 var (

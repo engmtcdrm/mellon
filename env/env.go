@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/engmtcdrm/minno/app"
+	"github.com/engmtcdrm/mellon/app"
 )
 
 type Env struct {

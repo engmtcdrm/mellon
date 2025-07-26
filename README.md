@@ -1,7 +1,7 @@
-# minno
+# mellon
 
-[![Go](https://github.com/engmtcdrm/minno/actions/workflows/build.yml/badge.svg)](https://github.com/engmtcdrm/minno/actions/workflows/build.yml)
-[![Release](https://img.shields.io/github/v/release/engmtcdrm/minno.svg?label=Latest%20Release)](https://github.com/engmtcdrm/minno/releases/latest)
+[![Go](https://github.com/engmtcdrm/mellon/actions/workflows/build.yml/badge.svg)](https://github.com/engmtcdrm/mellon/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/engmtcdrm/mellon.svg?label=Latest%20Release)](https://github.com/engmtcdrm/mellon/releases/latest)
 
 Speak friend and enter - a lightweight CLI tool for securing and obtaining secrets
 
@@ -9,10 +9,10 @@ Speak friend and enter - a lightweight CLI tool for securing and obtaining secre
 A lightweight CLI tool for securing and obtaining secrets
 
 Usage:
-  minno [command]
+  mellon [command]
 
 Examples:
-minno
+mellon
 
 Available Commands:
   create      Create a secret
@@ -23,8 +23,8 @@ Available Commands:
   view        View a secret
 
 Flags:
-  -h, --help      help for minno
-  -v, --version   version for minno
+  -h, --help      help for mellon
+  -v, --version   version for mellon
 
-Use "minno [command] --help" for more information about a command.
+Use "mellon [command] --help" for more information about a command.
 ```

@@ -6,9 +6,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/engmtcdrm/minno/app"
-	"github.com/engmtcdrm/minno/env"
-	"github.com/engmtcdrm/minno/secrets"
+	"github.com/engmtcdrm/mellon/app"
+	"github.com/engmtcdrm/mellon/env"
+	"github.com/engmtcdrm/mellon/secrets"
 )
 
 var (

@@ -6,10 +6,10 @@ import (
 )
 
 func init() {
-	minnoTheme()
+	mellonTheme()
 }
 
-func minnoTheme() {
+func mellonTheme() {
 	pardon.SetDefaultIconFunc(func(icon string) string { return pp.Cyan(icon) })
 	pardon.SetDefaultAnswerFunc(func(answer string) string { return pp.Yellow(answer) })
 	pardon.SetDefaultCursorFunc(func(cursor string) string { return pp.Yellow(cursor) })

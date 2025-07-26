@@ -1,4 +1,4 @@
-module github.com/engmtcdrm/minno
+module github.com/engmtcdrm/mellon
 
 go 1.23.0
 
