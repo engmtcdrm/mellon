@@ -19,6 +19,7 @@ type Secret struct {
 }
 
 var (
+	dirMode    os.FileMode = 0700 // Default directory mode for secrets
 	secretMode os.FileMode = 0600 // Default file mode for secret files
 )
 
@@ -57,8 +58,13 @@ func GetSecretFiles() ([]Secret, error) {
 			return err
 		}
 
+		relPath, err := filepath.Rel(envVars.SecretsPath, path)
+		if err != nil {
+			return err
+		}
+
 		if filepath.Ext(path) == envVars.SecretExt && !d.IsDir() {
-			c, err := NewSecret(envVars.KeyPath, strings.TrimSuffix(filepath.Base(path), envVars.SecretExt), path)
+			c, err := NewSecret(envVars.KeyPath, strings.TrimSuffix(relPath, envVars.SecretExt), path)
 			if err != nil {
 				return err
 			}
@@ -75,15 +81,56 @@ func GetSecretFiles() ([]Secret, error) {
 	return secretFiles, nil
 }
 
+func isDirEmpty(dirPath string) (bool, error) {
+	entries, err := os.ReadDir(dirPath)
+	if err != nil {
+		return false, err
+	}
+	return len(entries) == 0, nil
+}
+
+func RemoveSecret(secret Secret) error {
+	if secret.Path == "" {
+		return errors.New("secret path cannot be empty")
+	}
+
+	if err := os.Remove(secret.Path); err != nil {
+		return fmt.Errorf("could not remove secret '%s': %w", secret.Name, err)
+	}
+
+	envVars, err := env.GetEnv()
+	if err != nil {
+		return err
+	}
+
+	// Ignore trying to delete the secrets directory itself
+	if secret.Path == envVars.SecretsPath {
+		return nil
+	}
+
+	dirIsEmpty, err := isDirEmpty(filepath.Dir(secret.Path))
+	if err != nil {
+		return fmt.Errorf("could not check if directory is empty: %w", err)
+	}
+
+	if dirIsEmpty {
+		if err := os.Remove(filepath.Dir(secret.Path)); err != nil {
+			return fmt.Errorf("could not remove directory '%s': %w", filepath.Dir(secret.Path), err)
+		}
+	}
+
+	return nil
+}
+
 // ValidateName checks if a string is a valid secret name
 func ValidateName(s string) error {
-	var re = regexp.MustCompile(`^[a-zA-Z0-9-_]+$`)
+	var re = regexp.MustCompile(`^[\w\/\\\-]+$`)
 
 	if re.MatchString(s) {
 		return nil
 	}
 
-	return errors.New("invalid secret name: Secret name can only contain alphanumeric, hyphens, and underscores")
+	return errors.New("invalid secret name: Secret name can only contain alphanumeric, hyphens, underscores, and slashes")
 }
 
 // FindSecretByName searches for a secret by its name in the provided slice of secrets.
@@ -135,6 +182,11 @@ func (s *Secret) EncryptFromFile(file string, cleanup bool) error {
 		return err
 	}
 
+	err = os.MkdirAll(filepath.Dir(s.Path), dirMode)
+	if err != nil {
+		return fmt.Errorf("could not create directory for secret '%s': %w", s.Name, err)
+	}
+
 	if err = os.WriteFile(s.Path, encSecret, secretMode); err != nil {
 		return err
 	}
@@ -154,6 +206,11 @@ func (s *Secret) Encrypt(secret []byte) error {
 	encSecret, err := s.tomb.Encrypt(trimSpaceBytes(secret))
 	if err != nil {
 		return err
+	}
+
+	err = os.MkdirAll(filepath.Dir(s.Path), dirMode)
+	if err != nil {
+		return fmt.Errorf("could not create directory for secret '%s': %w", s.Name, err)
 	}
 
 	if err = os.WriteFile(s.Path, encSecret, secretMode); err != nil {
