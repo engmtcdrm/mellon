@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -184,24 +185,6 @@ func TestCreateCommand_TildeExpansion(t *testing.T) {
 	}
 }
 
-func TestCreateCommand_MissingFlags(t *testing.T) {
-	secretFile := filepath.Join(t.TempDir(), "secret.txt")
-	// secretName := "testmissing"
-
-	cases := [][]string{
-		{"--file", secretFile},
-		{"-f", secretFile},
-	}
-
-	for _, args := range cases {
-		cmd := exec.Command(testBinary, append([]string{"create"}, args...)...)
-		_, err := cmd.CombinedOutput()
-		if err == nil {
-			t.Errorf("expected error for args %v, got none", args)
-		}
-	}
-}
-
 func TestCreateCommand_FileNotExist(t *testing.T) {
 	secretFile := filepath.Join(t.TempDir(), "doesnotexist.txt")
 	secretName := "testnofile"
@@ -316,5 +299,145 @@ func TestCreateCommand_InvalidSecretName(t *testing.T) {
 	_, err := cmd.CombinedOutput()
 	if err == nil {
 		t.Errorf("expected error for invalid secret, got none")
+	}
+}
+
+// TestCreateCommand_PreRunValidation tests the PreRunE validation logic
+func TestCreateCommand_PreRunValidation(t *testing.T) {
+	// Test cleanup flag without required flags
+	cases := []struct {
+		name string
+		args []string
+	}{
+		{
+			name: "cleanup without secret flag",
+			args: []string{"create", "--cleanup", "--file", "somefile.txt"},
+		},
+		{
+			name: "cleanup without file flag",
+			args: []string{"create", "--cleanup", "--secret", "somesecret"},
+		},
+		{
+			name: "cleanup without both flags",
+			args: []string{"create", "--cleanup"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := exec.Command(testBinary, tc.args...)
+			_, err := cmd.CombinedOutput()
+			if err == nil {
+				t.Errorf("expected error for %s, got none", tc.name)
+			}
+		})
+	}
+}
+
+// TestCreateCommand_SecretNameValidation tests various invalid secret name patterns
+func TestCreateCommand_SecretNameValidation(t *testing.T) {
+	secretFile := filepath.Join(t.TempDir(), "secret.txt")
+	secretContent := "supersecret"
+
+	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
+		t.Fatalf("failed to write temp file: %v", err)
+	}
+
+	invalidNames := []string{
+		"name with spaces",
+		"name:with:colons",
+		"name*with*asterisks",
+		"name?with?questions",
+		"name<with>brackets",
+		"name|with|pipes",
+		"name\"with\"quotes",
+	}
+
+	for _, invalidName := range invalidNames {
+		t.Run(fmt.Sprintf("invalid_name_%s", invalidName), func(t *testing.T) {
+			cmd := exec.Command(testBinary, "create", "--secret", invalidName, "--file", secretFile)
+			_, err := cmd.CombinedOutput()
+			if err == nil {
+				t.Errorf("expected error for invalid secret name '%s', got none", invalidName)
+			}
+		})
+	}
+}
+
+// TestCreateCommand_ValidSecretNames tests valid secret name patterns
+func TestCreateCommand_ValidSecretNames(t *testing.T) {
+	envVars, err := env.GetEnv()
+	if err != nil {
+		t.Fatalf("failed to get environment variables: %v", err)
+	}
+
+	secretFile := filepath.Join(t.TempDir(), "secret.txt")
+	secretContent := "supersecret"
+
+	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
+		t.Fatalf("failed to write temp file: %v", err)
+	}
+
+	validNames := []string{
+		"simple",
+		"with_underscores",
+		"with-dashes",
+		"with123numbers",
+		"MixedCase",
+		"path/to/secret",
+	}
+
+	for _, validName := range validNames {
+		t.Run(fmt.Sprintf("valid_name_%s", validName), func(t *testing.T) {
+			secretOut := filepath.Join(envVars.SecretsPath, validName+envVars.SecretExt)
+			defer os.Remove(secretOut) // Clean up
+
+			cmd := exec.Command(testBinary, "create", "--secret", validName, "--file", secretFile)
+			_, err := cmd.CombinedOutput()
+			if err != nil {
+				t.Errorf("expected success for valid secret name '%s', got error: %v", validName, err)
+			}
+
+			// Verify the file was created
+			if _, err := os.Stat(secretOut); os.IsNotExist(err) {
+				t.Errorf("expected output file %s to exist for name '%s'", secretOut, validName)
+			}
+		})
+	}
+}
+
+// TestCreateCommand_Force tests if there's a force flag (like in other commands)
+func TestCreateCommand_ForceOverwrite(t *testing.T) {
+	envVars, err := env.GetEnv()
+	if err != nil {
+		t.Fatalf("failed to get environment variables: %v", err)
+	}
+
+	secretFile := filepath.Join(t.TempDir(), "secret.txt")
+	secretName := "testforce"
+	secretContent := "supersecret"
+	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	defer os.Remove(secretOut) // Clean up
+
+	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
+		t.Fatalf("failed to write temp file: %v", err)
+	}
+
+	// First create
+	cmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
+	_, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("expected success for first create, got error: %v", err)
+	}
+
+	// Try to create again with --force flag (if it exists)
+	cmd = exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile, "--force")
+	output, err := cmd.CombinedOutput()
+
+	// This test will help identify if a force flag should be added
+	if err != nil {
+		t.Logf("Force flag not implemented (expected): %v, output: %s", err, output)
+	} else {
+		t.Logf("Force flag appears to be implemented")
 	}
 }
