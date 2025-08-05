@@ -20,14 +20,14 @@ func init() {
 		"secret",
 		"s",
 		"",
-		"(optional) The name of the secret to create. If this is provided then -f/--file must also be provided",
+		"(optional) The name of the secret to create",
 	)
 	createCmd.Flags().StringVarP(
 		&secretFile,
 		"file",
 		"f",
 		"",
-		"(optional) The file containing the plain text secret to encrypt. If this is provided then -s/--secret must also be provided",
+		"(optional) The file containing the plain text secret to encrypt",
 	)
 	createCmd.Flags().BoolVarP(
 		&cleanupFile,
@@ -37,7 +37,6 @@ func init() {
 		"(optional) Whether to delete the plain text secret file after encryption",
 	)
 
-	createCmd.MarkFlagsRequiredTogether("file", "secret")
 	createCmd.MarkFlagFilename("file")
 
 	rootCmd.AddCommand(createCmd)
@@ -47,7 +46,7 @@ var createCmd = &cobra.Command{
 	Use:     "create",
 	Short:   "Create a secret",
 	Long:    "Create a secret.\n\nWhen using the flags -s/--secret and -f/--file, the secret will be read from the specified file and encrypted.\n\nIf no flags are provided, an interactive prompt will be used to enter the secret and its name.",
-	Example: fmt.Sprintf("  %s create\n  %s create -n my_secret -f /path/to/secret.txt", app.Name, app.Name),
+	Example: fmt.Sprintf("  %s create\n  %s create -s my_secret -f /path/to/secret.txt", app.Name, app.Name),
 	PreRunE: validateUpdateCreateFlags,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var err error
@@ -56,7 +55,7 @@ var createCmd = &cobra.Command{
 		if secretName != "" && secretFile != "" {
 			secretFilePath := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
 
-			newSecret, err = secrets.NewSecret(envVars.KeyPath, secretName, secretFilePath)
+			newSecret, err := secrets.NewSecret(envVars.KeyPath, secretName, secretFilePath)
 			if err != nil {
 				return fmt.Errorf("could not create secret: %w", err)
 			}
@@ -76,15 +75,17 @@ var createCmd = &cobra.Command{
 
 		var secret []byte
 
-		promptSecret := pardon.NewPassword().
-			Title("Enter a secret to secure:").
-			Value(&secret)
+		if secretFile == "" {
+			promptSecret := pardon.NewPassword().
+				Title("Enter a secret to secure:").
+				Value(&secret)
 
-		if err := promptSecret.Ask(); err != nil {
-			return err
+			if err := promptSecret.Ask(); err != nil {
+				return err
+			}
+
+			fmt.Println()
 		}
-
-		fmt.Println()
 
 		if secretName == "" {
 			promptQuestion := pardon.NewQuestion().
@@ -96,6 +97,7 @@ var createCmd = &cobra.Command{
 				return err
 			}
 
+			fmt.Println()
 		} else {
 			secretPtr := secrets.FindSecretByName(secretName, secretFiles)
 			if secretPtr != nil {
@@ -103,15 +105,19 @@ var createCmd = &cobra.Command{
 			}
 		}
 
-		fmt.Println()
-
 		newSecret, err = secrets.NewSecret(envVars.KeyPath, secretName, filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt))
 		if err != nil {
 			return fmt.Errorf("could not create secret: %w", err)
 		}
 
-		if err := newSecret.Encrypt(secret); err != nil {
-			return fmt.Errorf("could not encrypt secret: %w", err)
+		if secretFile == "" {
+			if err := newSecret.Encrypt(secret); err != nil {
+				return fmt.Errorf("could not encrypt secret: %w", err)
+			}
+		} else {
+			if err := newSecret.EncryptFromFile(secretFile, cleanupFile); err != nil {
+				return fmt.Errorf("could not encrypt secret from file '%s': %w", secretFile, err)
+			}
 		}
 
 		fmt.Println(pp.Complete("Secret encrypted and saved"))
