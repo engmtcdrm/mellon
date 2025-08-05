@@ -26,7 +26,7 @@ func init() {
 		"file",
 		"f",
 		"",
-		"(optional) The file containing the unencrypted secret to encrypt. If this is provided then -s/--secret must also be provided",
+		"(optional) The file containing the unencrypted secret to encrypt",
 	)
 	updateCmd.Flags().BoolVarP(
 		&cleanupFile,
@@ -36,8 +36,7 @@ func init() {
 		"(optional) Whether to delete the unencrypted secret file after encryption. Defaults to false",
 	)
 
-	createCmd.MarkFlagsRequiredTogether("file", "secret")
-	createCmd.MarkFlagFilename("file")
+	updateCmd.MarkFlagFilename("file")
 
 	rootCmd.AddCommand(updateCmd)
 }
@@ -64,12 +63,6 @@ var updateCmd = &cobra.Command{
 
 		header.PrintHeader()
 
-		var secret []byte
-
-		promptSecret := pardon.NewPassword().
-			Title("Enter the updated secret:").
-			Value(&secret)
-
 		if secretName == "" {
 			options, err := prompts.GetSecretOptions(secretFiles, "update")
 			if err != nil {
@@ -93,15 +86,28 @@ var updateCmd = &cobra.Command{
 			selectedSecret = *secretPtr
 		}
 
-		if err := promptSecret.Ask(); err != nil {
-			return err
+		if secretFile == "" {
+			var secret []byte
+
+			promptSecret := pardon.NewPassword().
+				Title("Enter the updated secret:").
+				Value(&secret)
+
+			if err := promptSecret.Ask(); err != nil {
+				return err
+			}
+
+			if err := selectedSecret.Encrypt(secret); err != nil {
+				return fmt.Errorf("could not encrypt secret: %w", err)
+			}
+
+			fmt.Println()
+		} else {
+			if err := selectedSecret.EncryptFromFile(secretFile, cleanupFile); err != nil {
+				return fmt.Errorf("could not encrypt secret from file '%s': %w", secretFile, err)
+			}
 		}
 
-		if err := selectedSecret.Encrypt(secret); err != nil {
-			return fmt.Errorf("could not encrypt secret: %w", err)
-		}
-
-		fmt.Println()
 		fmt.Println(pp.Complete("Secret encrypted and saved"))
 		fmt.Println()
 		fmt.Printf("You can run the commmand %s to view the unencrypted secret\n", pp.Greenf("%s view -s %s", envVars.ExeCmd, selectedSecret.Name))
