@@ -52,17 +52,17 @@ var deleteCmd = &cobra.Command{
 		}
 
 		if deleteAll {
-			confirmDelete := "NAVAER"
+			finalDelete := "NAVAER"
 			if !forceDelete {
-				confirmDelete2 := false
+				confirmDelete := false
 				promptConfirm2 := pardon.NewConfirm().
 					Title(fmt.Sprintf("Are you sure you want to delete ALL secrets? %s", pp.Red("There is no going back."))).
-					Value(&confirmDelete2)
+					Value(&confirmDelete)
 				if err := promptConfirm2.Ask(); err != nil {
 					return err
 				}
 
-				if !confirmDelete2 {
+				if !confirmDelete {
 					fmt.Println()
 					fmt.Println(pp.Fail("Aborted deleting all secrets"))
 					return nil
@@ -70,11 +70,11 @@ var deleteCmd = &cobra.Command{
 
 				fmt.Println()
 
-				confirmDelete = ""
+				finalDelete = ""
 				promptConfirm := pardon.NewQuestion().
 					Title(fmt.Sprintf("To confirm, type %s:", pp.Red("NAVAER"))).
 					Icon("").
-					Value(&confirmDelete)
+					Value(&finalDelete)
 				if err := promptConfirm.Ask(); err != nil {
 					return err
 				}
@@ -82,7 +82,7 @@ var deleteCmd = &cobra.Command{
 				fmt.Println()
 			}
 
-			if confirmDelete == "NAVAER" {
+			if finalDelete == "NAVAER" {
 				secretFiles, err := secrets.GetSecretFiles()
 				if err != nil {
 					return fmt.Errorf("could not retrieve secrets: %w", err)
@@ -94,7 +94,9 @@ var deleteCmd = &cobra.Command{
 					}
 				}
 
-				fmt.Println(pp.Complete("All secrets deleted successfully"))
+				if !forceDelete {
+					fmt.Println(pp.Complete("All secrets deleted successfully"))
+				}
 			} else {
 				fmt.Println(pp.Fail("Aborted deleting all secrets"))
 			}
@@ -127,7 +129,9 @@ var deleteCmd = &cobra.Command{
 					return fmt.Errorf("could not remove secret '%s': %w", selectedSecret.Name, err)
 				}
 
-				fmt.Println(pp.Complete("All secrets deleted successfully"))
+				if !forceDelete {
+					fmt.Println(pp.Complete("Secret deleted successfully"))
+				}
 			} else {
 				fmt.Println(pp.Fail("Aborted deleting secret"))
 			}
@@ -171,7 +175,7 @@ var deleteCmd = &cobra.Command{
 				return fmt.Errorf("could not remove secret '%s': %w", selectedSecret.Name, err)
 			}
 
-			fmt.Println(pp.Complete("All secrets deleted successfully"))
+			fmt.Println(pp.Complete("Secret deleted successfully"))
 		} else {
 
 			fmt.Println(pp.Fail("Aborted deleting secret"))
