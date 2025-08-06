@@ -12,6 +12,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const confirmationWord = "NAVAER"
+
 func init() {
 	deleteCmd.Flags().StringVarP(
 		&secretName,
@@ -52,7 +54,7 @@ var deleteCmd = &cobra.Command{
 		}
 
 		if deleteAll {
-			finalDelete := "NAVAER"
+			finalDelete := confirmationWord
 			if !forceDelete {
 				confirmDelete := false
 				promptConfirm2 := pardon.NewConfirm().
@@ -72,7 +74,7 @@ var deleteCmd = &cobra.Command{
 
 				finalDelete = ""
 				promptConfirm := pardon.NewQuestion().
-					Title(fmt.Sprintf("To confirm, type %s:", pp.Red("NAVAER"))).
+					Title(fmt.Sprintf("To confirm, type %s:", pp.Red(confirmationWord))).
 					Icon("").
 					Value(&finalDelete)
 				if err := promptConfirm.Ask(); err != nil {
@@ -82,7 +84,7 @@ var deleteCmd = &cobra.Command{
 				fmt.Println()
 			}
 
-			if finalDelete == "NAVAER" {
+			if finalDelete == confirmationWord {
 				secretFiles, err := secrets.GetSecretFiles()
 				if err != nil {
 					return fmt.Errorf("could not retrieve secrets: %w", err)
