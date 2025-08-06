@@ -56,7 +56,9 @@ var updateCmd = &cobra.Command{
 				return fmt.Errorf("could not update secret '%s': does not exist", secretName)
 			}
 			selectedSecret = *secretPtr
-			selectedSecret.EncryptFromFile(secretFile, cleanupFile)
+			if err := selectedSecret.EncryptFromFile(secretFile, cleanupFile); err != nil {
+				return fmt.Errorf("could not encrypt secret from file '%s': %w", secretFile, err)
+			}
 
 			return nil
 		}
