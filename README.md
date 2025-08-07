@@ -3,11 +3,11 @@
 [![Go](https://github.com/engmtcdrm/mellon/actions/workflows/build.yml/badge.svg)](https://github.com/engmtcdrm/mellon/actions/workflows/build.yml)
 [![Release](https://img.shields.io/github/v/release/engmtcdrm/mellon.svg?label=Latest%20Release)](https://github.com/engmtcdrm/mellon/releases/latest)
 
-> *"Speak friend and enter"* - A lightweight CLI tool for securing and obtaining secrets
+> *"Speak, friend, and enter"* - A lightweight CLI tool for securing and obtaining secrets
 
 ## What is mellon?
 
-**mellon** is a secure, lightweight command-line tool for managing secrets locally. Named after the Elvish word for "friend" from The Lord of the Rings, mellon provides an easy way to encrypt, store, and retrieve sensitive information like passwords, API keys, tokens, and other confidential data on your local machine.
+**mellon** is a secure, lightweight command-line tool for managing secrets locally. Named after the password that opens the Doors of Durin in The Lord of the Rings, mellon (Elvish for "friend") provides an easy way to encrypt, store, and retrieve sensitive information like passwords, API keys, tokens, and other confidential data on your local machine.
 
 ## Key Features
 
