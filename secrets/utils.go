@@ -18,25 +18,24 @@ var (
 
 // Returns a slice of all available secrets
 func GetSecretFiles() ([]Secret, error) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		return nil, err
 	}
 
 	var secretFiles []Secret
 
-	err = filepath.WalkDir(envVars.SecretsPath, func(path string, d os.DirEntry, err error) error {
+	err := filepath.WalkDir(env.Instance.SecretsPath(), func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
-		relPath, err := filepath.Rel(envVars.SecretsPath, path)
+		relPath, err := filepath.Rel(env.Instance.SecretsPath(), path)
 		if err != nil {
 			return err
 		}
 
-		if filepath.Ext(path) == envVars.SecretExt && !d.IsDir() {
-			c, err := NewSecret(envVars.KeyPath, strings.TrimSuffix(relPath, envVars.SecretExt), path)
+		if filepath.Ext(path) == env.Instance.SecretExt() && !d.IsDir() {
+			c, err := NewSecret(env.Instance.KeyPath(), strings.TrimSuffix(relPath, env.Instance.SecretExt()), path)
 			if err != nil {
 				return err
 			}
@@ -63,13 +62,12 @@ func RemoveSecret(secret Secret) error {
 		return fmt.Errorf("could not remove secret '%s': %w", secret.name, err)
 	}
 
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		return err
 	}
 
 	// Ignore trying to delete the secrets directory itself
-	if secret.Path() == envVars.SecretsPath {
+	if secret.Path() == env.Instance.SecretsPath() {
 		return nil
 	}
 

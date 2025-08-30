@@ -8,22 +8,53 @@ import (
 	"github.com/engmtcdrm/mellon/app"
 )
 
-type Env struct {
-	Home        string // Home is the user's home directory.
-	AppHomeDir  string // AppHomeDir is the directory in the user's home directory where the app stores its data.
-	KeyPath     string // KeyPath is the path to the key file.
-	SecretsPath string // SecretsPath is the path to the directory where secrets are stored.
-	SecretExt   string
-	ExeCmd      string // ExeCmd is the command to run the executable. If the executable is in the PATH environment variable, this will be the executable name.
-}
-
 var (
-	Instance *Env // Singleton instance of Env
-	once     sync.Once
+	Instance  *Env // Singleton instance of Env
+	once      sync.Once
+	secretExt = ".thurin" // The file extension for secret files.
 )
 
-// GetEnv returns the singleton instance of Env.
-func GetEnv() (*Env, error) {
+type Env struct {
+	home        string // User's home directory.
+	appHomeDir  string // The directory in the user's home directory where the app stores its data.
+	keyPath     string // The path to the encryption key file.
+	secretsPath string // The path to the directory where secrets are stored.
+	secretExt   string // The file extension for secret files.
+	exeCmd      string // The command to run the executable. If the executable is in the PATH environment variable, this will be the executable name.
+}
+
+// Home returns the home directory of the user.
+func (e *Env) Home() string {
+	return e.home
+}
+
+// AppHomeDir returns the app home directory.
+func (e *Env) AppHomeDir() string {
+	return e.appHomeDir
+}
+
+// KeyPath returns the encryption key path.
+func (e *Env) KeyPath() string {
+	return e.keyPath
+}
+
+// SecretsPath returns the secrets path.
+func (e *Env) SecretsPath() string {
+	return e.secretsPath
+}
+
+// SecretExt returns the secret file extension.
+func (e *Env) SecretExt() string {
+	return e.secretExt
+}
+
+// ExeCmd returns the executable command.
+func (e *Env) ExeCmd() string {
+	return e.exeCmd
+}
+
+// Init initializes the environment variables.
+func Init() error {
 	var err error
 
 	once.Do(func() {
@@ -34,9 +65,9 @@ func GetEnv() (*Env, error) {
 		}
 
 		Instance = &Env{
-			Home:       home,
-			AppHomeDir: filepath.Join(home, app.DotName),
-			SecretExt:  ".thurin",
+			home:       home,
+			appHomeDir: filepath.Join(home, app.DotName),
+			secretExt:  secretExt,
 		}
 
 		executablePath, e := os.Executable()
@@ -48,14 +79,14 @@ func GetEnv() (*Env, error) {
 		executableName := filepath.Base(executablePath)
 
 		if IsInPath(executablePath) {
-			Instance.ExeCmd = executableName
+			Instance.exeCmd = executableName
 		} else {
-			Instance.ExeCmd = executablePath
+			Instance.exeCmd = executablePath
 		}
 
-		Instance.KeyPath = filepath.Join(Instance.AppHomeDir, ".key")
-		Instance.SecretsPath = filepath.Join(Instance.AppHomeDir, Instance.SecretExt)
+		Instance.keyPath = filepath.Join(Instance.appHomeDir, ".key")
+		Instance.secretsPath = filepath.Join(Instance.appHomeDir, Instance.secretExt)
 	})
 
-	return Instance, err
+	return err
 }

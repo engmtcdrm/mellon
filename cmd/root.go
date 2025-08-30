@@ -29,12 +29,21 @@ var (
 	print       bool   // Whether to print only the names of the secrets without additional information (only used with list command)
 
 	secretFiles []secrets.Secret // List of secrets available in the app
-	envVars     *env.Env         // Environment variables for the app
 
 	// Modes for files and directories
 	dirMode    os.FileMode = 0700 // Default directory mode for app home directory as well as output of secret directories
 	secretMode os.FileMode = 0600 // Default file mode for secret files
 )
+
+func init() {
+	if err := env.Init(); err != nil {
+		panic(err)
+	}
+
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
+
+	cobra.OnInitialize(configInit)
+}
 
 // Execute executes the root command.
 func Execute() error {
@@ -42,23 +51,12 @@ func Execute() error {
 	return rootCmd.ExecuteContext(context.Background())
 }
 
-func init() {
-	rootCmd.CompletionOptions.DisableDefaultCmd = true
-
-	cobra.OnInitialize(configInit)
-}
-
 func configInit() {
 	var err error
 
-	envVars, err = env.GetEnv()
-	if err != nil {
-		panic(err)
-	}
-
-	mkdir(envVars.AppHomeDir, dirMode)
-	mkdir(envVars.SecretsPath, dirMode)
-	secureFiles(envVars.AppHomeDir, dirMode, secretMode)
+	mkdir(env.Instance.AppHomeDir(), dirMode)
+	mkdir(env.Instance.SecretsPath(), dirMode)
+	secureFiles(env.Instance.AppHomeDir(), dirMode, secretMode)
 
 	secretFiles, err = secrets.GetSecretFiles()
 	if err != nil {

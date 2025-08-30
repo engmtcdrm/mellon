@@ -37,15 +37,14 @@ func TestMain(m *testing.M) {
 
 // TestCreateCommand_ValidFlags tests the create command with valid flags.
 func TestCreateCommand_ValidFlags(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 	dir := t.TempDir()
 	secretFile := filepath.Join(dir, "secret.txt")
 	secretName := "testsecret"
 	secretContent := "supersecret"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -81,14 +80,13 @@ func TestCreateCommand_ValidFlags(t *testing.T) {
 }
 
 func TestCreateCommand_CleanupFlag(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testcleanup"
 	secretContent := "supersecret"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -129,14 +127,13 @@ func TestCreateCommand_CleanupFlag(t *testing.T) {
 }
 
 func TestCreateCommand_Permission0600(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 	secretFile := filepath.Join(os.TempDir(), "secret.txt")
 	secretName := "testperm"
 	secretContent := "supersecret"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -145,7 +142,7 @@ func TestCreateCommand_Permission0600(t *testing.T) {
 	}
 
 	cmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err = cmd.CombinedOutput()
+	_, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("expected success, got error: %v", err)
 	}
@@ -161,15 +158,14 @@ func TestCreateCommand_Permission0600(t *testing.T) {
 }
 
 func TestCreateCommand_TildeExpansion(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 	home, _ := os.UserHomeDir()
 	secretFile := filepath.Join(home, "secrettilde.txt")
 	secretName := "testtilde"
 	secretContent := "supersecret"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -179,7 +175,7 @@ func TestCreateCommand_TildeExpansion(t *testing.T) {
 	defer os.Remove(secretFile)
 
 	cmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", "~/secrettilde.txt")
-	_, err = cmd.CombinedOutput()
+	_, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("expected success, got error: %v", err)
 	}
@@ -254,14 +250,13 @@ func TestCreateCommand_CleanupNoReadWriteAccess(t *testing.T) {
 }
 
 func TestCreateCommand_AlreadyExists(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testexists"
 	secretContent := "supersecret"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -271,7 +266,7 @@ func TestCreateCommand_AlreadyExists(t *testing.T) {
 
 	// First create
 	cmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err = cmd.CombinedOutput()
+	_, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("expected success, got error: %v", err)
 	}
@@ -366,8 +361,7 @@ func TestCreateCommand_SecretNameValidation(t *testing.T) {
 
 // TestCreateCommand_ValidSecretNames tests valid secret name patterns
 func TestCreateCommand_ValidSecretNames(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 
@@ -389,7 +383,7 @@ func TestCreateCommand_ValidSecretNames(t *testing.T) {
 
 	for _, validName := range validNames {
 		t.Run(fmt.Sprintf("valid_name_%s", validName), func(t *testing.T) {
-			secretOut := filepath.Join(envVars.SecretsPath, validName+envVars.SecretExt)
+			secretOut := filepath.Join(env.Instance.SecretsPath(), validName+env.Instance.SecretExt())
 			defer os.Remove(secretOut) // Clean up
 
 			cmd := exec.Command(testBinary, "create", "--secret", validName, "--file", secretFile)
@@ -408,15 +402,14 @@ func TestCreateCommand_ValidSecretNames(t *testing.T) {
 
 // TestCreateCommand_Force tests if there's a force flag (like in other commands)
 func TestCreateCommand_ForceOverwrite(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testforce"
 	secretContent := "supersecret"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 	defer os.Remove(secretOut) // Clean up
 
 	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
@@ -425,7 +418,7 @@ func TestCreateCommand_ForceOverwrite(t *testing.T) {
 
 	// First create
 	cmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err = cmd.CombinedOutput()
+	_, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("expected success for first create, got error: %v", err)
 	}

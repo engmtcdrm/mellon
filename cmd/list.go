@@ -5,6 +5,7 @@ import (
 
 	pp "github.com/engmtcdrm/go-prettyprint"
 	"github.com/engmtcdrm/mellon/app"
+	"github.com/engmtcdrm/mellon/env"
 	"github.com/engmtcdrm/mellon/header"
 	"github.com/spf13/cobra"
 )
@@ -38,7 +39,7 @@ var listCmd = &cobra.Command{
 		header.PrintHeader()
 
 		if len(secretFiles) == 0 {
-			return fmt.Errorf("no available secrets to list\n\nUse command %s to create a secret", pp.Greenf("%s create", envVars.ExeCmd))
+			return fmt.Errorf("no available secrets to list\n\nUse command %s to create a secret", pp.Greenf("%s create", env.Instance.ExeCmd()))
 		}
 
 		fmt.Println(pp.Info("Available secrets"))

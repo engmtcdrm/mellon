@@ -26,8 +26,7 @@ func TestListCommand_NoSecrets(t *testing.T) {
 
 // TestListCommand_WithSecrets tests the list command when secrets exist.
 func TestListCommand_WithSecrets(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 
@@ -43,7 +42,7 @@ func TestListCommand_WithSecrets(t *testing.T) {
 	secretPaths := make([]string, len(secretNames))
 
 	for i, name := range secretNames {
-		secretPaths[i] = filepath.Join(envVars.SecretsPath, name+envVars.SecretExt)
+		secretPaths[i] = filepath.Join(env.Instance.SecretsPath(), name+env.Instance.SecretExt())
 		createCmd := exec.Command(testBinary, "create", "--secret", name, "--file", secretFile)
 		_, err := createCmd.CombinedOutput()
 		if err != nil {
@@ -76,8 +75,7 @@ func TestListCommand_WithSecrets(t *testing.T) {
 
 // TestListCommand_PrintFlag tests the list command with --print flag.
 func TestListCommand_PrintFlag(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 
@@ -93,7 +91,7 @@ func TestListCommand_PrintFlag(t *testing.T) {
 	secretPaths := make([]string, len(secretNames))
 
 	for i, name := range secretNames {
-		secretPaths[i] = filepath.Join(envVars.SecretsPath, name+envVars.SecretExt)
+		secretPaths[i] = filepath.Join(env.Instance.SecretsPath(), name+env.Instance.SecretExt())
 		createCmd := exec.Command(testBinary, "create", "--secret", name, "--file", secretFile)
 		_, err := createCmd.CombinedOutput()
 		if err != nil {
@@ -169,8 +167,7 @@ func TestListCommand_EmptySecretsWithPrintFlag(t *testing.T) {
 
 // TestListCommand_MixedSecretNames tests the list command with various valid secret name patterns.
 func TestListCommand_MixedSecretNames(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 
@@ -194,7 +191,7 @@ func TestListCommand_MixedSecretNames(t *testing.T) {
 	secretPaths := make([]string, len(secretNames))
 
 	for i, name := range secretNames {
-		secretPaths[i] = filepath.Join(envVars.SecretsPath, name+envVars.SecretExt)
+		secretPaths[i] = filepath.Join(env.Instance.SecretsPath(), name+env.Instance.SecretExt())
 		createCmd := exec.Command(testBinary, "create", "--secret", name, "--file", secretFile)
 		_, err := createCmd.CombinedOutput()
 		if err != nil {
@@ -240,15 +237,14 @@ func TestListCommand_MixedSecretNames(t *testing.T) {
 
 // TestListCommand_OutputFormat tests the difference between normal and print mode output.
 func TestListCommand_OutputFormat(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretContent := "formatsecretcontent"
 	secretName := "formattest"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 
 	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
 		t.Fatalf("failed to write secret file: %v", err)
@@ -256,7 +252,7 @@ func TestListCommand_OutputFormat(t *testing.T) {
 
 	// Create a secret
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err = createCmd.CombinedOutput()
+	_, err := createCmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("failed to create secret: %v", err)
 	}

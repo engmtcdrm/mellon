@@ -8,6 +8,7 @@ import (
 	"github.com/engmtcdrm/go-pardon"
 	pp "github.com/engmtcdrm/go-prettyprint"
 	"github.com/engmtcdrm/mellon/app"
+	"github.com/engmtcdrm/mellon/env"
 	"github.com/engmtcdrm/mellon/header"
 	"github.com/engmtcdrm/mellon/secrets"
 	"github.com/engmtcdrm/mellon/secrets/prompts"
@@ -83,7 +84,7 @@ var updateCmd = &cobra.Command{
 		} else {
 			secretPtr := secrets.FindSecretByName(secretName, secretFiles)
 			if secretPtr == nil {
-				return fmt.Errorf("secret %s does not exist!\n\nUse command %s to create the secret", pp.Red(secretName), pp.Greenf("%s create", envVars.ExeCmd))
+				return fmt.Errorf("secret %s does not exist!\n\nUse command %s to create the secret", pp.Red(secretName), pp.Greenf("%s create", env.Instance.ExeCmd()))
 			}
 			selectedSecret = *secretPtr
 		}
@@ -111,7 +112,7 @@ var updateCmd = &cobra.Command{
 
 		fmt.Println(pp.Complete("Secret encrypted and saved"))
 		fmt.Println()
-		fmt.Printf("You can run the commmand %s to view the unencrypted secret\n", pp.Greenf("%s view -s %s", envVars.ExeCmd, selectedSecret.Name()))
+		fmt.Printf("You can run the commmand %s to view the unencrypted secret\n", pp.Greenf("%s view -s %s", env.Instance.ExeCmd(), selectedSecret.Name()))
 
 		return nil
 	},

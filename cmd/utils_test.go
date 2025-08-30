@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/engmtcdrm/mellon/env"
+	"github.com/engmtcdrm/mellon/secrets"
 	"github.com/spf13/cobra"
 )
 
@@ -92,6 +94,15 @@ func TestValidateUpdateCreateFlags(t *testing.T) {
 
 // TestValidateSecretName tests the validateSecretName function
 func TestValidateSecretName(t *testing.T) {
+	secretFiles = []secrets.Secret{}
+
+	newSecret, err := secrets.NewSecret(env.Instance.KeyPath(), "existing_secret", "existing_secret")
+	if err != nil {
+		t.Fatalf("failed to create new secret: %v", err)
+	}
+
+	secretFiles = append(secretFiles, *newSecret)
+
 	tests := []struct {
 		name        string
 		secretName  string

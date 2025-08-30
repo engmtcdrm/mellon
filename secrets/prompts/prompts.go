@@ -11,8 +11,7 @@ import (
 
 // GetSecretOptions returns a list of options for selecting a secret from the provided list of secret files.
 func GetSecretOptions(secretFiles []secrets.Secret, action string) ([]pardon.Option[secrets.Secret], error) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		return nil, err
 	}
 
@@ -20,7 +19,7 @@ func GetSecretOptions(secretFiles []secrets.Secret, action string) ([]pardon.Opt
 		return nil, fmt.Errorf(
 			"no secrets found to %s\n\nPlease run command %s to create a secret",
 			action,
-			pp.Greenf("%s create", envVars.ExeCmd),
+			pp.Greenf("%s create", env.Instance.ExeCmd()),
 		)
 	}
 

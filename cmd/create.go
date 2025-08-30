@@ -10,6 +10,7 @@ import (
 	"github.com/engmtcdrm/go-pardon"
 	pp "github.com/engmtcdrm/go-prettyprint"
 	"github.com/engmtcdrm/mellon/app"
+	"github.com/engmtcdrm/mellon/env"
 	"github.com/engmtcdrm/mellon/header"
 	"github.com/engmtcdrm/mellon/secrets"
 )
@@ -53,9 +54,9 @@ var createCmd = &cobra.Command{
 		var newSecret *secrets.Secret
 
 		if secretName != "" && secretFile != "" {
-			secretFilePath := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+			secretFilePath := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 
-			newSecret, err := secrets.NewSecret(envVars.KeyPath, secretName, secretFilePath)
+			newSecret, err := secrets.NewSecret(env.Instance.KeyPath(), secretName, secretFilePath)
 			if err != nil {
 				return fmt.Errorf("could not create secret: %w", err)
 			}
@@ -103,7 +104,7 @@ var createCmd = &cobra.Command{
 			fmt.Println()
 		}
 
-		newSecret, err = secrets.NewSecret(envVars.KeyPath, secretName, filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt))
+		newSecret, err = secrets.NewSecret(env.Instance.KeyPath(), secretName, filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt()))
 		if err != nil {
 			return fmt.Errorf("could not create secret: %w", err)
 		}
@@ -120,7 +121,7 @@ var createCmd = &cobra.Command{
 
 		fmt.Println(pp.Complete("Secret encrypted and saved"))
 		fmt.Println()
-		fmt.Printf("You can run the commmand %s to view the unencrypted secret\n", pp.Greenf("%s view -s %s", envVars.ExeCmd, secretName))
+		fmt.Printf("You can run the commmand %s to view the unencrypted secret\n", pp.Greenf("%s view -s %s", env.Instance.ExeCmd(), secretName))
 
 		return nil
 	},

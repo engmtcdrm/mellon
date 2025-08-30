@@ -13,15 +13,14 @@ import (
 
 // TestViewCommand_ValidFlags tests the view command with valid flags.
 func TestViewCommand_ValidFlags(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testviewsecret"
 	secretContent := "supersecretcontent"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 
 	// Clean up before test
 	os.Remove(secretOut)
@@ -34,7 +33,7 @@ func TestViewCommand_ValidFlags(t *testing.T) {
 
 	// First create a secret to view
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err = createCmd.CombinedOutput()
+	_, err := createCmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("failed to create initial secret: %v", err)
 	}
@@ -62,8 +61,7 @@ func TestViewCommand_ValidFlags(t *testing.T) {
 }
 
 func TestViewCommand_OutputFlag(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 
@@ -71,7 +69,7 @@ func TestViewCommand_OutputFlag(t *testing.T) {
 	outputFile := filepath.Join(t.TempDir(), "output.txt")
 	secretName := "testviewoutput"
 	secretContent := "outputsecretcontent"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 
 	// Clean up before test
 	os.Remove(secretOut)
@@ -84,7 +82,7 @@ func TestViewCommand_OutputFlag(t *testing.T) {
 
 	// First create a secret to view
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err = createCmd.CombinedOutput()
+	_, err := createCmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("failed to create initial secret: %v", err)
 	}
@@ -151,8 +149,7 @@ func TestViewCommand_InvalidSecretName(t *testing.T) {
 }
 
 func TestViewCommand_ValidSecretNames(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 
@@ -173,7 +170,7 @@ func TestViewCommand_ValidSecretNames(t *testing.T) {
 
 	for _, validName := range validNames {
 		t.Run(fmt.Sprintf("valid_name_%s", validName), func(t *testing.T) {
-			secretOut := filepath.Join(envVars.SecretsPath, validName+envVars.SecretExt)
+			secretOut := filepath.Join(env.Instance.SecretsPath(), validName+env.Instance.SecretExt())
 			defer os.Remove(secretOut)
 
 			// Create the secret
@@ -212,8 +209,7 @@ func TestViewCommand_PreRunValidation(t *testing.T) {
 }
 
 func TestViewCommand_OutputDirectoryCreation(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 
@@ -222,7 +218,7 @@ func TestViewCommand_OutputDirectoryCreation(t *testing.T) {
 	outputFile := filepath.Join(outputDir, "secret.txt")
 	secretName := "testviewdircreate"
 	secretContent := "dircreatecontent"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 
 	// Clean up before test
 	os.Remove(secretOut)
@@ -235,7 +231,7 @@ func TestViewCommand_OutputDirectoryCreation(t *testing.T) {
 
 	// First create a secret to view
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err = createCmd.CombinedOutput()
+	_, err := createCmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("failed to create initial secret: %v", err)
 	}

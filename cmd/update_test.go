@@ -12,8 +12,7 @@ import (
 
 // TestUpdateCommand_ValidFlags tests the update command with valid flags.
 func TestUpdateCommand_ValidFlags(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 	dir := t.TempDir()
@@ -22,7 +21,7 @@ func TestUpdateCommand_ValidFlags(t *testing.T) {
 	secretName := "testupdatesecret"
 	secretContent := "originalsecret"
 	updateContent := "updatedsecret"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -32,7 +31,7 @@ func TestUpdateCommand_ValidFlags(t *testing.T) {
 	}
 
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err = createCmd.CombinedOutput()
+	_, err := createCmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("failed to create initial secret: %v", err)
 	}
@@ -68,8 +67,7 @@ func TestUpdateCommand_ValidFlags(t *testing.T) {
 }
 
 func TestUpdateCommand_CleanupFlag(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
@@ -77,7 +75,7 @@ func TestUpdateCommand_CleanupFlag(t *testing.T) {
 	secretName := "testupdatecleanup"
 	secretContent := "originalsecret"
 	updateContent := "updatedsecret"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -87,7 +85,7 @@ func TestUpdateCommand_CleanupFlag(t *testing.T) {
 	}
 
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err = createCmd.CombinedOutput()
+	_, err := createCmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("failed to create initial secret: %v", err)
 	}
@@ -127,8 +125,7 @@ func TestUpdateCommand_CleanupFlag(t *testing.T) {
 }
 
 func TestUpdateCommand_TildeExpansion(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
@@ -137,7 +134,7 @@ func TestUpdateCommand_TildeExpansion(t *testing.T) {
 	secretName := "testupdatetilde"
 	secretContent := "originalsecret"
 	updateContent := "updatedsecret"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -147,7 +144,7 @@ func TestUpdateCommand_TildeExpansion(t *testing.T) {
 	}
 
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err = createCmd.CombinedOutput()
+	_, err := createCmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("failed to create initial secret: %v", err)
 	}
@@ -182,15 +179,14 @@ func TestUpdateCommand_SecretNotExist(t *testing.T) {
 }
 
 func TestUpdateCommand_FileNotExist(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	updateFile := filepath.Join(t.TempDir(), "doesnotexist.txt")
 	secretName := "testupdatenofile"
 	secretContent := "originalsecret"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -200,7 +196,7 @@ func TestUpdateCommand_FileNotExist(t *testing.T) {
 	}
 
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err = createCmd.CombinedOutput()
+	_, err := createCmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("failed to create initial secret: %v", err)
 	}
@@ -214,8 +210,7 @@ func TestUpdateCommand_FileNotExist(t *testing.T) {
 }
 
 func TestUpdateCommand_FileNoReadAccess(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
@@ -223,7 +218,7 @@ func TestUpdateCommand_FileNoReadAccess(t *testing.T) {
 	secretName := "testupdatenoread"
 	secretContent := "originalsecret"
 	updateContent := "updatedsecret"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -233,7 +228,7 @@ func TestUpdateCommand_FileNoReadAccess(t *testing.T) {
 	}
 
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err = createCmd.CombinedOutput()
+	_, err := createCmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("failed to create initial secret: %v", err)
 	}
@@ -252,8 +247,7 @@ func TestUpdateCommand_FileNoReadAccess(t *testing.T) {
 }
 
 func TestUpdateCommand_CleanupNoWriteAccess(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
@@ -262,7 +256,7 @@ func TestUpdateCommand_CleanupNoWriteAccess(t *testing.T) {
 	secretName := "testupdatenowrite"
 	secretContent := "originalsecret"
 	updateContent := "updatedsecret"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -272,7 +266,7 @@ func TestUpdateCommand_CleanupNoWriteAccess(t *testing.T) {
 	}
 
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err = createCmd.CombinedOutput()
+	_, err := createCmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("failed to create initial secret: %v", err)
 	}
@@ -296,8 +290,7 @@ func TestUpdateCommand_CleanupNoWriteAccess(t *testing.T) {
 }
 
 func TestUpdateCommand_CleanupNoReadWriteAccess(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
@@ -305,7 +298,7 @@ func TestUpdateCommand_CleanupNoReadWriteAccess(t *testing.T) {
 	secretName := "testupdatenoreadwrite"
 	secretContent := "originalsecret"
 	updateContent := "updatedsecret"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -315,7 +308,7 @@ func TestUpdateCommand_CleanupNoReadWriteAccess(t *testing.T) {
 	}
 
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err = createCmd.CombinedOutput()
+	_, err := createCmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("failed to create initial secret: %v", err)
 	}
@@ -367,8 +360,7 @@ func TestUpdateCommand_PreRunValidation(t *testing.T) {
 
 // TestUpdateCommand_MissingFlags tests missing required flag combinations
 func TestUpdateCommand_MissingFlags(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
@@ -376,7 +368,7 @@ func TestUpdateCommand_MissingFlags(t *testing.T) {
 	secretName := "testupdatemissing"
 	secretContent := "originalsecret"
 	updateContent := "updatedsecret"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -386,7 +378,7 @@ func TestUpdateCommand_MissingFlags(t *testing.T) {
 	}
 
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err = createCmd.CombinedOutput()
+	_, err := createCmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("failed to create initial secret: %v", err)
 	}
@@ -442,8 +434,7 @@ func TestUpdateCommand_InvalidSecretName(t *testing.T) {
 
 // TestUpdateCommand_ValidSecretNames tests updating with valid secret name patterns
 func TestUpdateCommand_ValidSecretNames(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 
@@ -471,7 +462,7 @@ func TestUpdateCommand_ValidSecretNames(t *testing.T) {
 
 	for _, validName := range validNames {
 		t.Run(fmt.Sprintf("valid_name_%s", validName), func(t *testing.T) {
-			secretOut := filepath.Join(envVars.SecretsPath, validName+envVars.SecretExt)
+			secretOut := filepath.Join(env.Instance.SecretsPath(), validName+env.Instance.SecretExt())
 			defer os.Remove(secretOut) // Clean up
 
 			// First create the secret

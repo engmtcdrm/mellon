@@ -12,14 +12,13 @@ import (
 
 // TestDeleteCommand_ValidFlags tests the delete command with valid flags.
 func TestDeleteCommand_ValidFlags(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testdeletesecret"
 	secretContent := "supersecret"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -29,7 +28,7 @@ func TestDeleteCommand_ValidFlags(t *testing.T) {
 	}
 
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err = createCmd.CombinedOutput()
+	_, err := createCmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("failed to create initial secret: %v", err)
 	}
@@ -91,8 +90,7 @@ func TestDeleteCommand_InvalidSecretName(t *testing.T) {
 }
 
 func TestDeleteCommand_ValidSecretNames(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 
@@ -114,7 +112,7 @@ func TestDeleteCommand_ValidSecretNames(t *testing.T) {
 
 	for _, validName := range validNames {
 		t.Run(fmt.Sprintf("valid_name_%s", validName), func(t *testing.T) {
-			secretOut := filepath.Join(envVars.SecretsPath, validName+envVars.SecretExt)
+			secretOut := filepath.Join(env.Instance.SecretsPath(), validName+env.Instance.SecretExt())
 			defer os.Remove(secretOut) // Clean up
 
 			// First create the secret
@@ -145,8 +143,7 @@ func TestDeleteCommand_ValidSecretNames(t *testing.T) {
 }
 
 func TestDeleteCommand_AllFlag(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 
@@ -162,7 +159,7 @@ func TestDeleteCommand_AllFlag(t *testing.T) {
 	secretPaths := make([]string, len(secretNames))
 
 	for i, name := range secretNames {
-		secretPaths[i] = filepath.Join(envVars.SecretsPath, name+envVars.SecretExt)
+		secretPaths[i] = filepath.Join(env.Instance.SecretsPath(), name+env.Instance.SecretExt())
 		createCmd := exec.Command(testBinary, "create", "--secret", name, "--file", secretFile)
 		_, err := createCmd.CombinedOutput()
 		if err != nil {
@@ -200,15 +197,14 @@ func TestDeleteCommand_AllFlagEmptySecrets(t *testing.T) {
 }
 
 func TestDeleteCommand_MutuallyExclusiveFlags(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testmutex"
 	secretContent := "supersecret"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 
 	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
 		t.Fatalf("failed to write secret file: %v", err)
@@ -216,7 +212,7 @@ func TestDeleteCommand_MutuallyExclusiveFlags(t *testing.T) {
 
 	// Create a secret first
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err = createCmd.CombinedOutput()
+	_, err := createCmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("failed to create initial secret: %v", err)
 	}
@@ -236,15 +232,14 @@ func TestDeleteCommand_NoFlags(t *testing.T) {
 }
 
 func TestDeleteCommand_ForceFlag(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testforce"
 	secretContent := "supersecret"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 
 	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
 		t.Fatalf("failed to write secret file: %v", err)
@@ -252,7 +247,7 @@ func TestDeleteCommand_ForceFlag(t *testing.T) {
 
 	// Create a secret first
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err = createCmd.CombinedOutput()
+	_, err := createCmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("failed to create initial secret: %v", err)
 	}
@@ -292,15 +287,14 @@ func TestDeleteCommand_WithoutForceFlag(t *testing.T) {
 }
 
 func TestDeleteCommand_SilentMode(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testsilent"
 	secretContent := "supersecret"
-	secretOut := filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt)
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 
 	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
 		t.Fatalf("failed to write secret file: %v", err)
@@ -308,7 +302,7 @@ func TestDeleteCommand_SilentMode(t *testing.T) {
 
 	// Create a secret first
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err = createCmd.CombinedOutput()
+	_, err := createCmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("failed to create initial secret: %v", err)
 	}
@@ -334,8 +328,7 @@ func TestDeleteCommand_SilentMode(t *testing.T) {
 }
 
 func TestDeleteCommand_AllFlagSilentMode(t *testing.T) {
-	envVars, err := env.GetEnv()
-	if err != nil {
+	if err := env.Init(); err != nil {
 		t.Fatalf("failed to get environment variables: %v", err)
 	}
 
@@ -351,7 +344,7 @@ func TestDeleteCommand_AllFlagSilentMode(t *testing.T) {
 	secretPaths := make([]string, len(secretNames))
 
 	for i, name := range secretNames {
-		secretPaths[i] = filepath.Join(envVars.SecretsPath, name+envVars.SecretExt)
+		secretPaths[i] = filepath.Join(env.Instance.SecretsPath(), name+env.Instance.SecretExt())
 		createCmd := exec.Command(testBinary, "create", "--secret", name, "--file", secretFile)
 		_, err := createCmd.CombinedOutput()
 		if err != nil {
