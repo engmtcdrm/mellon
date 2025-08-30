@@ -71,7 +71,7 @@ var updateCmd = &cobra.Command{
 				return err
 			}
 
-			promptSelect := pardon.NewSelect[secrets.Secret](&selectedSecret).
+			promptSelect := pardon.NewSelect(&selectedSecret).
 				Title("What secret do you want to update?").
 				Options(options...)
 
@@ -111,7 +111,7 @@ var updateCmd = &cobra.Command{
 
 		fmt.Println(pp.Complete("Secret encrypted and saved"))
 		fmt.Println()
-		fmt.Printf("You can run the commmand %s to view the unencrypted secret\n", pp.Greenf("%s view -s %s", envVars.ExeCmd, selectedSecret.Name))
+		fmt.Printf("You can run the commmand %s to view the unencrypted secret\n", pp.Greenf("%s view -s %s", envVars.ExeCmd, selectedSecret.Name()))
 
 		return nil
 	},

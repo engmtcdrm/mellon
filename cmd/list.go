@@ -29,7 +29,7 @@ var listCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if print {
 			for _, secret := range secretFiles {
-				fmt.Println(secret.Name)
+				fmt.Println(secret.Name())
 			}
 
 			return nil
@@ -44,7 +44,7 @@ var listCmd = &cobra.Command{
 		fmt.Println(pp.Info("Available secrets"))
 		fmt.Println()
 		for _, secret := range secretFiles {
-			fmt.Printf("  - %s\n", pp.Green(secret.Name))
+			fmt.Printf("  - %s\n", pp.Green(secret.Name()))
 		}
 
 		return nil

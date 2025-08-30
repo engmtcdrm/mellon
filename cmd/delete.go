@@ -91,7 +91,7 @@ var deleteCmd = &cobra.Command{
 
 				for _, secret := range secretFiles {
 					if err := secrets.RemoveSecret(secret); err != nil {
-						return fmt.Errorf("could not remove secret '%s': %w", secret.Name, err)
+						return fmt.Errorf("could not remove secret '%s': %w", secret.Name(), err)
 					}
 				}
 
@@ -127,7 +127,7 @@ var deleteCmd = &cobra.Command{
 
 			if confirmDelete {
 				if err := secrets.RemoveSecret(selectedSecret); err != nil {
-					return fmt.Errorf("could not remove secret '%s': %w", selectedSecret.Name, err)
+					return fmt.Errorf("could not remove secret '%s': %w", selectedSecret.Name(), err)
 				}
 
 				if !forceDelete {
@@ -147,7 +147,7 @@ var deleteCmd = &cobra.Command{
 			return err
 		}
 
-		promptSelect := pardon.NewSelect[secrets.Secret](&selectedSecret).
+		promptSelect := pardon.NewSelect(&selectedSecret).
 			Title("What secret do you want to delete?").
 			Options(options...)
 
@@ -161,7 +161,7 @@ var deleteCmd = &cobra.Command{
 
 			confirmDelete = false
 			promptConfirm := pardon.NewConfirm(&confirmDelete).
-				Title(fmt.Sprintf("Are you sure you want to delete %s?", pp.Red(selectedSecret.Name)))
+				Title(fmt.Sprintf("Are you sure you want to delete %s?", pp.Red(selectedSecret.Name())))
 
 			if err := promptConfirm.Ask(); err != nil {
 				return err
@@ -172,7 +172,7 @@ var deleteCmd = &cobra.Command{
 
 		if confirmDelete {
 			if err := secrets.RemoveSecret(selectedSecret); err != nil {
-				return fmt.Errorf("could not remove secret '%s': %w", selectedSecret.Name, err)
+				return fmt.Errorf("could not remove secret '%s': %w", selectedSecret.Name(), err)
 			}
 
 			fmt.Println(pp.Complete("Secret deleted successfully"))

@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/engmtcdrm/mellon/secrets"
 	"github.com/spf13/cobra"
 )
 
@@ -93,18 +92,6 @@ func TestValidateUpdateCreateFlags(t *testing.T) {
 
 // TestValidateSecretName tests the validateSecretName function
 func TestValidateSecretName(t *testing.T) {
-	// Save original secretFiles
-	origSecretFiles := secretFiles
-	defer func() {
-		secretFiles = origSecretFiles
-	}()
-
-	// Mock existing secrets
-	secretFiles = []secrets.Secret{
-		{Name: "existing_secret"},
-		{Name: "another_secret"},
-	}
-
 	tests := []struct {
 		name        string
 		secretName  string

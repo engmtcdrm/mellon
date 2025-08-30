@@ -60,7 +60,7 @@ var createCmd = &cobra.Command{
 				return fmt.Errorf("could not create secret: %w", err)
 			}
 
-			if secretPtr := secrets.FindSecretByName(newSecret.Name, secretFiles); secretPtr != nil {
+			if secretPtr := secrets.FindSecretByName(newSecret.Name(), secretFiles); secretPtr != nil {
 				return errors.New("secret with that name already exists")
 			}
 
