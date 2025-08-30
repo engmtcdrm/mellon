@@ -3,7 +3,6 @@ package env
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 
 	"github.com/engmtcdrm/mellon/app"
@@ -19,7 +18,7 @@ type Env struct {
 }
 
 var (
-	instance *Env
+	Instance *Env // Singleton instance of Env
 	once     sync.Once
 )
 
@@ -34,7 +33,7 @@ func GetEnv() (*Env, error) {
 			return
 		}
 
-		instance = &Env{
+		Instance = &Env{
 			Home:       home,
 			AppHomeDir: filepath.Join(home, app.DotName),
 			SecretExt:  ".thurin",
@@ -49,39 +48,14 @@ func GetEnv() (*Env, error) {
 		executableName := filepath.Base(executablePath)
 
 		if IsInPath(executablePath) {
-			instance.ExeCmd = executableName
+			Instance.ExeCmd = executableName
 		} else {
-			instance.ExeCmd = executablePath
+			Instance.ExeCmd = executablePath
 		}
 
-		instance.KeyPath = filepath.Join(instance.AppHomeDir, ".key")
-		instance.SecretsPath = filepath.Join(instance.AppHomeDir, instance.SecretExt)
+		Instance.KeyPath = filepath.Join(Instance.AppHomeDir, ".key")
+		Instance.SecretsPath = filepath.Join(Instance.AppHomeDir, Instance.SecretExt)
 	})
 
-	return instance, err
-}
-
-// IsInPath checks if the directory of the executable is in the PATH environment variable
-func IsInPath(executablePath string) bool {
-	executableDir := filepath.Dir(executablePath)
-	pathEnv := os.Getenv("PATH")
-	for _, dir := range filepath.SplitList(pathEnv) {
-		if dir == executableDir {
-			return true
-		}
-	}
-	return false
-}
-
-// ExpandTilde expands the tilde (~) in the given path to the user's home directory.
-func ExpandTilde(path string) (string, error) {
-	if strings.HasPrefix(path, "~") {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return "", err
-		}
-		return filepath.Join(home, path[1:]), nil
-	}
-
-	return path, nil
+	return Instance, err
 }
