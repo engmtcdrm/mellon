@@ -11,9 +11,7 @@ import (
 
 // GetSecretOptions returns a list of options for selecting a secret from the provided list of secret files.
 func GetSecretOptions(secretFiles []secrets.Secret, action string) ([]pardon.Option[secrets.Secret], error) {
-	if err := env.Init(); err != nil {
-		return nil, err
-	}
+	env.Init()
 
 	if len(secretFiles) == 0 {
 		return nil, fmt.Errorf(

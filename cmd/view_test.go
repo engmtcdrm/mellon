@@ -13,9 +13,7 @@ import (
 
 // TestViewCommand_ValidFlags tests the view command with valid flags.
 func TestViewCommand_ValidFlags(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testviewsecret"
@@ -61,9 +59,7 @@ func TestViewCommand_ValidFlags(t *testing.T) {
 }
 
 func TestViewCommand_OutputFlag(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	outputFile := filepath.Join(t.TempDir(), "output.txt")
@@ -149,9 +145,7 @@ func TestViewCommand_InvalidSecretName(t *testing.T) {
 }
 
 func TestViewCommand_ValidSecretNames(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretContent := "viewsecretcontent"
@@ -209,9 +203,7 @@ func TestViewCommand_PreRunValidation(t *testing.T) {
 }
 
 func TestViewCommand_OutputDirectoryCreation(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	outputDir := filepath.Join(t.TempDir(), "nested", "output")

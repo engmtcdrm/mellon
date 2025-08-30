@@ -18,9 +18,7 @@ var (
 
 // Returns a slice of all available secrets
 func GetSecretFiles() ([]Secret, error) {
-	if err := env.Init(); err != nil {
-		return nil, err
-	}
+	env.Init()
 
 	var secretFiles []Secret
 
@@ -62,9 +60,7 @@ func RemoveSecret(secret Secret) error {
 		return fmt.Errorf("could not remove secret '%s': %w", secret.name, err)
 	}
 
-	if err := env.Init(); err != nil {
-		return err
-	}
+	env.Init()
 
 	// Ignore trying to delete the secrets directory itself
 	if secret.Path() == env.Instance.SecretsPath() {

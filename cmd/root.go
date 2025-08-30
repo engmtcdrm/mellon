@@ -36,9 +36,7 @@ var (
 )
 
 func init() {
-	if err := env.Init(); err != nil {
-		panic(err)
-	}
+	env.Init()
 
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 

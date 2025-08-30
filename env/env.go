@@ -54,14 +54,11 @@ func (e *Env) ExeCmd() string {
 }
 
 // Init initializes the environment variables.
-func Init() error {
-	var err error
-
+func Init() {
 	once.Do(func() {
-		home, e := os.UserHomeDir()
-		if e != nil {
-			err = e
-			return
+		home, err := os.UserHomeDir()
+		if err != nil {
+			panic(err)
 		}
 
 		Instance = &Env{
@@ -70,10 +67,9 @@ func Init() error {
 			secretExt:  secretExt,
 		}
 
-		executablePath, e := os.Executable()
-		if e != nil {
-			err = e
-			return
+		executablePath, err := os.Executable()
+		if err != nil {
+			panic(err)
 		}
 
 		executableName := filepath.Base(executablePath)
@@ -87,6 +83,4 @@ func Init() error {
 		Instance.keyPath = filepath.Join(Instance.appHomeDir, ".key")
 		Instance.secretsPath = filepath.Join(Instance.appHomeDir, Instance.secretExt)
 	})
-
-	return err
 }

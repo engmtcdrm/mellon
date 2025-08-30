@@ -8,9 +8,7 @@ import (
 )
 
 func TestEnvFields(t *testing.T) {
-	if err := Init(); err != nil {
-		t.Fatalf("GetEnv() returned error: %v", err)
-	}
+	Init()
 
 	// Test Home field
 	if Instance.Home() == "" {
@@ -83,9 +81,7 @@ func TestEnvSingleton(t *testing.T) {
 
 	// Call GetEnv multiple times
 	for i := 0; i < 10; i++ {
-		if err := Init(); err != nil {
-			t.Fatalf("GetEnv() call %d returned error: %v", i, err)
-		}
+		Init()
 		instances[i] = Instance
 	}
 

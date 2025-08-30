@@ -26,9 +26,7 @@ func TestListCommand_NoSecrets(t *testing.T) {
 
 // TestListCommand_WithSecrets tests the list command when secrets exist.
 func TestListCommand_WithSecrets(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretContent := "listsecretcontent"
@@ -75,9 +73,7 @@ func TestListCommand_WithSecrets(t *testing.T) {
 
 // TestListCommand_PrintFlag tests the list command with --print flag.
 func TestListCommand_PrintFlag(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretContent := "printsecretcontent"
@@ -167,9 +163,7 @@ func TestListCommand_EmptySecretsWithPrintFlag(t *testing.T) {
 
 // TestListCommand_MixedSecretNames tests the list command with various valid secret name patterns.
 func TestListCommand_MixedSecretNames(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretContent := "mixedsecretcontent"
@@ -237,9 +231,7 @@ func TestListCommand_MixedSecretNames(t *testing.T) {
 
 // TestListCommand_OutputFormat tests the difference between normal and print mode output.
 func TestListCommand_OutputFormat(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretContent := "formatsecretcontent"

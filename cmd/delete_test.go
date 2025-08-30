@@ -12,9 +12,7 @@ import (
 
 // TestDeleteCommand_ValidFlags tests the delete command with valid flags.
 func TestDeleteCommand_ValidFlags(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testdeletesecret"
 	secretContent := "supersecret"
@@ -90,9 +88,7 @@ func TestDeleteCommand_InvalidSecretName(t *testing.T) {
 }
 
 func TestDeleteCommand_ValidSecretNames(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretContent := "supersecret"
@@ -143,9 +139,7 @@ func TestDeleteCommand_ValidSecretNames(t *testing.T) {
 }
 
 func TestDeleteCommand_AllFlag(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretContent := "supersecret"
@@ -197,9 +191,7 @@ func TestDeleteCommand_AllFlagEmptySecrets(t *testing.T) {
 }
 
 func TestDeleteCommand_MutuallyExclusiveFlags(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testmutex"
@@ -232,9 +224,7 @@ func TestDeleteCommand_NoFlags(t *testing.T) {
 }
 
 func TestDeleteCommand_ForceFlag(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testforce"
@@ -287,9 +277,7 @@ func TestDeleteCommand_WithoutForceFlag(t *testing.T) {
 }
 
 func TestDeleteCommand_SilentMode(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testsilent"
@@ -328,9 +316,7 @@ func TestDeleteCommand_SilentMode(t *testing.T) {
 }
 
 func TestDeleteCommand_AllFlagSilentMode(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretContent := "supersecret"

@@ -12,9 +12,7 @@ import (
 
 // TestUpdateCommand_ValidFlags tests the update command with valid flags.
 func TestUpdateCommand_ValidFlags(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 	dir := t.TempDir()
 	secretFile := filepath.Join(dir, "secret.txt")
 	updateFile := filepath.Join(dir, "update.txt")
@@ -67,9 +65,7 @@ func TestUpdateCommand_ValidFlags(t *testing.T) {
 }
 
 func TestUpdateCommand_CleanupFlag(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	updateFile := filepath.Join(t.TempDir(), "update.txt")
 	secretName := "testupdatecleanup"
@@ -125,9 +121,7 @@ func TestUpdateCommand_CleanupFlag(t *testing.T) {
 }
 
 func TestUpdateCommand_TildeExpansion(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	home, _ := os.UserHomeDir()
 	updateFile := filepath.Join(home, "updatetilde.txt")
@@ -179,9 +173,7 @@ func TestUpdateCommand_SecretNotExist(t *testing.T) {
 }
 
 func TestUpdateCommand_FileNotExist(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	updateFile := filepath.Join(t.TempDir(), "doesnotexist.txt")
 	secretName := "testupdatenofile"
@@ -210,9 +202,7 @@ func TestUpdateCommand_FileNotExist(t *testing.T) {
 }
 
 func TestUpdateCommand_FileNoReadAccess(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	updateFile := filepath.Join(t.TempDir(), "noread.txt")
 	secretName := "testupdatenoread"
@@ -247,9 +237,7 @@ func TestUpdateCommand_FileNoReadAccess(t *testing.T) {
 }
 
 func TestUpdateCommand_CleanupNoWriteAccess(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	dir := t.TempDir()
 	updateFile := filepath.Join(dir, "nowrite.txt")
@@ -290,9 +278,7 @@ func TestUpdateCommand_CleanupNoWriteAccess(t *testing.T) {
 }
 
 func TestUpdateCommand_CleanupNoReadWriteAccess(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	updateFile := filepath.Join(t.TempDir(), "noreadwrite.txt")
 	secretName := "testupdatenoreadwrite"
@@ -360,9 +346,7 @@ func TestUpdateCommand_PreRunValidation(t *testing.T) {
 
 // TestUpdateCommand_MissingFlags tests missing required flag combinations
 func TestUpdateCommand_MissingFlags(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	updateFile := filepath.Join(t.TempDir(), "update.txt")
 	secretName := "testupdatemissing"
@@ -434,9 +418,7 @@ func TestUpdateCommand_InvalidSecretName(t *testing.T) {
 
 // TestUpdateCommand_ValidSecretNames tests updating with valid secret name patterns
 func TestUpdateCommand_ValidSecretNames(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	updateFile := filepath.Join(t.TempDir(), "update.txt")

@@ -37,9 +37,7 @@ func TestMain(m *testing.M) {
 
 // TestCreateCommand_ValidFlags tests the create command with valid flags.
 func TestCreateCommand_ValidFlags(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 	dir := t.TempDir()
 	secretFile := filepath.Join(dir, "secret.txt")
 	secretName := "testsecret"
@@ -80,9 +78,7 @@ func TestCreateCommand_ValidFlags(t *testing.T) {
 }
 
 func TestCreateCommand_CleanupFlag(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testcleanup"
 	secretContent := "supersecret"
@@ -127,9 +123,7 @@ func TestCreateCommand_CleanupFlag(t *testing.T) {
 }
 
 func TestCreateCommand_Permission0600(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 	secretFile := filepath.Join(os.TempDir(), "secret.txt")
 	secretName := "testperm"
 	secretContent := "supersecret"
@@ -158,9 +152,7 @@ func TestCreateCommand_Permission0600(t *testing.T) {
 }
 
 func TestCreateCommand_TildeExpansion(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 	home, _ := os.UserHomeDir()
 	secretFile := filepath.Join(home, "secrettilde.txt")
 	secretName := "testtilde"
@@ -250,9 +242,7 @@ func TestCreateCommand_CleanupNoReadWriteAccess(t *testing.T) {
 }
 
 func TestCreateCommand_AlreadyExists(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testexists"
 	secretContent := "supersecret"
@@ -361,9 +351,7 @@ func TestCreateCommand_SecretNameValidation(t *testing.T) {
 
 // TestCreateCommand_ValidSecretNames tests valid secret name patterns
 func TestCreateCommand_ValidSecretNames(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretContent := "supersecret"
@@ -402,9 +390,7 @@ func TestCreateCommand_ValidSecretNames(t *testing.T) {
 
 // TestCreateCommand_Force tests if there's a force flag (like in other commands)
 func TestCreateCommand_ForceOverwrite(t *testing.T) {
-	if err := env.Init(); err != nil {
-		t.Fatalf("failed to get environment variables: %v", err)
-	}
+	env.Init()
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testforce"
