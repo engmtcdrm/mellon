@@ -71,10 +71,10 @@ var updateCmd = &cobra.Command{
 				return err
 			}
 
-			promptSelect := pardon.NewSelect[secrets.Secret]().
+			promptSelect := pardon.NewSelect[secrets.Secret](&selectedSecret).
 				Title("What secret do you want to update?").
-				Options(options...).
-				Value(&selectedSecret)
+				Options(options...)
+
 			if err := promptSelect.Ask(); err != nil {
 				return err
 			}
@@ -91,9 +91,8 @@ var updateCmd = &cobra.Command{
 		if secretFile == "" {
 			var secret []byte
 
-			promptSecret := pardon.NewPassword().
-				Title("Enter the updated secret:").
-				Value(&secret)
+			promptSecret := pardon.NewPassword(&secret).
+				Title("Enter the updated secret:")
 
 			if err := promptSecret.Ask(); err != nil {
 				return err

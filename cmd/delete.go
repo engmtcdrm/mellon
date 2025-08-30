@@ -57,9 +57,9 @@ var deleteCmd = &cobra.Command{
 			finalDelete := confirmationWord
 			if !forceDelete {
 				confirmDelete := false
-				promptConfirm2 := pardon.NewConfirm().
-					Title(fmt.Sprintf("Are you sure you want to delete ALL secrets? %s", pp.Red("There is no going back."))).
-					Value(&confirmDelete)
+				promptConfirm2 := pardon.NewConfirm(&confirmDelete).
+					Title(fmt.Sprintf("Are you sure you want to delete ALL secrets? %s", pp.Red("There is no going back.")))
+
 				if err := promptConfirm2.Ask(); err != nil {
 					return err
 				}
@@ -73,10 +73,9 @@ var deleteCmd = &cobra.Command{
 				fmt.Println()
 
 				finalDelete = ""
-				promptConfirm := pardon.NewQuestion().
+				promptConfirm := pardon.NewQuestion(&finalDelete).
 					Title(fmt.Sprintf("To confirm, type %s:", pp.Red(confirmationWord))).
-					Icon("").
-					Value(&finalDelete)
+					Icon("")
 				if err := promptConfirm.Ask(); err != nil {
 					return err
 				}
@@ -116,9 +115,9 @@ var deleteCmd = &cobra.Command{
 			confirmDelete := true
 			if !forceDelete {
 				confirmDelete = false
-				promptConfirm := pardon.NewConfirm().
-					Title(fmt.Sprintf("Are you sure you want to delete %s?", pp.Red(secretName))).
-					Value(&confirmDelete)
+				promptConfirm := pardon.NewConfirm(&confirmDelete).
+					Title(fmt.Sprintf("Are you sure you want to delete %s?", pp.Red(secretName)))
+
 				if err := promptConfirm.Ask(); err != nil {
 					return err
 				}
@@ -148,10 +147,9 @@ var deleteCmd = &cobra.Command{
 			return err
 		}
 
-		promptSelect := pardon.NewSelect[secrets.Secret]().
+		promptSelect := pardon.NewSelect[secrets.Secret](&selectedSecret).
 			Title("What secret do you want to delete?").
-			Options(options...).
-			Value(&selectedSecret)
+			Options(options...)
 
 		if err := promptSelect.Ask(); err != nil {
 			return err
@@ -162,9 +160,9 @@ var deleteCmd = &cobra.Command{
 			fmt.Println()
 
 			confirmDelete = false
-			promptConfirm := pardon.NewConfirm().
-				Title(fmt.Sprintf("Are you sure you want to delete %s?", pp.Red(selectedSecret.Name))).
-				Value(&confirmDelete)
+			promptConfirm := pardon.NewConfirm(&confirmDelete).
+				Title(fmt.Sprintf("Are you sure you want to delete %s?", pp.Red(selectedSecret.Name)))
+
 			if err := promptConfirm.Ask(); err != nil {
 				return err
 			}
