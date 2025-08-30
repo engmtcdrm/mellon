@@ -73,24 +73,9 @@ var createCmd = &cobra.Command{
 
 		header.PrintHeader()
 
-		var secret []byte
-
-		if secretFile == "" {
-			promptSecret := pardon.NewPassword().
-				Title("Enter a secret to secure:").
-				Value(&secret)
-
-			if err := promptSecret.Ask(); err != nil {
-				return err
-			}
-
-			fmt.Println()
-		}
-
 		if secretName == "" {
-			promptQuestion := pardon.NewQuestion().
+			promptQuestion := pardon.NewQuestion(&secretName).
 				Title("Enter a name for the secret:").
-				Value(&secretName).
 				Validate(validateSecretName)
 
 			if err := promptQuestion.Ask(); err != nil {
@@ -103,6 +88,19 @@ var createCmd = &cobra.Command{
 			if secretPtr != nil {
 				return fmt.Errorf("secret %s already exists", pp.Red(secretName))
 			}
+		}
+
+		var secret []byte
+
+		if secretFile == "" {
+			promptSecret := pardon.NewPassword(&secret).
+				Title("Enter a secret to secure:")
+
+			if err := promptSecret.Ask(); err != nil {
+				return err
+			}
+
+			fmt.Println()
 		}
 
 		newSecret, err = secrets.NewSecret(envVars.KeyPath, secretName, filepath.Join(envVars.SecretsPath, secretName+envVars.SecretExt))
