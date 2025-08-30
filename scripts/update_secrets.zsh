@@ -7,12 +7,14 @@ max="${1:-10}"
 
 for i in {1..$max}; do
     secret_name="s${i}"
-    new_password="newsecret${i}"
+    new_secret="newsecret${i}${i}"
     tmpfile=$(mktemp)
-    echo "$new_password" > "$tmpfile"
+    echo "$new_secret" > "$tmpfile"
+    old_secret=$(go run ../. view -s "$secret_name")
     go run ../. update -s "$secret_name" -f "$tmpfile" -c
+    new_secret=$(go run ../. view -s "$secret_name")
 
-    echo -ne "\r\x1b[2KUpdated secret $i of $max"
+    echo -e "\r\x1b[2KUpdated secret $i of $max; old: $old_secret, new: $new_secret"
 done
 
 echo ""
