@@ -9,6 +9,7 @@ import (
 	"github.com/engmtcdrm/mellon/secrets"
 )
 
+// GetSecretOptions returns a list of options for selecting a secret from the provided list of secret files.
 func GetSecretOptions(secretFiles []secrets.Secret, action string) ([]pardon.Option[secrets.Secret], error) {
 	envVars, err := env.GetEnv()
 	if err != nil {
@@ -26,7 +27,7 @@ func GetSecretOptions(secretFiles []secrets.Secret, action string) ([]pardon.Opt
 	options := []pardon.Option[secrets.Secret]{}
 
 	for _, secret := range secretFiles {
-		options = append(options, pardon.NewOption(secret.Name, secret))
+		options = append(options, pardon.NewOption(secret.Name(), secret))
 	}
 
 	return options, nil
