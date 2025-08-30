@@ -60,7 +60,7 @@ var viewCmd = &cobra.Command{
 				return err
 			}
 
-			promptSelect := pardon.NewSelect[secrets.Secret](&selectedSecretFile).
+			promptSelect := pardon.NewSelect(&selectedSecretFile).
 				Options(options...).
 				Title("What secret do you want to view?")
 
