@@ -7,5 +7,5 @@ max="${1:-10}"
 
 for i in {1..$max}; do
     secret_name="s${i}"
-    echo "$secret_name password is " $(go run ../. view -s "$secret_name")
+    echo "$secret_name secret is " $(go run ../. view -s "$secret_name")
 done
