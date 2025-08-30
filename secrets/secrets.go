@@ -28,7 +28,7 @@ func NewSecret(keyPath string, name string, path string) (*Secret, error) {
 		return nil, errors.New("key path cannot be empty")
 	}
 
-	tomb, err := entomb.NewTomb(keyPath)
+	tomb, err := entomb.NewTomb(keyPath, true, true)
 	if err != nil {
 		return nil, fmt.Errorf("could not create tomb: %w", err)
 	}
