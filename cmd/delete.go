@@ -84,11 +84,6 @@ var deleteCmd = &cobra.Command{
 			}
 
 			if finalDelete == confirmationWord {
-				secretFiles, err := secrets.GetSecretFiles()
-				if err != nil {
-					return fmt.Errorf("could not retrieve secrets: %w", err)
-				}
-
 				for _, secret := range secretFiles {
 					if err := secrets.RemoveSecret(secret); err != nil {
 						return fmt.Errorf("could not remove secret '%s': %w", secret.Name(), err)
