@@ -72,10 +72,9 @@ func Init() {
 			panic(err)
 		}
 
-		executableName := filepath.Base(executablePath)
-
+		// If executable is in path, use the base name, i.e. the executable name
 		if IsInPath(executablePath) {
-			Instance.exeCmd = executableName
+			Instance.exeCmd = filepath.Base(executablePath)
 		} else {
 			Instance.exeCmd = executablePath
 		}
