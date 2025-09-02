@@ -1,7 +1,7 @@
 .PHONY: build runexe run
 
 build:
-	echo "Size before build:"; ls -la |grep mellon; ls -lh |grep mellon; echo "\n\nSize after build:"; go build --ldflags "-s -w"; strip mellon; ls -la |grep mellon; ls -lh |grep mellon
+	echo "Size before build:"; ls -la |grep mellon; ls -lh |grep mellon; echo "\n\nSize after build:"; CGO_ENABLED=0 go build --ldflags "-s -w"; strip mellon; ls -la |grep mellon; ls -lh |grep mellon
 
 runexe:
 	./mellon $(ARGS)
