@@ -7,8 +7,8 @@ github.com/engmtcdrm/go-entomb v0.0.0-20250822003222-4f34ed57a475 h1:4pT2W9HIpxx
 github.com/engmtcdrm/go-entomb v0.0.0-20250822003222-4f34ed57a475/go.mod h1:hHlU+yd6wC9zMHd/YFTSIcBHN7RkzkwB2Ox2svkEwUI=
 github.com/engmtcdrm/go-pardon v0.0.0-20250826032518-2556eee43fe0 h1:St/7yvz5UZ5u6Le8MQXQ7tgglPMuO2AbX6N+O/fb/P0=
 github.com/engmtcdrm/go-pardon v0.0.0-20250826032518-2556eee43fe0/go.mod h1:czgTOup9xea/r16g/N+ZVAnGpUpZEW9Fd3g1LMrU0Qg=
-github.com/engmtcdrm/go-prettyprint v1.1.0 h1:Cbr+XjM7lwVqh+Nmd0CxPFmnsOnKMXti2ogbfWLMYO4=
-github.com/engmtcdrm/go-prettyprint v1.1.0/go.mod h1:/U40kVhDdncIcY1ao+8BogPn4JWbpix+gXHAGKEQAuE=
+github.com/engmtcdrm/go-prettyprint v1.2.0 h1:VZZNj51npvlvUU3APqAmQznlRvulHLDLHPk8Per0EFY=
+github.com/engmtcdrm/go-prettyprint v1.2.0/go.mod h1:JAVlA6ZwVyk3jkpeejxRCMc6daru6WxSN2zFtHGL9ag=
 github.com/fernet/fernet-go v0.0.0-20240119011108-303da6aec611 h1:JwYtKJ/DVEoIA5dH45OEU7uoryZY/gjd/BQiwwAOImM=
 github.com/fernet/fernet-go v0.0.0-20240119011108-303da6aec611/go.mod h1:zHMNeYgqrTpKyjawjitDg0Osd1P/FmeA0SZLYK3RfLQ=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
@@ -21,11 +21,11 @@ github.com/rivo/uniseg v0.2.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJ
 github.com/rivo/uniseg v0.4.7 h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=
 github.com/rivo/uniseg v0.4.7/go.mod h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUcx88=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
-github.com/spf13/cobra v1.9.1 h1:CXSaggrXdbHK9CF+8ywj8Amf7PBRmPCOJugH954Nnlo=
-github.com/spf13/cobra v1.9.1/go.mod h1:nDyEzZ8ogv936Cinf6g1RU9MRY64Ir93oCnqb9wxYW0=
-github.com/spf13/pflag v1.0.6/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
-github.com/spf13/pflag v1.0.7 h1:vN6T9TfwStFPFM5XzjsvmzZkLuaLX+HS+0SeFLRgU6M=
-github.com/spf13/pflag v1.0.7/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
+github.com/spf13/cobra v1.10.1 h1:lJeBwCfmrnXthfAupyUTzJ/J4Nc1RsHC/mSRU2dll/s=
+github.com/spf13/cobra v1.10.1/go.mod h1:7SmJGaTHFVBY0jW4NXGluQoLvhqFQM+6XSKD+P4XaB0=
+github.com/spf13/pflag v1.0.9/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
+github.com/spf13/pflag v1.0.10 h1:4EBh2KAYBwaONj6b2Ye1GiHfwjqyROoF4RwYO+vPwFk=
+github.com/spf13/pflag v1.0.10/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
 github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 golang.org/x/sys v0.35.0 h1:vz1N37gP5bs89s7He8XuIYXpyY0+QlsKmzipCbUtyxI=
