@@ -69,8 +69,9 @@ func (s *Secret) EncryptFromFile(file string, cleanup bool) error {
 		return fmt.Errorf("could not read file '%s': %w", rawFile, err)
 	}
 
-	secretBytes = trimSpaceBytes(secretBytes)
+	secretBytes = trimSpaceBytes(&secretBytes)
 	encSecret, err = s.tomb.Encrypt(secretBytes)
+	ClearSecret(&secretBytes)
 	if err != nil {
 		return err
 	}
@@ -96,7 +97,8 @@ func (s *Secret) EncryptFromFile(file string, cleanup bool) error {
 // Encrypt encrypts a secret and writes it to the secret's path.
 // The secret is trimmed of leading and trailing whitespace before encryption.
 func (s *Secret) Encrypt(secret []byte) error {
-	encSecret, err := s.tomb.Encrypt(trimSpaceBytes(secret))
+	encSecret, err := s.tomb.Encrypt(trimSpaceBytes(&secret))
+	ClearSecret(&secret)
 	if err != nil {
 		return err
 	}
@@ -129,7 +131,7 @@ func (s *Secret) Decrypt() ([]byte, error) {
 	}
 
 	secret, err := s.tomb.Decrypt(data)
-	data = nil
+	ClearSecret(&data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt secret '%s'. Encrypted secret may be corrupted", s.name)
 	}

@@ -103,6 +103,15 @@ func FindSecretByName(name string, secretFiles []Secret) *Secret {
 	return nil
 }
 
+// ClearSecret overwrites the contents of a byte slice with zeros clearing sensitive data from memory.
+func ClearSecret(s *[]byte) {
+	if s != nil {
+		for i := range *s {
+			(*s)[i] = 0
+		}
+	}
+}
+
 // isDirEmpty checks if a directory is empty.
 func isDirEmpty(dirPath string) (bool, error) {
 	entries, err := os.ReadDir(dirPath)
@@ -114,17 +123,17 @@ func isDirEmpty(dirPath string) (bool, error) {
 
 // trimSpaceBytes trims leading and trailing ASCII whitespace from a byte slice in-place.
 // Returns a subslice of the original slice, so the underlying array is not copied.
-func trimSpaceBytes(b []byte) []byte {
+func trimSpaceBytes(b *[]byte) []byte {
 	start := 0
-	end := len(b)
+	end := len(*b)
 
 	// Trim leading spaces
-	for start < end && (b[start] == ' ' || b[start] == '\t' || b[start] == '\n' || b[start] == '\r') {
+	for start < end && ((*b)[start] == ' ' || (*b)[start] == '\t' || (*b)[start] == '\n' || (*b)[start] == '\r') {
 		start++
 	}
 	// Trim trailing spaces
-	for end > start && (b[end-1] == ' ' || b[end-1] == '\t' || b[end-1] == '\n' || b[end-1] == '\r') {
+	for end > start && ((*b)[end-1] == ' ' || (*b)[end-1] == '\t' || (*b)[end-1] == '\n' || (*b)[end-1] == '\r') {
 		end--
 	}
-	return b[start:end]
+	return (*b)[start:end]
 }
