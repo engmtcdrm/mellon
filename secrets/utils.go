@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-
-	"github.com/engmtcdrm/mellon/env"
 )
+
+const reValidName = `^[\w\/\\\-]+$`
 
 var (
 	dirMode    os.FileMode = 0700 // Default directory mode for secrets
@@ -17,23 +17,21 @@ var (
 )
 
 // Returns a slice of all available secrets
-func GetSecretFiles() ([]Secret, error) {
-	env.Init()
-
+func GetSecretFiles(keyPath, secretsPath, secretExt string) ([]Secret, error) {
 	var secretFiles []Secret
 
-	err := filepath.WalkDir(env.Instance.SecretsPath(), func(path string, d os.DirEntry, err error) error {
+	err := filepath.WalkDir(secretsPath, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
-		relPath, err := filepath.Rel(env.Instance.SecretsPath(), path)
+		relPath, err := filepath.Rel(secretsPath, path)
 		if err != nil {
 			return err
 		}
 
-		if filepath.Ext(path) == env.Instance.SecretExt() && !d.IsDir() {
-			c, err := NewSecret(env.Instance.KeyPath(), strings.TrimSuffix(relPath, env.Instance.SecretExt()), path)
+		if filepath.Ext(path) == secretExt && !d.IsDir() {
+			c, err := NewSecret(keyPath, strings.TrimSuffix(relPath, secretExt), path)
 			if err != nil {
 				return err
 			}
@@ -50,8 +48,8 @@ func GetSecretFiles() ([]Secret, error) {
 	return secretFiles, nil
 }
 
-// RemoveSecret removes a secret from the system.
-func RemoveSecret(secret Secret) error {
+// RemoveSecret removes a secret from the specified secrets path
+func RemoveSecret(secretsPath string, secret Secret) error {
 	if secret.Path() == "" {
 		return errors.New("secret path cannot be empty")
 	}
@@ -60,10 +58,8 @@ func RemoveSecret(secret Secret) error {
 		return fmt.Errorf("could not remove secret '%s': %w", secret.name, err)
 	}
 
-	env.Init()
-
 	// Ignore trying to delete the secrets directory itself
-	if secret.Path() == env.Instance.SecretsPath() {
+	if secret.Path() == secretsPath {
 		return nil
 	}
 
@@ -83,7 +79,7 @@ func RemoveSecret(secret Secret) error {
 
 // ValidateName checks if a string is a valid secret name
 func ValidateName(s string) error {
-	var re = regexp.MustCompile(`^[\w\/\\\-]+$`)
+	var re = regexp.MustCompile(reValidName)
 
 	if re.MatchString(s) {
 		return nil
