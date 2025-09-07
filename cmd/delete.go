@@ -6,6 +6,7 @@ import (
 	"github.com/engmtcdrm/go-pardon"
 	pp "github.com/engmtcdrm/go-prettyprint"
 	"github.com/engmtcdrm/mellon/app"
+	"github.com/engmtcdrm/mellon/env"
 	"github.com/engmtcdrm/mellon/header"
 	"github.com/engmtcdrm/mellon/secrets"
 	"github.com/engmtcdrm/mellon/secrets/prompts"
@@ -85,7 +86,7 @@ var deleteCmd = &cobra.Command{
 
 			if finalDelete == confirmationWord {
 				for _, secret := range secretFiles {
-					if err := secrets.RemoveSecret(secret); err != nil {
+					if err := secrets.RemoveSecret(env.Instance.SecretsPath(), secret); err != nil {
 						return fmt.Errorf("could not remove secret '%s': %w", secret.Name(), err)
 					}
 				}
@@ -121,7 +122,7 @@ var deleteCmd = &cobra.Command{
 			}
 
 			if confirmDelete {
-				if err := secrets.RemoveSecret(selectedSecret); err != nil {
+				if err := secrets.RemoveSecret(env.Instance.SecretsPath(), selectedSecret); err != nil {
 					return fmt.Errorf("could not remove secret '%s': %w", selectedSecret.Name(), err)
 				}
 
@@ -137,7 +138,7 @@ var deleteCmd = &cobra.Command{
 
 		header.PrintHeader()
 
-		options, err := prompts.GetSecretOptions(secretFiles, "delete")
+		options, err := prompts.GetSecretOptions(secretFiles, "delete", env.Instance.ExeCmd())
 		if err != nil {
 			return err
 		}
@@ -166,7 +167,7 @@ var deleteCmd = &cobra.Command{
 		fmt.Println()
 
 		if confirmDelete {
-			if err := secrets.RemoveSecret(selectedSecret); err != nil {
+			if err := secrets.RemoveSecret(env.Instance.SecretsPath(), selectedSecret); err != nil {
 				return fmt.Errorf("could not remove secret '%s': %w", selectedSecret.Name(), err)
 			}
 
