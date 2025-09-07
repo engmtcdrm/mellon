@@ -11,6 +11,7 @@ import (
 	"github.com/engmtcdrm/go-pardon"
 	pp "github.com/engmtcdrm/go-prettyprint"
 	"github.com/engmtcdrm/mellon/app"
+	"github.com/engmtcdrm/mellon/env"
 	"github.com/engmtcdrm/mellon/header"
 	"github.com/engmtcdrm/mellon/secrets"
 	"github.com/engmtcdrm/mellon/secrets/prompts"
@@ -55,7 +56,7 @@ var viewCmd = &cobra.Command{
 		if secretName == "" {
 			header.PrintHeader()
 
-			options, err := prompts.GetSecretOptions(secretFiles, "view")
+			options, err := prompts.GetSecretOptions(secretFiles, "view", env.Instance.ExeCmd())
 			if err != nil {
 				return err
 			}

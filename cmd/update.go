@@ -67,7 +67,7 @@ var updateCmd = &cobra.Command{
 		header.PrintHeader()
 
 		if secretName == "" {
-			options, err := prompts.GetSecretOptions(secretFiles, "update")
+			options, err := prompts.GetSecretOptions(secretFiles, "update", env.Instance.ExeCmd())
 			if err != nil {
 				return err
 			}
