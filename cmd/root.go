@@ -57,7 +57,11 @@ func configInit() {
 	mkdir(env.Instance.SecretsPath(), dirMode)
 	secureFiles(env.Instance.AppHomeDir(), dirMode, secretMode)
 
-	secretFiles, err = secrets.GetSecretFiles()
+	secretFiles, err = secrets.GetSecretFiles(
+		env.Instance.KeyPath(),
+		env.Instance.SecretsPath(),
+		env.Instance.SecretExt(),
+	)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
