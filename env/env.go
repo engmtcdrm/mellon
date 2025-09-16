@@ -8,10 +8,13 @@ import (
 	"github.com/engmtcdrm/mellon/app"
 )
 
-var (
-	Instance  *Env // Singleton instance of Env
-	once      sync.Once
+const (
 	secretExt = ".thurin" // The file extension for secret files.
+)
+
+var (
+	Instance *Env // Singleton instance of Env
+	once     sync.Once
 )
 
 type Env struct {
