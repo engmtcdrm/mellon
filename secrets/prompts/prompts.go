@@ -3,28 +3,25 @@ package prompts
 import (
 	"fmt"
 
-	"github.com/charmbracelet/huh"
-
+	"github.com/engmtcdrm/go-pardon"
 	pp "github.com/engmtcdrm/go-prettyprint"
-	"github.com/engmtcdrm/minno/env"
-	"github.com/engmtcdrm/minno/secrets"
+	"github.com/engmtcdrm/mellon/secrets"
 )
 
-// GetSecretOptions returns a slice of huh.Options for all available secrets
-func GetSecretOptions(secretFiles []secrets.Secret, action string) ([]huh.Option[secrets.Secret], error) {
-	envVars, err := env.GetEnv()
-	if err != nil {
-		return nil, err
-	}
-
+// GetSecretOptions returns a list of options for selecting a secret from the provided list of secret files.
+func GetSecretOptions(secretFiles []secrets.Secret, action string, exeCmd string) ([]pardon.Option[secrets.Secret], error) {
 	if len(secretFiles) == 0 {
-		return nil, fmt.Errorf("no secrets found to %s\n\nPlease run command %s to create a secret", action, pp.Greenf("%s create", envVars.ExeCmd))
+		return nil, fmt.Errorf(
+			"no secrets found to %s\n\nPlease run command %s to create a secret",
+			action,
+			pp.Greenf("%s create", exeCmd),
+		)
 	}
 
-	options := []huh.Option[secrets.Secret]{}
+	options := []pardon.Option[secrets.Secret]{}
 
 	for _, secret := range secretFiles {
-		options = append(options, huh.NewOption(secret.Name, secret))
+		options = append(options, pardon.NewOption(secret.Name(), secret))
 	}
 
 	return options, nil

@@ -6,15 +6,15 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 
-	"github.com/engmtcdrm/go-entomb"
+	"github.com/engmtcdrm/go-pardon"
 	pp "github.com/engmtcdrm/go-prettyprint"
-	"github.com/engmtcdrm/minno/app"
-	"github.com/engmtcdrm/minno/header"
-	"github.com/engmtcdrm/minno/secrets"
-	"github.com/engmtcdrm/minno/secrets/prompts"
+	"github.com/engmtcdrm/mellon/app"
+	"github.com/engmtcdrm/mellon/env"
+	"github.com/engmtcdrm/mellon/header"
+	"github.com/engmtcdrm/mellon/secrets"
+	"github.com/engmtcdrm/mellon/secrets/prompts"
 )
 
 func init() {
@@ -23,17 +23,25 @@ func init() {
 		"secret",
 		"s",
 		"",
-		"(optional) The name of the secret to view. Only names containing alphanumeric, hyphens, and underscores are allowed.",
+		"(optional) The name of the secret to view. Only names containing alphanumeric, hyphens, and underscores are allowed",
 	)
 	viewCmd.Flags().StringVarP(
 		&output,
 		"output",
 		"o",
 		"",
-		"(optional) File to write decrypted secret to. Defaults to outputting to stdout. This only works with the option -s, --secret",
+		"(optional) File to write decrypted secret to. Defaults to outputting to stdout. This only works with the option -s/--secret",
 	)
 
 	rootCmd.AddCommand(viewCmd)
+}
+
+func validateViewFlags(cmd *cobra.Command, args []string) error {
+	if output != "" && secretName == "" {
+		return errors.New("flag -o/--output can only be used when -s/--secret is provided")
+	}
+
+	return nil
 }
 
 var viewCmd = &cobra.Command{
@@ -41,94 +49,68 @@ var viewCmd = &cobra.Command{
 	Short:   "View a secret",
 	Long:    "View a secret",
 	Example: fmt.Sprintf("  %s view\n  %s view -s awesome-secret", app.Name, app.Name),
+	PreRunE: validateViewFlags,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		tomb, err := entomb.NewTomb(envVars.KeyPath)
-		if err != nil {
-			return err
-		}
+		var selectedSecretFile secrets.Secret
 
 		if secretName == "" {
 			header.PrintHeader()
 
-			var selectedSecretFile secrets.Secret
-
-			options, err := prompts.GetSecretOptions(secretFiles, "view")
+			options, err := prompts.GetSecretOptions(secretFiles, "view", env.Instance.ExeCmd())
 			if err != nil {
 				return err
 			}
 
-			form := huh.NewForm(
-				huh.NewGroup(
-					huh.NewSelect[secrets.Secret]().
-						Options(options...).
-						Title("Available Secrets").
-						Description("Choose a secret to view.").
-						Value(&selectedSecretFile),
-				),
-			)
+			promptSelect := pardon.NewSelect(&selectedSecretFile).
+				Options(options...).
+				Title("What secret do you want to view?")
 
-			err = form.
-				WithTheme(app.ThemeMinno()).
-				Run()
-			if err != nil {
+			if err := promptSelect.Ask(); err != nil {
 				return err
 			}
 
-			data, err := os.ReadFile(selectedSecretFile.Path)
-			if err != nil {
-				return errors.New("failed to read secret. Encrypted secret may be corrupted")
-			}
-
-			fmt.Println(pp.Complete("Secret read"))
-
-			secret, err := tomb.Decrypt(data)
-			data = nil
+			secret, err := selectedSecretFile.Decrypt()
 			if err != nil {
 				return errors.New("failed to decrypt secret. Encrypted secret may be corrupted")
 			}
 
+			fmt.Println()
 			fmt.Println(pp.Complete("Secret decrypted"))
 			fmt.Println()
 			fmt.Println(pp.Info("The secret is " + pp.Green(string(secret))))
-		} else {
-			secretName, err = secrets.ResolveSecretName(secretName)
-			if err != nil {
-				return err
-			}
 
-			if !secrets.IsExists(secretName) {
-				return errors.New("secret name does not exist")
-			}
-
-			data, err := os.ReadFile(secretName)
-			if err != nil {
-				return errors.New("failed to read secret. Encrypted secret may be corrupted")
-			}
-
-			secret, err := tomb.Decrypt(data)
-			data = nil
-			if err != nil {
-				return errors.New("failed to decrypt secret. Encrypted secret may be corrupted")
-			}
-
-			if output == "" {
-				fmt.Print(string(secret))
-			} else {
-				outputDir := filepath.Dir(output)
-				if _, err := os.Stat(outputDir); os.IsNotExist(err) {
-					err = os.MkdirAll(outputDir, 0700)
-					if err != nil {
-						return errors.New("failed to create output directory for output file")
-					}
-				}
-
-				err = os.WriteFile(output, secret, 0600)
-				if err != nil {
-					return errors.New("failed to write secret to output file")
-				}
-			}
-			secret = nil
+			return nil
 		}
+
+		secretPtr := secrets.FindSecretByName(secretName, secretFiles)
+		if secretPtr == nil {
+			return fmt.Errorf("failed to read secret '%s': secret does not exist", secretName)
+		}
+
+		selectedSecretFile = *secretPtr
+
+		secret, err := selectedSecretFile.Decrypt()
+		if err != nil {
+			return fmt.Errorf("failed to decrypt secret '%s'. Encrypted secret may be corrupted", secretName)
+		}
+
+		if output == "" {
+			fmt.Print(string(secret))
+		} else {
+			outputDir := filepath.Dir(output)
+			if _, err := os.Stat(outputDir); os.IsNotExist(err) {
+				err = os.MkdirAll(outputDir, dirMode)
+				if err != nil {
+					return fmt.Errorf("failed to create output directory for output file '%s'", output)
+				}
+			}
+
+			err = os.WriteFile(output, secret, secretMode)
+			if err != nil {
+				return fmt.Errorf("failed to write secret to output file '%s'", output)
+			}
+		}
+		secret = nil
 
 		return nil
 	},

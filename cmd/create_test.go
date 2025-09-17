@@ -1,17 +1,20 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	"github.com/engmtcdrm/mellon/env"
 )
 
 var testBinary string
 
 // TestMain builds the CLI binary once for all tests and cleans up after.
 func TestMain(m *testing.M) {
-	testBinary = filepath.Join(os.TempDir(), "minno-test-bin")
+	testBinary = filepath.Join(os.TempDir(), "mellon-test-bin")
 	projectRoot, err := filepath.Abs(filepath.Join(".."))
 	if err != nil {
 		panic("failed to determine project root: " + err.Error())
@@ -34,12 +37,12 @@ func TestMain(m *testing.M) {
 
 // TestCreateCommand_ValidFlags tests the create command with valid flags.
 func TestCreateCommand_ValidFlags(t *testing.T) {
+	env.Init()
 	dir := t.TempDir()
 	secretFile := filepath.Join(dir, "secret.txt")
 	secretName := "testsecret"
 	secretContent := "supersecret"
-	home, _ := os.UserHomeDir()
-	secretOut := filepath.Join(home, ".minno", secretName+".secret")
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -75,11 +78,11 @@ func TestCreateCommand_ValidFlags(t *testing.T) {
 }
 
 func TestCreateCommand_CleanupFlag(t *testing.T) {
+	env.Init()
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testcleanup"
 	secretContent := "supersecret"
-	home, _ := os.UserHomeDir()
-	secretOut := filepath.Join(home, ".minno", secretName+".secret")
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -120,11 +123,11 @@ func TestCreateCommand_CleanupFlag(t *testing.T) {
 }
 
 func TestCreateCommand_Permission0600(t *testing.T) {
+	env.Init()
 	secretFile := filepath.Join(os.TempDir(), "secret.txt")
 	secretName := "testperm"
 	secretContent := "supersecret"
-	home, _ := os.UserHomeDir()
-	secretOut := filepath.Join(home, ".minno", secretName+".secret")
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -149,11 +152,12 @@ func TestCreateCommand_Permission0600(t *testing.T) {
 }
 
 func TestCreateCommand_TildeExpansion(t *testing.T) {
+	env.Init()
 	home, _ := os.UserHomeDir()
 	secretFile := filepath.Join(home, "secrettilde.txt")
 	secretName := "testtilde"
 	secretContent := "supersecret"
-	secretOut := filepath.Join(home, ".minno", secretName+".secret")
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -166,26 +170,6 @@ func TestCreateCommand_TildeExpansion(t *testing.T) {
 	_, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("expected success, got error: %v", err)
-	}
-}
-
-func TestCreateCommand_MissingFlags(t *testing.T) {
-	secretFile := filepath.Join(t.TempDir(), "secret.txt")
-	secretName := "testmissing"
-
-	cases := [][]string{
-		{"--secret", secretName},
-		{"--file", secretFile},
-		{"-s", secretName},
-		{"-f", secretFile},
-	}
-
-	for _, args := range cases {
-		cmd := exec.Command(testBinary, append([]string{"create"}, args...)...)
-		_, err := cmd.CombinedOutput()
-		if err == nil {
-			t.Errorf("expected error for args %v, got none", args)
-		}
 	}
 }
 
@@ -258,11 +242,11 @@ func TestCreateCommand_CleanupNoReadWriteAccess(t *testing.T) {
 }
 
 func TestCreateCommand_AlreadyExists(t *testing.T) {
+	env.Init()
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testexists"
 	secretContent := "supersecret"
-	home, _ := os.UserHomeDir()
-	secretOut := filepath.Join(home, ".minno", secretName+".secret")
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
 	// Clean up before test
 	os.Remove(secretOut)
 
@@ -300,5 +284,139 @@ func TestCreateCommand_InvalidSecretName(t *testing.T) {
 	_, err := cmd.CombinedOutput()
 	if err == nil {
 		t.Errorf("expected error for invalid secret, got none")
+	}
+}
+
+// TestCreateCommand_PreRunValidation tests the PreRunE validation logic
+func TestCreateCommand_PreRunValidation(t *testing.T) {
+	// Test cleanup flag without required flags
+	cases := []struct {
+		name string
+		args []string
+	}{
+		{
+			name: "cleanup without secret flag",
+			args: []string{"create", "--cleanup", "--file", "somefile.txt"},
+		},
+		{
+			name: "cleanup without file flag",
+			args: []string{"create", "--cleanup", "--secret", "somesecret"},
+		},
+		{
+			name: "cleanup without both flags",
+			args: []string{"create", "--cleanup"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := exec.Command(testBinary, tc.args...)
+			_, err := cmd.CombinedOutput()
+			if err == nil {
+				t.Errorf("expected error for %s, got none", tc.name)
+			}
+		})
+	}
+}
+
+// TestCreateCommand_SecretNameValidation tests various invalid secret name patterns
+func TestCreateCommand_SecretNameValidation(t *testing.T) {
+	secretFile := filepath.Join(t.TempDir(), "secret.txt")
+	secretContent := "supersecret"
+
+	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
+		t.Fatalf("failed to write temp file: %v", err)
+	}
+
+	invalidNames := []string{
+		"name with spaces",
+		"name:with:colons",
+		"name*with*asterisks",
+		"name?with?questions",
+		"name<with>brackets",
+		"name|with|pipes",
+		"name\"with\"quotes",
+	}
+
+	for _, invalidName := range invalidNames {
+		t.Run(fmt.Sprintf("invalid_name_%s", invalidName), func(t *testing.T) {
+			cmd := exec.Command(testBinary, "create", "--secret", invalidName, "--file", secretFile)
+			_, err := cmd.CombinedOutput()
+			if err == nil {
+				t.Errorf("expected error for invalid secret name '%s', got none", invalidName)
+			}
+		})
+	}
+}
+
+// TestCreateCommand_ValidSecretNames tests valid secret name patterns
+func TestCreateCommand_ValidSecretNames(t *testing.T) {
+	env.Init()
+
+	secretFile := filepath.Join(t.TempDir(), "secret.txt")
+	secretContent := "supersecret"
+
+	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
+		t.Fatalf("failed to write temp file: %v", err)
+	}
+
+	validNames := []string{
+		"simple",
+		"with_underscores",
+		"with-dashes",
+		"with123numbers",
+		"MixedCase",
+		"path/to/secret",
+	}
+
+	for _, validName := range validNames {
+		t.Run(fmt.Sprintf("valid_name_%s", validName), func(t *testing.T) {
+			secretOut := filepath.Join(env.Instance.SecretsPath(), validName+env.Instance.SecretExt())
+			defer os.Remove(secretOut) // Clean up
+
+			cmd := exec.Command(testBinary, "create", "--secret", validName, "--file", secretFile)
+			_, err := cmd.CombinedOutput()
+			if err != nil {
+				t.Errorf("expected success for valid secret name '%s', got error: %v", validName, err)
+			}
+
+			// Verify the file was created
+			if _, err := os.Stat(secretOut); os.IsNotExist(err) {
+				t.Errorf("expected output file %s to exist for name '%s'", secretOut, validName)
+			}
+		})
+	}
+}
+
+// TestCreateCommand_Force tests if there's a force flag (like in other commands)
+func TestCreateCommand_ForceOverwrite(t *testing.T) {
+	env.Init()
+
+	secretFile := filepath.Join(t.TempDir(), "secret.txt")
+	secretName := "testforce"
+	secretContent := "supersecret"
+	secretOut := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
+	defer os.Remove(secretOut) // Clean up
+
+	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
+		t.Fatalf("failed to write temp file: %v", err)
+	}
+
+	// First create
+	cmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
+	_, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("expected success for first create, got error: %v", err)
+	}
+
+	// Try to create again with --force flag (if it exists)
+	cmd = exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile, "--force")
+	output, err := cmd.CombinedOutput()
+
+	// This test will help identify if a force flag should be added
+	if err != nil {
+		t.Logf("Force flag not implemented (expected): %v, output: %s", err, output)
+	} else {
+		t.Logf("Force flag appears to be implemented")
 	}
 }

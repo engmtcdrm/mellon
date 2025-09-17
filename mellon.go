@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/engmtcdrm/minno/cmd"
+	"github.com/engmtcdrm/mellon/cmd"
 )
 
 func main() {
