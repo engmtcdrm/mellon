@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -48,7 +49,13 @@ func completionFilePath(shell, homeDir string) string {
 	case "fish":
 		return filepath.Join(homeDir, ".config", "fish", "completions", fmt.Sprintf("%s.fish", app.Name))
 	case "powershell":
-		return filepath.Join(homeDir, "Documents", "WindowsPowerShell", "Scripts", fmt.Sprintf("%s_completion.ps1", app.Name))
+		profile, _ := exec.Command("powershell", "-Command", "$PROFILE").Output()
+		if string(profile) != "" {
+			profileDir := filepath.Dir(string(profile))
+			return filepath.Join(profileDir, fmt.Sprintf("%s.ps1", app.Name))
+		}
+
+		return ""
 	default:
 		return ""
 	}
@@ -87,29 +94,68 @@ func genZshCompletion(file *os.File, homeDir string) {
 	defer zshrcFile.Close()
 
 	fpath := "fpath=(~/.zsh/completions $fpath)\n"
-	found_fpath, err := findInFile(filepath.Join(homeDir, ".zshrc"), fpath)
+	foundFpath, err := findInFile(filepath.Join(homeDir, ".zshrc"), fpath)
 	if err != nil {
 		fmt.Printf("Failed to read .zshrc file: %v\n", err)
 		return
 	}
 
-	if !found_fpath {
-		if _, err := zshrcFile.WriteString(fpath); err != nil {
+	if !foundFpath {
+		if _, err := zshrcFile.WriteString("# mellon shell completion\n" + fpath); err != nil {
 			fmt.Printf("Failed to write to .zshrc file: %v\n", err)
 			return
 		}
 	}
 
 	autoload := "autoload -U compinit && compinit\n"
-	found_autoload, err := findInFile(filepath.Join(homeDir, ".zshrc"), autoload)
+	foundAutoload, err := findInFile(filepath.Join(homeDir, ".zshrc"), autoload)
 	if err != nil {
 		fmt.Printf("Failed to read .zshrc file: %v\n", err)
 		return
 	}
 
-	if !found_autoload {
+	if !foundAutoload {
 		if _, err := zshrcFile.WriteString(autoload); err != nil {
 			fmt.Printf("Failed to write to .zshrc file: %v\n", err)
+			return
+		}
+	}
+}
+
+// genPowerShellCompletion generates PowerShell completion and appends necessary configurations to the PowerShell profile
+func genPowerShellCompletion(file *os.File) {
+	profileFilePathByte, _ := exec.Command("powershell", "-Command", "$PROFILE").Output()
+	profileFilePath := strings.TrimSpace(string(profileFilePathByte))
+
+	if profileFilePath == "" {
+		fmt.Printf("Could not determine PowerShell profile path.\n")
+		return
+	}
+
+	if err := rootCmd.GenPowerShellCompletion(file); err != nil {
+		fmt.Printf("Failed to generate powershell completion script: %v\n", err)
+		return
+	}
+
+	profileDir := filepath.Dir(profileFilePath)
+	compSource := ". " + filepath.Join(profileDir, fmt.Sprintf("%s.ps1", app.Name))
+
+	profileFile, err := os.OpenFile(profileFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Printf("Failed to open PowerShell profile file: %v\n", err)
+		return
+	}
+	defer profileFile.Close()
+
+	foundCompPath, err := findInFile(profileFilePath, compSource)
+	if err != nil {
+		fmt.Printf("Failed to read PowerShell profile file: %v\n", err)
+		return
+	}
+
+	if !foundCompPath {
+		if _, err := profileFile.WriteString("# mellon shell completion\n" + compSource); err != nil {
+			fmt.Printf("Failed to write to PowerShell profile file: %v\n", err)
 			return
 		}
 	}
@@ -158,10 +204,7 @@ func initShellCompletion(homeDir string) {
 				return
 			}
 		case "powershell":
-			if err := rootCmd.GenPowerShellCompletion(file); err != nil {
-				fmt.Printf("Failed to generate powershell completion script: %v\n", err)
-				return
-			}
+			genPowerShellCompletion(file)
 		}
 
 		// fmt.Printf("Shell completion script created at %s. Please source it in your shell configuration file.\n", pp.Green(completionPath))
