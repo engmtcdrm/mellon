@@ -38,6 +38,7 @@ func init() {
 	)
 
 	updateCmd.MarkFlagFilename("file")
+	updateCmd.RegisterFlagCompletionFunc("secret", secretFlagCompletion)
 
 	rootCmd.AddCommand(updateCmd)
 }

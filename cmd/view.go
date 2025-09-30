@@ -33,6 +33,8 @@ func init() {
 		"(optional) File to write decrypted secret to. Defaults to outputting to stdout. This only works with the option -s/--secret",
 	)
 
+	viewCmd.RegisterFlagCompletionFunc("secret", secretFlagCompletion)
+
 	rootCmd.AddCommand(viewCmd)
 }
 
@@ -50,6 +52,13 @@ var viewCmd = &cobra.Command{
 	Long:    "View a secret",
 	Example: fmt.Sprintf("  %s view\n  %s view -s awesome-secret", app.Name, app.Name),
 	PreRunE: validateViewFlags,
+	// ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	// 	var secretNames []string
+	// 	for _, secret := range secretFiles {
+	// 		secretNames = append(secretNames, secret.Name())
+	// 	}
+	// 	return secretNames, cobra.ShellCompDirectiveNoFileComp
+	// },
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var selectedSecretFile secrets.Secret
 

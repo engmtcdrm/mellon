@@ -87,3 +87,13 @@ func getSemVer(input string) string {
 	// If no match, return the original input
 	return input
 }
+
+// secretFlagCompletion provides shell completion for the -s/--secret flag.
+func secretFlagCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var secretNames []string
+
+	for _, secret := range secretFiles {
+		secretNames = append(secretNames, secret.Name())
+	}
+	return secretNames, cobra.ShellCompDirectiveNoFileComp
+}

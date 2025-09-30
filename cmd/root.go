@@ -53,6 +53,7 @@ func Execute() error {
 func configInit() {
 	var err error
 
+	initShellCompletion(env.Instance.Home())
 	mkdir(env.Instance.AppHomeDir(), dirMode)
 	mkdir(env.Instance.SecretsPath(), dirMode)
 	secureFiles(env.Instance.AppHomeDir(), dirMode, secretMode)
