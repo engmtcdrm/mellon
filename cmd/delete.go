@@ -38,6 +38,7 @@ func init() {
 	)
 
 	deleteCmd.MarkFlagsMutuallyExclusive("secret", "all")
+	deleteCmd.RegisterFlagCompletionFunc("secret", secretFlagCompletion)
 
 	rootCmd.AddCommand(deleteCmd)
 }
