@@ -11,11 +11,6 @@ import (
 
 const reValidName = `^[\w\/\\\-]+$`
 
-var (
-	dirMode    os.FileMode = 0700 // Default directory mode for secrets
-	secretMode os.FileMode = 0600 // Default file mode for secret files
-)
-
 // Returns a slice of all available secrets
 func GetSecretFiles(keyPath, secretsPath, secretExt string) ([]Secret, error) {
 	var secretFiles []Secret
