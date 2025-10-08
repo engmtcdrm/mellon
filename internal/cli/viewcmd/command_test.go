@@ -1,4 +1,4 @@
-package cmd
+package viewcmd
 
 import (
 	"fmt"
@@ -10,6 +10,8 @@ import (
 
 	"github.com/engmtcdrm/mellon/env"
 )
+
+var testBinary string
 
 // TestViewCommand_ValidFlags tests the view command with valid flags.
 func TestViewCommand_ValidFlags(t *testing.T) {

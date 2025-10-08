@@ -1,4 +1,4 @@
-package cmd
+package listcmd
 
 import (
 	"os"
@@ -9,6 +9,8 @@ import (
 
 	"github.com/engmtcdrm/mellon/env"
 )
+
+var testBinary string
 
 // TestListCommand_NoSecrets tests the list command when no secrets exist.
 func TestListCommand_NoSecrets(t *testing.T) {

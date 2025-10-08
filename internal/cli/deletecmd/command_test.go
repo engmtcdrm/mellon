@@ -1,4 +1,4 @@
-package cmd
+package deletecmd
 
 import (
 	"fmt"
@@ -9,6 +9,8 @@ import (
 
 	"github.com/engmtcdrm/mellon/env"
 )
+
+var testBinary string
 
 // TestDeleteCommand_ValidFlags tests the delete command with valid flags.
 func TestDeleteCommand_ValidFlags(t *testing.T) {

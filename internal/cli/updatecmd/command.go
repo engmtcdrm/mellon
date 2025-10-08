@@ -1,0 +1,149 @@
+package updatecmd
+
+import (
+	"errors"
+	"fmt"
+
+	"github.com/spf13/cobra"
+
+	"github.com/engmtcdrm/go-pardon"
+	pp "github.com/engmtcdrm/go-prettyprint"
+	"github.com/engmtcdrm/mellon/app"
+	"github.com/engmtcdrm/mellon/env"
+	"github.com/engmtcdrm/mellon/header"
+	"github.com/engmtcdrm/mellon/secrets"
+	"github.com/engmtcdrm/mellon/secrets/prompts"
+)
+
+var (
+	secretFiles []secrets.Secret // List of available secrets
+	secretName  string           // The name of the secret to update
+	secretFile  string           // The file containing the unencrypted secret to encrypt
+	cleanupFile bool             // Whether to delete the unencrypted secret file after encryption
+)
+
+// validateUpdateCreateFlags checks if the flags for creating or updating a secret are valid.
+func validateUpdateCreateFlags(cmd *cobra.Command, args []string) error {
+	if cleanupFile && (secretName == "" || secretFile == "") {
+		return errors.New("flag -c/--cleanup can only be used when -s/--secret and -f/--file are provided")
+	}
+
+	return nil
+}
+
+// secretFlagCompletion provides shell completion for the -s/--secret flag.
+func secretFlagCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var secretNames []string
+
+	for _, secret := range secretFiles {
+		secretNames = append(secretNames, secret.Name())
+	}
+	return secretNames, cobra.ShellCompDirectiveNoFileComp
+}
+
+func NewCommand(secretFilesList []secrets.Secret) *cobra.Command {
+	secretFiles = secretFilesList
+
+	updateCmd := &cobra.Command{
+		Use:     "update",
+		Short:   "Update a secret",
+		Long:    "Update a secret",
+		Example: fmt.Sprintf("  %s update", app.Name),
+		PreRunE: validateUpdateCreateFlags,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			var selectedSecret secrets.Secret
+
+			if secretName != "" && secretFile != "" {
+				secretPtr := secrets.FindSecretByName(secretName, secretFiles)
+				if secretPtr == nil {
+					return fmt.Errorf("could not update secret '%s': does not exist", secretName)
+				}
+				selectedSecret = *secretPtr
+				if err := selectedSecret.EncryptFromFile(secretFile, cleanupFile); err != nil {
+					return fmt.Errorf("could not encrypt secret from file '%s': %w", secretFile, err)
+				}
+
+				return nil
+			}
+
+			header.PrintHeader()
+
+			if secretName == "" {
+				options, err := prompts.GetSecretOptions(secretFiles, "update", env.Instance.ExeCmd())
+				if err != nil {
+					return err
+				}
+
+				promptSelect := pardon.NewSelect(&selectedSecret).
+					Title("What secret do you want to update?").
+					Options(options...)
+
+				if err := promptSelect.Ask(); err != nil {
+					return err
+				}
+
+				fmt.Println()
+			} else {
+				secretPtr := secrets.FindSecretByName(secretName, secretFiles)
+				if secretPtr == nil {
+					return fmt.Errorf("secret %s does not exist!\n\nUse command %s to create the secret", pp.Red(secretName), pp.Greenf("%s create", env.Instance.ExeCmd()))
+				}
+				selectedSecret = *secretPtr
+			}
+
+			if secretFile == "" {
+				var secret []byte
+
+				promptSecret := pardon.NewPassword(&secret).
+					Title("Enter the updated secret:")
+
+				if err := promptSecret.Ask(); err != nil {
+					return err
+				}
+
+				if err := selectedSecret.Encrypt(secret); err != nil {
+					return fmt.Errorf("could not encrypt secret: %w", err)
+				}
+
+				fmt.Println()
+			} else {
+				if err := selectedSecret.EncryptFromFile(secretFile, cleanupFile); err != nil {
+					return fmt.Errorf("could not encrypt secret from file '%s': %w", secretFile, err)
+				}
+			}
+
+			fmt.Println(pp.Complete("Secret encrypted and saved"))
+			fmt.Println()
+			fmt.Printf("You can run the commmand %s to view the unencrypted secret\n", pp.Greenf("%s view -s %s", env.Instance.ExeCmd(), selectedSecret.Name()))
+
+			return nil
+		},
+	}
+
+	updateCmd.Flags().StringVarP(
+		&secretName,
+		"secret",
+		"s",
+		"",
+		"(optional) The name of the secret to update. If -f/--file is provided with this flag, the secret will be updated from the file. If this flag is not provided, you will be prompted to select a secret to update",
+	)
+	updateCmd.Flags().StringVarP(
+		&secretFile,
+		"file",
+		"f",
+		"",
+		"(optional) The file containing the unencrypted secret to encrypt",
+	)
+	updateCmd.Flags().BoolVarP(
+		&cleanupFile,
+		"cleanup",
+		"c",
+		false,
+		"(optional) Whether to delete the unencrypted secret file after encryption. Defaults to false",
+	)
+
+	updateCmd.MarkFlagFilename("file")
+	updateCmd.RegisterFlagCompletionFunc("secret", secretFlagCompletion)
+
+	return updateCmd
+}

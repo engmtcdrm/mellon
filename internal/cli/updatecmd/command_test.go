@@ -1,4 +1,4 @@
-package cmd
+package updatecmd
 
 import (
 	"fmt"
@@ -9,6 +9,8 @@ import (
 
 	"github.com/engmtcdrm/mellon/env"
 )
+
+var testBinary string
 
 // TestUpdateCommand_ValidFlags tests the update command with valid flags.
 func TestUpdateCommand_ValidFlags(t *testing.T) {

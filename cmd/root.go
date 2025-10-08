@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -9,6 +8,11 @@ import (
 
 	"github.com/engmtcdrm/mellon/app"
 	"github.com/engmtcdrm/mellon/env"
+	"github.com/engmtcdrm/mellon/internal/cli/createcmd"
+	"github.com/engmtcdrm/mellon/internal/cli/deletecmd"
+	"github.com/engmtcdrm/mellon/internal/cli/listcmd"
+	"github.com/engmtcdrm/mellon/internal/cli/updatecmd"
+	"github.com/engmtcdrm/mellon/internal/cli/viewcmd"
 	"github.com/engmtcdrm/mellon/secrets"
 )
 
@@ -24,10 +28,6 @@ var (
 	secretName  string // The name of the secret to create/view/update/delete
 	secretFile  string // The file containing the plain text secret to encrypt
 	cleanupFile bool   // Whether to delete the raw secret file after encryption
-	forceDelete bool   // Whether to force overwrite an existing secret file (only used with delete command)
-	deleteAll   bool   // Whether to delete all secrets (only used with delete command)
-	output      string // The file to write decrypted secret to (only used with view command)
-	print       bool   // Whether to print only the names of the secrets without additional information (only used with list command)
 
 	secretFiles []secrets.Secret // List of secrets available in the app
 
@@ -39,15 +39,10 @@ var (
 func init() {
 	env.Init()
 
+	rootCmd.SilenceUsage = true
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 
 	cobra.OnInitialize(configInit)
-}
-
-// Execute executes the root command.
-func Execute() error {
-	rootCmd.SilenceUsage = true
-	return rootCmd.ExecuteContext(context.Background())
 }
 
 func configInit() {
@@ -67,4 +62,15 @@ func configInit() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+
+	rootCmd.AddCommand(createcmd.NewCommand(secretFiles))
+	rootCmd.AddCommand(deletecmd.NewCommand(secretFiles))
+	rootCmd.AddCommand(listcmd.NewCommand(secretFiles))
+	rootCmd.AddCommand(updatecmd.NewCommand(secretFiles))
+	rootCmd.AddCommand(viewcmd.NewCommand(secretFiles))
+}
+
+// Execute executes the root command.
+func Execute() error {
+	return rootCmd.Execute()
 }
