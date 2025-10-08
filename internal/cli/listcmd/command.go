@@ -36,13 +36,13 @@ func NewCommand(secretFilesList []secrets.Secret) *cobra.Command {
 			header.PrintHeader()
 
 			if len(secretFiles) == 0 {
-				return fmt.Errorf("no available secrets to list\n\nUse command %s to create a secret", pp.Greenf("%s create", env.Instance.ExeCmd()))
-			}
-
-			fmt.Println(pp.Info("Available secrets"))
-			fmt.Println()
-			for _, secret := range secretFiles {
-				fmt.Printf("  - %s\n", pp.Green(secret.Name()))
+				fmt.Printf("No available secrets to list\n\nUse command %s to create a secret", pp.Greenf("%s create", env.Instance.ExeCmd()))
+			} else {
+				fmt.Println(pp.Info("Available secrets"))
+				fmt.Println()
+				for _, secret := range secretFiles {
+					fmt.Printf("  - %s\n", pp.Green(secret.Name()))
+				}
 			}
 
 			return nil
