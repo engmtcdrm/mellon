@@ -9,6 +9,7 @@ import (
 
 	"github.com/engmtcdrm/go-entomb"
 	"github.com/engmtcdrm/mellon/env"
+	"github.com/engmtcdrm/mellon/internal/constants"
 )
 
 // Secret represents a secret value stored in the system.
@@ -76,12 +77,12 @@ func (s *Secret) EncryptFromFile(file string, cleanup bool) error {
 		return err
 	}
 
-	err = os.MkdirAll(filepath.Dir(s.path), dirMode)
+	err = os.MkdirAll(filepath.Dir(s.path), constants.SecureDirMode)
 	if err != nil {
 		return fmt.Errorf("could not create directory for secret '%s': %w", s.name, err)
 	}
 
-	if err = os.WriteFile(s.path, encSecret, secretMode); err != nil {
+	if err = os.WriteFile(s.path, encSecret, constants.SecureFileMode); err != nil {
 		return err
 	}
 
@@ -103,12 +104,12 @@ func (s *Secret) Encrypt(secret []byte) error {
 		return err
 	}
 
-	err = os.MkdirAll(filepath.Dir(s.path), dirMode)
+	err = os.MkdirAll(filepath.Dir(s.path), constants.SecureDirMode)
 	if err != nil {
 		return fmt.Errorf("could not create directory for secret '%s': %w", s.name, err)
 	}
 
-	if err = os.WriteFile(s.path, encSecret, secretMode); err != nil {
+	if err = os.WriteFile(s.path, encSecret, constants.SecureFileMode); err != nil {
 		return err
 	}
 

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/engmtcdrm/mellon/app"
+	"github.com/engmtcdrm/mellon/internal/constants"
 )
 
 // detectShell attempts to detect the current user's shell.
@@ -175,7 +176,7 @@ func initShellCompletion(homeDir string) {
 		// Create parent directories if they don't exist
 		completionDir := filepath.Dir(completionPath)
 		if _, err := os.Stat(completionDir); os.IsNotExist(err) {
-			err = os.MkdirAll(completionDir, dirMode)
+			err = os.MkdirAll(completionDir, constants.SecureDirMode)
 			if err != nil {
 				fmt.Printf("Failed to create directory for shell completion: %v\n", err)
 				return

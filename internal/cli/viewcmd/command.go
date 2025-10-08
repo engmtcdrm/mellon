@@ -13,14 +13,9 @@ import (
 	"github.com/engmtcdrm/mellon/app"
 	"github.com/engmtcdrm/mellon/env"
 	"github.com/engmtcdrm/mellon/header"
+	"github.com/engmtcdrm/mellon/internal/constants"
 	"github.com/engmtcdrm/mellon/secrets"
 	"github.com/engmtcdrm/mellon/secrets/prompts"
-)
-
-const (
-	// Modes for files and directories
-	dirMode    os.FileMode = 0700 // Default directory mode for app home directory as well as output of secret directories
-	secretMode os.FileMode = 0600 // Default file mode for secret files
 )
 
 var (
@@ -112,13 +107,13 @@ func NewCommand(secretFilesList []secrets.Secret) *cobra.Command {
 			} else {
 				outputDir := filepath.Dir(output)
 				if _, err := os.Stat(outputDir); os.IsNotExist(err) {
-					err = os.MkdirAll(outputDir, dirMode)
+					err = os.MkdirAll(outputDir, constants.SecureDirMode)
 					if err != nil {
 						return fmt.Errorf("failed to create output directory for output file '%s'", output)
 					}
 				}
 
-				err = os.WriteFile(output, secret, secretMode)
+				err = os.WriteFile(output, secret, constants.SecureFileMode)
 				if err != nil {
 					return fmt.Errorf("failed to write secret to output file '%s'", output)
 				}
