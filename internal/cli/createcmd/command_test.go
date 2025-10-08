@@ -15,7 +15,7 @@ var testBinary string
 // TestMain builds the CLI binary once for all tests and cleans up after.
 func TestMain(m *testing.M) {
 	testBinary = filepath.Join(os.TempDir(), "mellon-test-bin")
-	projectRoot, err := filepath.Abs(filepath.Join(".."))
+	projectRoot, err := filepath.Abs(filepath.Join("..", "..", ".."))
 	if err != nil {
 		panic("failed to determine project root: " + err.Error())
 	}
