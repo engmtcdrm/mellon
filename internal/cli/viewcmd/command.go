@@ -20,8 +20,8 @@ import (
 
 var (
 	secretFiles []secrets.Secret // List of available secrets
-	secretName  string           // The name of the secret to view
-	output      string           // The file to write decrypted secret to (only used with view command)
+	secretName  string           // The name of the secret
+	output      string           // The file to write decrypted secret to
 )
 
 func validateViewFlags(cmd *cobra.Command, args []string) error {

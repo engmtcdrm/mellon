@@ -17,7 +17,7 @@ import (
 
 var (
 	secretFiles []secrets.Secret // List of available secrets
-	secretName  string           // The name of the secret to update
+	secretName  string           // The name of the secret
 	secretFile  string           // The file containing the unencrypted secret to encrypt
 	cleanupFile bool             // Whether to delete the unencrypted secret file after encryption
 )
