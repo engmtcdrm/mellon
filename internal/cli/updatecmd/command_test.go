@@ -12,6 +12,29 @@ import (
 
 var testBinary string
 
+// TestMain builds the CLI binary once for all tests and cleans up after.
+func TestMain(m *testing.M) {
+	testBinary = filepath.Join(os.TempDir(), "mellon-test-bin-updatecmd")
+	projectRoot, err := filepath.Abs(filepath.Join("..", "..", ".."))
+	if err != nil {
+		panic("failed to determine project root: " + err.Error())
+	}
+
+	// Build the test binary
+	cmd := exec.Command("go", "build", "-o", testBinary, ".")
+	cmd.Dir = projectRoot
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		panic("failed to build test binary: " + err.Error() + "\n" + string(out))
+	}
+
+	code := m.Run()
+
+	// Clean up the test binary after tests
+	os.Remove(testBinary)
+	os.Exit(code)
+}
+
 // TestUpdateCommand_ValidFlags tests the update command with valid flags.
 func TestUpdateCommand_ValidFlags(t *testing.T) {
 	env.Init()
