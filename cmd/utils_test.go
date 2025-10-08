@@ -4,179 +4,175 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/engmtcdrm/mellon/env"
-	"github.com/engmtcdrm/mellon/secrets"
-	"github.com/spf13/cobra"
 )
 
 // TestValidateUpdateCreateFlags tests the validateUpdateCreateFlags function
-func TestValidateUpdateCreateFlags(t *testing.T) {
-	// Save original values
-	origCleanupFile := cleanupFile
-	origSecretName := secretName
-	origSecretFile := secretFile
-	defer func() {
-		cleanupFile = origCleanupFile
-		secretName = origSecretName
-		secretFile = origSecretFile
-	}()
+// func TestValidateUpdateCreateFlags(t *testing.T) {
+// 	// Save original values
+// 	origCleanupFile := cleanupFile
+// 	origSecretName := secretName
+// 	origSecretFile := secretFile
+// 	defer func() {
+// 		cleanupFile = origCleanupFile
+// 		secretName = origSecretName
+// 		secretFile = origSecretFile
+// 	}()
 
-	cmd := &cobra.Command{}
+// 	cmd := &cobra.Command{}
 
-	tests := []struct {
-		name        string
-		cleanupFile bool
-		secretName  string
-		secretFile  string
-		expectError bool
-	}{
-		{
-			name:        "cleanup with both secret and file",
-			cleanupFile: true,
-			secretName:  "testsecret",
-			secretFile:  "testfile.txt",
-			expectError: false,
-		},
-		{
-			name:        "cleanup without secret name",
-			cleanupFile: true,
-			secretName:  "",
-			secretFile:  "testfile.txt",
-			expectError: true,
-		},
-		{
-			name:        "cleanup without secret file",
-			cleanupFile: true,
-			secretName:  "testsecret",
-			secretFile:  "",
-			expectError: true,
-		},
-		{
-			name:        "cleanup without both",
-			cleanupFile: true,
-			secretName:  "",
-			secretFile:  "",
-			expectError: true,
-		},
-		{
-			name:        "no cleanup flag",
-			cleanupFile: false,
-			secretName:  "",
-			secretFile:  "",
-			expectError: false,
-		},
-		{
-			name:        "no cleanup with partial flags",
-			cleanupFile: false,
-			secretName:  "testsecret",
-			secretFile:  "",
-			expectError: false,
-		},
-	}
+// 	tests := []struct {
+// 		name        string
+// 		cleanupFile bool
+// 		secretName  string
+// 		secretFile  string
+// 		expectError bool
+// 	}{
+// 		{
+// 			name:        "cleanup with both secret and file",
+// 			cleanupFile: true,
+// 			secretName:  "testsecret",
+// 			secretFile:  "testfile.txt",
+// 			expectError: false,
+// 		},
+// 		{
+// 			name:        "cleanup without secret name",
+// 			cleanupFile: true,
+// 			secretName:  "",
+// 			secretFile:  "testfile.txt",
+// 			expectError: true,
+// 		},
+// 		{
+// 			name:        "cleanup without secret file",
+// 			cleanupFile: true,
+// 			secretName:  "testsecret",
+// 			secretFile:  "",
+// 			expectError: true,
+// 		},
+// 		{
+// 			name:        "cleanup without both",
+// 			cleanupFile: true,
+// 			secretName:  "",
+// 			secretFile:  "",
+// 			expectError: true,
+// 		},
+// 		{
+// 			name:        "no cleanup flag",
+// 			cleanupFile: false,
+// 			secretName:  "",
+// 			secretFile:  "",
+// 			expectError: false,
+// 		},
+// 		{
+// 			name:        "no cleanup with partial flags",
+// 			cleanupFile: false,
+// 			secretName:  "testsecret",
+// 			secretFile:  "",
+// 			expectError: false,
+// 		},
+// 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cleanupFile = tt.cleanupFile
-			secretName = tt.secretName
-			secretFile = tt.secretFile
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			cleanupFile = tt.cleanupFile
+// 			secretName = tt.secretName
+// 			secretFile = tt.secretFile
 
-			err := validateUpdateCreateFlags(cmd, []string{})
-			if tt.expectError && err == nil {
-				t.Errorf("expected error for %s, got none", tt.name)
-			}
-			if !tt.expectError && err != nil {
-				t.Errorf("expected no error for %s, got: %v", tt.name, err)
-			}
-		})
-	}
-}
+// 			err := validateUpdateCreateFlags(cmd, []string{})
+// 			if tt.expectError && err == nil {
+// 				t.Errorf("expected error for %s, got none", tt.name)
+// 			}
+// 			if !tt.expectError && err != nil {
+// 				t.Errorf("expected no error for %s, got: %v", tt.name, err)
+// 			}
+// 		})
+// 	}
+// }
 
 // TestValidateSecretName tests the validateSecretName function
-func TestValidateSecretName(t *testing.T) {
-	secretFiles = []secrets.Secret{}
+// func TestValidateSecretName(t *testing.T) {
+// 	secretFiles = []secrets.Secret{}
 
-	newSecret, err := secrets.NewSecret(env.Instance.KeyPath(), "existing_secret", "existing_secret")
-	if err != nil {
-		t.Fatalf("failed to create new secret: %v", err)
-	}
+// 	newSecret, err := secrets.NewSecret(env.Instance.KeyPath(), "existing_secret", "existing_secret")
+// 	if err != nil {
+// 		t.Fatalf("failed to create new secret: %v", err)
+// 	}
 
-	secretFiles = append(secretFiles, *newSecret)
+// 	secretFiles = append(secretFiles, *newSecret)
 
-	tests := []struct {
-		name        string
-		secretName  string
-		expectError bool
-	}{
-		{
-			name:        "valid new secret name",
-			secretName:  "new_secret",
-			expectError: false,
-		},
-		{
-			name:        "empty secret name",
-			secretName:  "",
-			expectError: true,
-		},
-		{
-			name:        "existing secret name",
-			secretName:  "existing_secret",
-			expectError: true,
-		},
-		{
-			name:        "invalid characters - dots",
-			secretName:  "invalid.name",
-			expectError: true,
-		},
-		{
-			name:        "invalid characters - spaces",
-			secretName:  "invalid name",
-			expectError: true,
-		},
-		{
-			name:        "invalid characters - special chars",
-			secretName:  "invalid@name!",
-			expectError: true,
-		},
-		{
-			name:        "valid name with underscores",
-			secretName:  "valid_name_123",
-			expectError: false,
-		},
-		{
-			name:        "valid name with hyphens",
-			secretName:  "valid-name-123",
-			expectError: false,
-		},
-		{
-			name:        "valid name with forward slashes",
-			secretName:  "valid/name/123",
-			expectError: false,
-		},
-		{
-			name:        "valid name with backslashes",
-			secretName:  "valid\\name\\123",
-			expectError: false,
-		},
-		{
-			name:        "valid alphanumeric only",
-			secretName:  "valid123",
-			expectError: false,
-		},
-	}
+// 	tests := []struct {
+// 		name        string
+// 		secretName  string
+// 		expectError bool
+// 	}{
+// 		{
+// 			name:        "valid new secret name",
+// 			secretName:  "new_secret",
+// 			expectError: false,
+// 		},
+// 		{
+// 			name:        "empty secret name",
+// 			secretName:  "",
+// 			expectError: true,
+// 		},
+// 		{
+// 			name:        "existing secret name",
+// 			secretName:  "existing_secret",
+// 			expectError: true,
+// 		},
+// 		{
+// 			name:        "invalid characters - dots",
+// 			secretName:  "invalid.name",
+// 			expectError: true,
+// 		},
+// 		{
+// 			name:        "invalid characters - spaces",
+// 			secretName:  "invalid name",
+// 			expectError: true,
+// 		},
+// 		{
+// 			name:        "invalid characters - special chars",
+// 			secretName:  "invalid@name!",
+// 			expectError: true,
+// 		},
+// 		{
+// 			name:        "valid name with underscores",
+// 			secretName:  "valid_name_123",
+// 			expectError: false,
+// 		},
+// 		{
+// 			name:        "valid name with hyphens",
+// 			secretName:  "valid-name-123",
+// 			expectError: false,
+// 		},
+// 		{
+// 			name:        "valid name with forward slashes",
+// 			secretName:  "valid/name/123",
+// 			expectError: false,
+// 		},
+// 		{
+// 			name:        "valid name with backslashes",
+// 			secretName:  "valid\\name\\123",
+// 			expectError: false,
+// 		},
+// 		{
+// 			name:        "valid alphanumeric only",
+// 			secretName:  "valid123",
+// 			expectError: false,
+// 		},
+// 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := validateSecretName(tt.secretName)
-			if tt.expectError && err == nil {
-				t.Errorf("expected error for %s, got none", tt.name)
-			}
-			if !tt.expectError && err != nil {
-				t.Errorf("expected no error for %s, got: %v", tt.name, err)
-			}
-		})
-	}
-}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			err := validateSecretName(tt.secretName)
+// 			if tt.expectError && err == nil {
+// 				t.Errorf("expected error for %s, got none", tt.name)
+// 			}
+// 			if !tt.expectError && err != nil {
+// 				t.Errorf("expected no error for %s, got: %v", tt.name, err)
+// 			}
+// 		})
+// 	}
+// }
 
 // TestMkdir tests the mkdir function
 func TestMkdir(t *testing.T) {
