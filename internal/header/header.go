@@ -5,7 +5,8 @@ import (
 	"strings"
 
 	pp "github.com/engmtcdrm/go-prettyprint"
-	"github.com/engmtcdrm/mellon/app"
+
+	"github.com/engmtcdrm/mellon/internal/app"
 )
 
 // PrintHeader prints the header of the application

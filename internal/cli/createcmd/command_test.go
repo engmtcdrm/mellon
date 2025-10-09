@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/engmtcdrm/mellon/env"
+	"github.com/engmtcdrm/mellon/internal/env"
 )
 
 var testBinary string

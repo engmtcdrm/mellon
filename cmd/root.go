@@ -6,14 +6,14 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/engmtcdrm/mellon/app"
-	"github.com/engmtcdrm/mellon/env"
+	"github.com/engmtcdrm/mellon/internal/app"
 	"github.com/engmtcdrm/mellon/internal/cli/createcmd"
 	"github.com/engmtcdrm/mellon/internal/cli/deletecmd"
 	"github.com/engmtcdrm/mellon/internal/cli/listcmd"
 	"github.com/engmtcdrm/mellon/internal/cli/updatecmd"
 	"github.com/engmtcdrm/mellon/internal/cli/viewcmd"
 	"github.com/engmtcdrm/mellon/internal/constants"
+	"github.com/engmtcdrm/mellon/internal/env"
 	"github.com/engmtcdrm/mellon/secrets"
 )
 

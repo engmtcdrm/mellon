@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/engmtcdrm/mellon/app"
+	"github.com/engmtcdrm/mellon/internal/app"
 )
 
 const (

@@ -8,8 +8,9 @@ import (
 	"strings"
 
 	"github.com/engmtcdrm/go-entomb"
-	"github.com/engmtcdrm/mellon/env"
+
 	"github.com/engmtcdrm/mellon/internal/constants"
+	"github.com/engmtcdrm/mellon/internal/env"
 )
 
 // Secret represents a secret value stored in the system.

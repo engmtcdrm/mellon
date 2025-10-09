@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/engmtcdrm/mellon/app"
+	"github.com/engmtcdrm/mellon/internal/app"
 	"github.com/engmtcdrm/mellon/internal/constants"
 )
 

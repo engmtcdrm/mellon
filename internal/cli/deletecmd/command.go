@@ -5,12 +5,13 @@ import (
 
 	"github.com/engmtcdrm/go-pardon"
 	pp "github.com/engmtcdrm/go-prettyprint"
-	"github.com/engmtcdrm/mellon/app"
-	"github.com/engmtcdrm/mellon/env"
-	"github.com/engmtcdrm/mellon/header"
+	"github.com/spf13/cobra"
+
+	"github.com/engmtcdrm/mellon/internal/app"
+	"github.com/engmtcdrm/mellon/internal/env"
+	"github.com/engmtcdrm/mellon/internal/header"
 	"github.com/engmtcdrm/mellon/secrets"
 	"github.com/engmtcdrm/mellon/secrets/prompts"
-	"github.com/spf13/cobra"
 )
 
 const confirmationWord = "NAVAER"
