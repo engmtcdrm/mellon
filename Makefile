@@ -1,4 +1,4 @@
-.PHONY: build runexe run
+.PHONY: build runexe run test testv
 
 build:
 	@echo "Size before build:"; \
