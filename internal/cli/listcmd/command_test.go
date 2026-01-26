@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/engmtcdrm/mellon/internal/env"
+	"github.com/stretchr/testify/assert"
 )
 
 var testBinary string
@@ -44,9 +45,7 @@ func TestListCommand_NoSecrets(t *testing.T) {
 	// Test list with no secrets
 	cmd = exec.Command(testBinary, "list")
 	_, err := cmd.CombinedOutput()
-	if err == nil {
-		t.Errorf("expected error when no secrets exist, got none")
-	}
+	assert.NoError(t, err)
 }
 
 // TestListCommand_WithSecrets tests the list command when secrets exist.
