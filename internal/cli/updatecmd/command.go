@@ -22,25 +22,6 @@ var (
 	cleanupFile bool             // Whether to delete the unencrypted secret file after encryption
 )
 
-// validateUpdateCreateFlags checks if the flags for creating or updating a secret are valid.
-func validateUpdateCreateFlags(cmd *cobra.Command, args []string) error {
-	if cleanupFile && (secretName == "" || secretFile == "") {
-		return errors.New("flag -c/--cleanup can only be used when -s/--secret and -f/--file are provided")
-	}
-
-	return nil
-}
-
-// secretFlagCompletion provides shell completion for the -s/--secret flag.
-func secretFlagCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	var secretNames []string
-
-	for _, secret := range secretFiles {
-		secretNames = append(secretNames, secret.Name())
-	}
-	return secretNames, cobra.ShellCompDirectiveNoFileComp
-}
-
 func NewCommand(secretFilesList []secrets.Secret) *cobra.Command {
 	secretFiles = secretFilesList
 
@@ -146,4 +127,23 @@ func NewCommand(secretFilesList []secrets.Secret) *cobra.Command {
 	updateCmd.RegisterFlagCompletionFunc("secret", secretFlagCompletion)
 
 	return updateCmd
+}
+
+// validateUpdateCreateFlags checks if the flags for creating or updating a secret are valid.
+func validateUpdateCreateFlags(cmd *cobra.Command, args []string) error {
+	if cleanupFile && (secretName == "" || secretFile == "") {
+		return errors.New("flag -c/--cleanup can only be used when -s/--secret and -f/--file are provided")
+	}
+
+	return nil
+}
+
+// secretFlagCompletion provides shell completion for the -s/--secret flag.
+func secretFlagCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var secretNames []string
+
+	for _, secret := range secretFiles {
+		secretNames = append(secretNames, secret.Name())
+	}
+	return secretNames, cobra.ShellCompDirectiveNoFileComp
 }

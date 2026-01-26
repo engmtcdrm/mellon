@@ -22,32 +22,6 @@ var (
 	cleanupFile bool             // Whether to delete the plain text secret file after encryption
 )
 
-// validateUpdateCreateFlags checks if the flags for creating or updating a secret are valid.
-func validateUpdateCreateFlags(cmd *cobra.Command, args []string) error {
-	if cleanupFile && (secretName == "" || secretFile == "") {
-		return errors.New("flag -c/--cleanup can only be used when -s/--secret and -f/--file are provided")
-	}
-
-	return nil
-}
-
-// validateSecretName checks if the provided secret name is valid.
-func validateSecretName(name string) error {
-	if name == "" {
-		return errors.New("name cannot be empty")
-	}
-
-	if err := secrets.ValidateName(name); err != nil {
-		return err
-	}
-
-	if secretPtr := secrets.FindSecretByName(name, secretFiles); secretPtr != nil {
-		return errors.New("secret with that name already exists")
-	}
-
-	return nil
-}
-
 func NewCommand(secretFileList []secrets.Secret) *cobra.Command {
 	secretFiles = secretFileList
 
@@ -160,4 +134,30 @@ func NewCommand(secretFileList []secrets.Secret) *cobra.Command {
 	createCmd.MarkFlagFilename("file")
 
 	return createCmd
+}
+
+// validateUpdateCreateFlags checks if the flags for creating or updating a secret are valid.
+func validateUpdateCreateFlags(cmd *cobra.Command, args []string) error {
+	if cleanupFile && (secretName == "" || secretFile == "") {
+		return errors.New("flag -c/--cleanup can only be used when -s/--secret and -f/--file are provided")
+	}
+
+	return nil
+}
+
+// validateSecretName checks if the provided secret name is valid.
+func validateSecretName(name string) error {
+	if name == "" {
+		return errors.New("name cannot be empty")
+	}
+
+	if err := secrets.ValidateName(name); err != nil {
+		return err
+	}
+
+	if secretPtr := secrets.FindSecretByName(name, secretFiles); secretPtr != nil {
+		return errors.New("secret with that name already exists")
+	}
+
+	return nil
 }
