@@ -27,26 +27,10 @@ func NewCommand(secretFilesList []secrets.Secret) *cobra.Command {
 		Example: fmt.Sprintf("  %s list", app.Name),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if print {
-				for _, secret := range secretFiles {
-					fmt.Println(secret.Name())
-				}
-
-				return nil
+				return printSecrets()
 			}
 
-			header.PrintHeader()
-
-			if len(secretFiles) == 0 {
-				fmt.Printf("No available secrets to list\n\nUse command %s to create a secret", pp.Greenf("%s create", env.Instance.ExeCmd()))
-			} else {
-				fmt.Println(pp.Info("Available secrets"))
-				fmt.Println()
-				for _, secret := range secretFiles {
-					fmt.Printf("  - %s\n", pp.Green(secret.Name()))
-				}
-			}
-
-			return nil
+			return listSecrets()
 		},
 	}
 
@@ -59,4 +43,29 @@ func NewCommand(secretFilesList []secrets.Secret) *cobra.Command {
 	)
 
 	return listCmd
+}
+
+func printSecrets() error {
+	for _, secret := range secretFiles {
+		fmt.Println(secret.Name())
+	}
+	return nil
+}
+
+func listSecrets() error {
+	header.PrintHeader()
+
+	if len(secretFiles) == 0 {
+		fmt.Printf("No available secrets to list\n\nUse command %s to create a secret", pp.Greenf("%s create", env.Instance.ExeCmd()))
+		return nil
+	}
+
+	fmt.Println(pp.Info("Available secrets"))
+	fmt.Println()
+
+	for _, secret := range secretFiles {
+		fmt.Printf("  - %s\n", pp.Green(secret.Name()))
+	}
+
+	return nil
 }

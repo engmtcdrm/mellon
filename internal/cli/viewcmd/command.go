@@ -24,24 +24,6 @@ var (
 	output      string           // The file to write decrypted secret to
 )
 
-func validateViewFlags(cmd *cobra.Command, args []string) error {
-	if output != "" && secretName == "" {
-		return errors.New("flag -o/--output can only be used when -s/--secret is provided")
-	}
-
-	return nil
-}
-
-// secretFlagCompletion provides shell completion for the -s/--secret flag.
-func secretFlagCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	var secretNames []string
-
-	for _, secret := range secretFiles {
-		secretNames = append(secretNames, secret.Name())
-	}
-	return secretNames, cobra.ShellCompDirectiveNoFileComp
-}
-
 func NewCommand(secretFilesList []secrets.Secret) *cobra.Command {
 	secretFiles = secretFilesList
 
@@ -51,76 +33,12 @@ func NewCommand(secretFilesList []secrets.Secret) *cobra.Command {
 		Long:    "View a secret",
 		Example: fmt.Sprintf("  %s view\n  %s view -s awesome-secret", app.Name, app.Name),
 		PreRunE: validateViewFlags,
-		// ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		// 	var secretNames []string
-		// 	for _, secret := range secretFiles {
-		// 		secretNames = append(secretNames, secret.Name())
-		// 	}
-		// 	return secretNames, cobra.ShellCompDirectiveNoFileComp
-		// },
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var selectedSecretFile secrets.Secret
-
 			if secretName == "" {
-				header.PrintHeader()
-
-				options, err := prompts.GetSecretOptions(secretFiles, "view", env.Instance.ExeCmd())
-				if err != nil {
-					return err
-				}
-
-				promptSelect := pardon.NewSelect(&selectedSecretFile).
-					Options(options...).
-					Title("What secret do you want to view?")
-
-				if err := promptSelect.Ask(); err != nil {
-					return err
-				}
-
-				secret, err := selectedSecretFile.Decrypt()
-				if err != nil {
-					return errors.New("failed to decrypt secret. Encrypted secret may be corrupted")
-				}
-
-				fmt.Println()
-				fmt.Println(pp.Complete("Secret decrypted"))
-				fmt.Println()
-				fmt.Println(pp.Info("The secret is " + pp.Green(string(secret))))
-
-				return nil
+				return promptViewSecret()
 			}
 
-			secretPtr := secrets.FindSecretByName(secretName, secretFiles)
-			if secretPtr == nil {
-				return fmt.Errorf("failed to read secret '%s': secret does not exist", secretName)
-			}
-
-			selectedSecretFile = *secretPtr
-
-			secret, err := selectedSecretFile.Decrypt()
-			if err != nil {
-				return fmt.Errorf("failed to decrypt secret '%s'. Encrypted secret may be corrupted", secretName)
-			}
-
-			if output == "" {
-				fmt.Print(string(secret))
-			} else {
-				outputDir := filepath.Dir(output)
-				if _, err := os.Stat(outputDir); os.IsNotExist(err) {
-					err = os.MkdirAll(outputDir, constants.SecureDirMode)
-					if err != nil {
-						return fmt.Errorf("failed to create output directory for output file '%s'", output)
-					}
-				}
-
-				err = os.WriteFile(output, secret, constants.SecureFileMode)
-				if err != nil {
-					return fmt.Errorf("failed to write secret to output file '%s'", output)
-				}
-			}
-			secret = nil
-
-			return nil
+			return viewSecret()
 		},
 	}
 
@@ -142,4 +60,88 @@ func NewCommand(secretFilesList []secrets.Secret) *cobra.Command {
 	viewCmd.RegisterFlagCompletionFunc("secret", secretFlagCompletion)
 
 	return viewCmd
+}
+
+func validateViewFlags(cmd *cobra.Command, args []string) error {
+	if output != "" && secretName == "" {
+		return errors.New("flag -o/--output can only be used when -s/--secret is provided")
+	}
+
+	return nil
+}
+
+// secretFlagCompletion provides shell completion for the -s/--secret flag.
+func secretFlagCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var secretNames []string
+
+	for _, secret := range secretFiles {
+		secretNames = append(secretNames, secret.Name())
+	}
+	return secretNames, cobra.ShellCompDirectiveNoFileComp
+}
+
+// promptViewSecret prompts the user to select a secret to view.
+func promptViewSecret() error {
+	var selectedSecretFile secrets.Secret
+	header.PrintHeader()
+
+	options, err := prompts.GetSecretOptions(secretFiles, "view", env.Instance.ExeCmd())
+	if err != nil {
+		return err
+	}
+
+	promptSelect := pardon.NewSelect(&selectedSecretFile).
+		Options(options...).
+		Title("What secret do you want to view?")
+
+	if err := promptSelect.Ask(); err != nil {
+		return err
+	}
+
+	secret, err := selectedSecretFile.Decrypt()
+	if err != nil {
+		return errors.New("failed to decrypt secret. Encrypted secret may be corrupted")
+	}
+
+	fmt.Println()
+	fmt.Println(pp.Complete("Secret decrypted"))
+	fmt.Println()
+	fmt.Println(pp.Info("The secret is " + pp.Green(string(secret))))
+
+	return nil
+}
+
+// viewSecret decrypts and displays the secret specified by the secretName flag.
+// If the output flag is provided, the decrypted secret is written to the specified file.
+func viewSecret() error {
+	secretPtr := secrets.FindSecretByName(secretName, secretFiles)
+	if secretPtr == nil {
+		return fmt.Errorf("failed to read secret '%s': secret does not exist", secretName)
+	}
+
+	secret, err := secretPtr.Decrypt()
+	if err != nil {
+		return fmt.Errorf("failed to decrypt secret '%s'. Encrypted secret may be corrupted", secretName)
+	}
+
+	if output == "" {
+		fmt.Print(string(secret))
+	} else {
+		outputDir := filepath.Dir(output)
+		if _, err := os.Stat(outputDir); os.IsNotExist(err) {
+			err = os.MkdirAll(outputDir, constants.SecureDirMode)
+			if err != nil {
+				return fmt.Errorf("failed to create output directory for output file '%s'", output)
+			}
+		}
+
+		err = os.WriteFile(output, secret, constants.SecureFileMode)
+		if err != nil {
+			return fmt.Errorf("failed to write secret to output file '%s'", output)
+		}
+	}
+
+	secret = nil
+
+	return nil
 }
