@@ -32,65 +32,19 @@ func NewCommand(secretFilesList []secrets.Secret) *cobra.Command {
 		Example: fmt.Sprintf("  %s update", app.Name),
 		PreRunE: validateUpdateCreateFlags,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var selectedSecret secrets.Secret
-
 			if secretName != "" && secretFile != "" {
-				secretPtr := secrets.FindSecretByName(secretName, secretFiles)
-				if secretPtr == nil {
-					return fmt.Errorf("could not update secret '%s': does not exist", secretName)
-				}
-				selectedSecret = *secretPtr
-				if err := selectedSecret.EncryptFromFile(secretFile, cleanupFile); err != nil {
-					return fmt.Errorf("could not encrypt secret from file '%s': %w", secretFile, err)
-				}
-
-				return nil
+				return encryptFromFile()
 			}
 
 			header.PrintHeader()
 
-			if secretName == "" {
-				options, err := prompts.GetSecretOptions(secretFiles, "update", env.Instance.ExeCmd())
-				if err != nil {
-					return err
-				}
-
-				promptSelect := pardon.NewSelect(&selectedSecret).
-					Title("What secret do you want to update?").
-					Options(options...)
-
-				if err := promptSelect.Ask(); err != nil {
-					return err
-				}
-
-				fmt.Println()
-			} else {
-				secretPtr := secrets.FindSecretByName(secretName, secretFiles)
-				if secretPtr == nil {
-					return fmt.Errorf("secret %s does not exist!\n\nUse command %s to create the secret", pp.Red(secretName), pp.Greenf("%s create", env.Instance.ExeCmd()))
-				}
-				selectedSecret = *secretPtr
+			selectedSecret, err := resolveSecret()
+			if err != nil {
+				return err
 			}
 
-			if secretFile == "" {
-				var secret []byte
-
-				promptSecret := pardon.NewPassword(&secret).
-					Title("Enter the updated secret:")
-
-				if err := promptSecret.Ask(); err != nil {
-					return err
-				}
-
-				if err := selectedSecret.Encrypt(secret); err != nil {
-					return fmt.Errorf("could not encrypt secret: %w", err)
-				}
-
-				fmt.Println()
-			} else {
-				if err := selectedSecret.EncryptFromFile(secretFile, cleanupFile); err != nil {
-					return fmt.Errorf("could not encrypt secret from file '%s': %w", secretFile, err)
-				}
+			if err := encryptSecret(selectedSecret); err != nil {
+				return err
 			}
 
 			fmt.Println(pp.Complete("Secret encrypted and saved"))
@@ -145,5 +99,80 @@ func secretFlagCompletion(cmd *cobra.Command, args []string, toComplete string) 
 	for _, secret := range secretFiles {
 		secretNames = append(secretNames, secret.Name())
 	}
+
 	return secretNames, cobra.ShellCompDirectiveNoFileComp
+}
+
+// encryptFromFile encrypts a secret, if found, from a file.
+func encryptFromFile() error {
+	foundSecret := secrets.FindSecretByName(secretName, secretFiles)
+	if foundSecret == nil {
+		return fmt.Errorf("could not update secret '%s': does not exist", secretName)
+	}
+
+	if err := foundSecret.EncryptFromFile(secretFile, cleanupFile); err != nil {
+		return fmt.Errorf("could not encrypt secret from file '%s': %w", secretFile, err)
+	}
+
+	return nil
+}
+
+// resolveSecret prompts the user to select a secret if the secretName flag is not provided.
+// If the secretName flag is provided, it returns the corresponding secret if it exists.
+func resolveSecret() (*secrets.Secret, error) {
+
+	if secretName == "" {
+		var selectedSecret secrets.Secret
+
+		options, err := prompts.GetSecretOptions(secretFiles, "update", env.Instance.ExeCmd())
+		if err != nil {
+			return nil, err
+		}
+
+		promptSelect := pardon.NewSelect(&selectedSecret).
+			Title("What secret do you want to update?").
+			Options(options...)
+
+		if err := promptSelect.Ask(); err != nil {
+			return nil, err
+		}
+
+		fmt.Println()
+		return &selectedSecret, nil
+	}
+
+	foundSecret := secrets.FindSecretByName(secretName, secretFiles)
+	if foundSecret == nil {
+		return nil, fmt.Errorf("secret %s does not exist!\n\nUse command %s to create the secret", pp.Red(secretName), pp.Greenf("%s create", env.Instance.ExeCmd()))
+	}
+
+	return foundSecret, nil
+}
+
+// encryptSecret encrypts the given secret. If the secretFile flag is provided, it encrypts the secret from the file.
+// Otherwise, it prompts the user to enter the secret.
+func encryptSecret(selectedSecret *secrets.Secret) error {
+	if secretFile == "" {
+		var secret []byte
+
+		promptSecret := pardon.NewPassword(&secret).
+			Title("Enter the updated secret:")
+
+		if err := promptSecret.Ask(); err != nil {
+			return err
+		}
+
+		if err := selectedSecret.Encrypt(secret); err != nil {
+			return fmt.Errorf("could not encrypt secret: %w", err)
+		}
+
+		fmt.Println()
+		return nil
+	}
+
+	if err := selectedSecret.EncryptFromFile(secretFile, cleanupFile); err != nil {
+		return fmt.Errorf("could not encrypt secret from file '%s': %w", secretFile, err)
+	}
+
+	return nil
 }
