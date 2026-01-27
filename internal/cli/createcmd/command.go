@@ -32,72 +32,23 @@ func NewCommand(secretFileList []secrets.Secret) *cobra.Command {
 		Example: fmt.Sprintf("  %s create\n  %s create -s my_secret -f /path/to/secret.txt", app.Name, app.Name),
 		PreRunE: validateUpdateCreateFlags,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var err error
-			var newSecret *secrets.Secret
-
 			if secretName != "" && secretFile != "" {
-				secretFilePath := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
-
-				newSecret, err := secrets.NewSecret(env.Instance.KeyPath(), secretName, secretFilePath)
-				if err != nil {
-					return fmt.Errorf("could not create secret: %w", err)
-				}
-
-				if secretPtr := secrets.FindSecretByName(newSecret.Name(), secretFiles); secretPtr != nil {
-					return errors.New("secret with that name already exists")
-				}
-
-				if err := newSecret.EncryptFromFile(secretFile, cleanupFile); err != nil {
-					return fmt.Errorf("could not encrypt secret from file '%s': %w", secretFile, err)
-				}
-
-				return nil
+				return encryptFromFile()
 			}
 
 			header.PrintHeader()
 
-			if secretName == "" {
-				promptQuestion := pardon.NewQuestion(&secretName).
-					Title("Enter a name for the secret:").
-					Validate(validateSecretName)
-
-				if err := promptQuestion.Ask(); err != nil {
-					return err
-				}
-
-				fmt.Println()
-			} else {
-				secretPtr := secrets.FindSecretByName(secretName, secretFiles)
-				if secretPtr != nil {
-					return fmt.Errorf("secret %s already exists", pp.Red(secretName))
-				}
-			}
-
-			var secret []byte
-
-			if secretFile == "" {
-				promptSecret := pardon.NewPassword(&secret).
-					Title("Enter a secret to secure:")
-
-				if err := promptSecret.Ask(); err != nil {
-					return err
-				}
-
-				fmt.Println()
-			}
-
-			newSecret, err = secrets.NewSecret(env.Instance.KeyPath(), secretName, filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt()))
-			if err != nil {
-				return fmt.Errorf("could not create secret: %w", err)
+			if err := resolveSecretName(); err != nil {
+				return err
 			}
 
 			if secretFile == "" {
-				if err := newSecret.Encrypt(secret); err != nil {
-					return fmt.Errorf("could not encrypt secret: %w", err)
+				if err := encryptSecret(); err != nil {
+					return err
 				}
 			} else {
-				if err := newSecret.EncryptFromFile(secretFile, cleanupFile); err != nil {
-					return fmt.Errorf("could not encrypt secret from file '%s': %w", secretFile, err)
+				if err := encryptFromFile(); err != nil {
+					return err
 				}
 			}
 
@@ -157,6 +108,75 @@ func validateSecretName(name string) error {
 
 	if secretPtr := secrets.FindSecretByName(name, secretFiles); secretPtr != nil {
 		return errors.New("secret with that name already exists")
+	}
+
+	return nil
+}
+
+// encryptFromFile encrypts a secret, if found, from a file.
+func encryptFromFile() error {
+	secretFilePath := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
+
+	newSecret, err := secrets.NewSecret(env.Instance.KeyPath(), secretName, secretFilePath)
+	if err != nil {
+		return fmt.Errorf("could not create secret: %w", err)
+	}
+
+	if secretPtr := secrets.FindSecretByName(newSecret.Name(), secretFiles); secretPtr != nil {
+		return errors.New("secret with that name already exists")
+	}
+
+	if err := newSecret.EncryptFromFile(secretFile, cleanupFile); err != nil {
+		return fmt.Errorf("could not encrypt secret from file '%s': %w", secretFile, err)
+	}
+
+	return nil
+}
+
+// resolveSecret prompts the user to select a secret if the secretName flag is not provided.
+// If the secretName flag is provided, it returns the corresponding secret if it exists.
+func resolveSecretName() error {
+	if secretName == "" {
+		promptQuestion := pardon.NewQuestion(&secretName).
+			Title("Enter a name for the secret:").
+			Validate(validateSecretName)
+
+		if err := promptQuestion.Ask(); err != nil {
+			return err
+		}
+
+		fmt.Println()
+		return nil
+	}
+
+	foundSecret := secrets.FindSecretByName(secretName, secretFiles)
+	if foundSecret != nil {
+		return fmt.Errorf("secret %s already exists", pp.Red(secretName))
+	}
+
+	return nil
+}
+
+// encryptSecret encrypts the given secret. If the secretFile flag is provided,it encrypts the
+// secret from the file. Otherwise, it prompts the user to enter the secret.
+func encryptSecret() error {
+	var secret []byte
+	promptSecret := pardon.NewPassword(&secret).
+		Title("Enter a secret to secure:")
+
+	if err := promptSecret.Ask(); err != nil {
+		return err
+	}
+
+	fmt.Println()
+
+	newSecret, err := secrets.NewSecret(env.Instance.KeyPath(), secretName, filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt()))
+	if err != nil {
+		return fmt.Errorf("could not create secret: %w", err)
+	}
+
+	if err := newSecret.Encrypt(secret); err != nil {
+		return fmt.Errorf("could not encrypt secret: %w", err)
 	}
 
 	return nil

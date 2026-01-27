@@ -14,7 +14,7 @@ import (
 	"github.com/engmtcdrm/mellon/secrets/prompts"
 )
 
-const confirmationWord = "NAVAER"
+const confirmationWord = "NAVAER" // The word the user must type to confirm deletion of all secrets.
 
 var (
 	secretFiles []secrets.Secret // List of available secrets.
@@ -32,136 +32,19 @@ func NewCommand(secretFilesList []secrets.Secret) *cobra.Command {
 		Long:    "Delete a secret",
 		Example: fmt.Sprintf("  %s delete", app.Name),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var selectedSecret secrets.Secret
-
 			if !forceDelete {
 				header.PrintHeader()
 			}
 
 			if deleteAll {
-				finalDelete := confirmationWord
-				if !forceDelete {
-					confirmDelete := false
-					promptConfirm2 := pardon.NewConfirm(&confirmDelete).
-						Title(fmt.Sprintf("Are you sure you want to delete ALL secrets? %s", pp.Red("There is no going back.")))
-
-					if err := promptConfirm2.Ask(); err != nil {
-						return err
-					}
-
-					if !confirmDelete {
-						fmt.Println()
-						fmt.Println(pp.Fail("Aborted deleting all secrets"))
-						return nil
-					}
-
-					fmt.Println()
-
-					finalDelete = ""
-					promptConfirm := pardon.NewQuestion(&finalDelete).
-						Title(fmt.Sprintf("To confirm, type %s:", pp.Red(confirmationWord))).
-						Icon("")
-					if err := promptConfirm.Ask(); err != nil {
-						return err
-					}
-
-					fmt.Println()
-				}
-
-				if finalDelete == confirmationWord {
-					for _, secret := range secretFiles {
-						if err := secrets.RemoveSecret(env.Instance.SecretsPath(), secret); err != nil {
-							return fmt.Errorf("could not remove secret '%s': %w", secret.Name(), err)
-						}
-					}
-
-					if !forceDelete {
-						fmt.Println(pp.Complete("All secrets deleted successfully"))
-					}
-				} else {
-					fmt.Println(pp.Fail("Aborted deleting all secrets"))
-				}
-
-				return nil
+				return deleteAllSecrets()
 			}
 
 			if secretName != "" {
-				secretPtr := secrets.FindSecretByName(secretName, secretFiles)
-				if secretPtr == nil {
-					return fmt.Errorf("could not delete secret '%s': does not exist", secretName)
-				}
-				selectedSecret = *secretPtr
-
-				confirmDelete := true
-				if !forceDelete {
-					confirmDelete = false
-					promptConfirm := pardon.NewConfirm(&confirmDelete).
-						Title(fmt.Sprintf("Are you sure you want to delete %s?", pp.Red(secretName)))
-
-					if err := promptConfirm.Ask(); err != nil {
-						return err
-					}
-
-					fmt.Println()
-				}
-
-				if confirmDelete {
-					if err := secrets.RemoveSecret(env.Instance.SecretsPath(), selectedSecret); err != nil {
-						return fmt.Errorf("could not remove secret '%s': %w", selectedSecret.Name(), err)
-					}
-
-					if !forceDelete {
-						fmt.Println(pp.Complete("Secret deleted successfully"))
-					}
-				} else {
-					fmt.Println(pp.Fail("Aborted deleting secret"))
-				}
-
-				return nil
+				return findAndDeleteSecret()
 			}
 
-			header.PrintHeader()
-
-			options, err := prompts.GetSecretOptions(secretFiles, "delete", env.Instance.ExeCmd())
-			if err != nil {
-				return err
-			}
-
-			promptSelect := pardon.NewSelect(&selectedSecret).
-				Title("What secret do you want to delete?").
-				Options(options...)
-
-			if err := promptSelect.Ask(); err != nil {
-				return err
-			}
-
-			confirmDelete := true
-			if !forceDelete {
-				fmt.Println()
-
-				confirmDelete = false
-				promptConfirm := pardon.NewConfirm(&confirmDelete).
-					Title(fmt.Sprintf("Are you sure you want to delete %s?", pp.Red(selectedSecret.Name())))
-
-				if err := promptConfirm.Ask(); err != nil {
-					return err
-				}
-			}
-
-			fmt.Println()
-
-			if confirmDelete {
-				if err := secrets.RemoveSecret(env.Instance.SecretsPath(), selectedSecret); err != nil {
-					return fmt.Errorf("could not remove secret '%s': %w", selectedSecret.Name(), err)
-				}
-
-				fmt.Println(pp.Complete("Secret deleted successfully"))
-			} else {
-
-				fmt.Println(pp.Fail("Aborted deleting secret"))
-			}
-
-			return nil
+			return selectAndDeleteSecret()
 		},
 	}
 
@@ -200,4 +83,129 @@ func secretFlagCompletion(cmd *cobra.Command, args []string, toComplete string) 
 		secretNames = append(secretNames, secret.Name())
 	}
 	return secretNames, cobra.ShellCompDirectiveNoFileComp
+}
+
+// deleteAllSecrets deletes all secrets. If forceDelete is false, it will prompt the user for confirmation.
+func deleteAllSecrets() error {
+	deleteConfirmation := confirmationWord
+
+	if !forceDelete {
+		var confirmDelete bool
+		promptInitConfirm := pardon.NewConfirm(&confirmDelete).
+			Title(fmt.Sprintf("Are you sure you want to delete ALL secrets? %s", pp.Red("There is no going back.")))
+
+		if err := promptInitConfirm.Ask(); err != nil {
+			return err
+		}
+
+		if !confirmDelete {
+			fmt.Println()
+			fmt.Println(pp.Fail("Aborted deleting all secrets"))
+			return nil
+		}
+
+		fmt.Println()
+
+		var deleteConfirmation string
+		promptFinalConfirm := pardon.NewQuestion(&deleteConfirmation).
+			Title(fmt.Sprintf("To confirm, type %s:", pp.Red(confirmationWord))).
+			Icon("")
+		if err := promptFinalConfirm.Ask(); err != nil {
+			return err
+		}
+
+		fmt.Println()
+	}
+
+	if deleteConfirmation == confirmationWord {
+		for _, secret := range secretFiles {
+			if err := secrets.RemoveSecret(env.Instance.SecretsPath(), secret); err != nil {
+				return fmt.Errorf("could not remove secret '%s': %w", secret.Name(), err)
+			}
+		}
+
+		if !forceDelete {
+			fmt.Println(pp.Complete("All secrets deleted successfully"))
+		}
+	} else {
+		fmt.Println(pp.Fail("Aborted deleting all secrets"))
+	}
+
+	return nil
+}
+
+// deleteSecret deletes a single secret. If confirmDelete is false, it will not delete the secret.
+func deleteSecret(secret *secrets.Secret, confirmDelete bool) error {
+	if confirmDelete {
+		if err := secrets.RemoveSecret(env.Instance.SecretsPath(), *secret); err != nil {
+			return fmt.Errorf("could not remove secret '%s': %w", secret.Name(), err)
+		}
+
+		if !forceDelete {
+			fmt.Println(pp.Complete("Secret deleted successfully"))
+		}
+
+		return nil
+	}
+
+	fmt.Println(pp.Fail("Aborted deleting secret"))
+
+	return nil
+}
+
+// findAndDeleteSecret finds a secret by name and deletes it if the user confirms the deletion.
+func findAndDeleteSecret() error {
+	foundSecret := secrets.FindSecretByName(secretName, secretFiles)
+	if foundSecret == nil {
+		return fmt.Errorf("could not delete secret '%s': does not exist", secretName)
+	}
+
+	confirmDelete := true
+	if !forceDelete {
+		confirmDelete = false
+		promptConfirm := pardon.NewConfirm(&confirmDelete).
+			Title(fmt.Sprintf("Are you sure you want to delete %s?", pp.Red(secretName)))
+
+		if err := promptConfirm.Ask(); err != nil {
+			return err
+		}
+
+		fmt.Println()
+	}
+
+	return deleteSecret(foundSecret, confirmDelete)
+}
+
+// selectAndDeleteSecret prompts the user to select a secret and deletes it if the user confirms the deletion.
+func selectAndDeleteSecret() error {
+	header.PrintHeader()
+
+	options, err := prompts.GetSecretOptions(secretFiles, "delete", env.Instance.ExeCmd())
+	if err != nil {
+		return err
+	}
+
+	var selectedSecret secrets.Secret
+	promptSelect := pardon.NewSelect(&selectedSecret).
+		Title("What secret do you want to delete?").
+		Options(options...)
+	if err := promptSelect.Ask(); err != nil {
+		return err
+	}
+
+	confirmDelete := true
+	if !forceDelete {
+		fmt.Println()
+
+		confirmDelete = false
+		promptConfirm := pardon.NewConfirm(&confirmDelete).
+			Title(fmt.Sprintf("Are you sure you want to delete %s?", pp.Red(selectedSecret.Name())))
+		if err := promptConfirm.Ask(); err != nil {
+			return err
+		}
+	}
+
+	fmt.Println()
+
+	return deleteSecret(&selectedSecret, confirmDelete)
 }

@@ -149,8 +149,8 @@ func resolveSecret() (*secrets.Secret, error) {
 	return foundSecret, nil
 }
 
-// encryptSecret encrypts the given secret. If the secretFile flag is provided, it encrypts the secret from the file.
-// Otherwise, it prompts the user to enter the secret.
+// encryptSecret encrypts the given secret. If the secretFile flag is provided,it encrypts the
+// secret from the file. Otherwise, it prompts the user to enter the secret.
 func encryptSecret(selectedSecret *secrets.Secret) error {
 	if secretFile == "" {
 		var secret []byte

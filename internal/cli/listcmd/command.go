@@ -14,7 +14,7 @@ import (
 
 var (
 	secretFiles []secrets.Secret // List of available secrets.
-	print       bool             // Whether to print only the names of the secrets without additional information.
+	print       bool             // Whether to print only the names of the secrets.
 )
 
 func NewCommand(secretFilesList []secrets.Secret) *cobra.Command {
@@ -39,19 +39,22 @@ func NewCommand(secretFilesList []secrets.Secret) *cobra.Command {
 		"print",
 		"p",
 		false,
-		"(optional) Whether to print only the names of the secrets without additional information",
+		"(optional) Whether to print only the names of the secrets",
 	)
 
 	return listCmd
 }
 
+// printSecrets prints only the names of the secrets.
 func printSecrets() error {
 	for _, secret := range secretFiles {
 		fmt.Println(secret.Name())
 	}
+
 	return nil
 }
 
+// listSecrets lists all available secrets.
 func listSecrets() error {
 	header.PrintHeader()
 
