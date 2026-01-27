@@ -9,7 +9,7 @@ import (
 	"github.com/engmtcdrm/mellon/internal/app"
 )
 
-// PrintHeader prints the header of the application
+// PrintHeader prints the header of the application.
 func PrintHeader() {
 	fmt.Println(pp.Magenta("           _ _"))
 	fmt.Println(pp.Magenta(" _____ ___| | |___ ___"))

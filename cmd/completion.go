@@ -80,7 +80,7 @@ func findInFile(filePath, searchTerm string) (bool, error) {
 	return false, scanner.Err()
 }
 
-// genZshCompletion generates zsh completion and appends necessary configurations to .zshrc
+// genZshCompletion generates zsh completion and appends necessary configurations to .zshrc.
 func genZshCompletion(file *os.File, homeDir string) {
 	if err := rootCmd.GenZshCompletion(file); err != nil {
 		fmt.Printf("Failed to generate zsh completion script: %v\n", err)
@@ -123,7 +123,8 @@ func genZshCompletion(file *os.File, homeDir string) {
 	}
 }
 
-// genPowerShellCompletion generates PowerShell completion and appends necessary configurations to the PowerShell profile
+// genPowerShellCompletion generates PowerShell completion and appends necessary
+// configurations to the PowerShell profile.
 func genPowerShellCompletion(file *os.File) {
 	profileFilePathByte, _ := exec.Command("powershell", "-Command", "$PROFILE").Output()
 	profileFilePath := strings.TrimSpace(string(profileFilePathByte))

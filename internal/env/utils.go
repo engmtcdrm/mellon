@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// IsInPath checks if the directory of the executable is in the PATH environment variable
+// IsInPath checks if the directory of the executable is in the PATH environment variable.
 func IsInPath(executablePath string) bool {
 	executableDir := filepath.Dir(executablePath)
 	pathEnv := os.Getenv("PATH")

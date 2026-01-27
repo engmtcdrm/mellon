@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	secretFiles []secrets.Secret // List of available secrets
-	print       bool             // Whether to print only the names of the secrets without additional information
+	secretFiles []secrets.Secret // List of available secrets.
+	print       bool             // Whether to print only the names of the secrets without additional information.
 )
 
 func NewCommand(secretFilesList []secrets.Secret) *cobra.Command {

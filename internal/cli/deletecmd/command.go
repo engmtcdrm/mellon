@@ -17,10 +17,10 @@ import (
 const confirmationWord = "NAVAER"
 
 var (
-	secretFiles []secrets.Secret // List of available secrets
-	secretName  string           // The name of the secret
-	forceDelete bool             // Whether to delete without confirmation
-	deleteAll   bool             // Whether to delete all secrets
+	secretFiles []secrets.Secret // List of available secrets.
+	secretName  string           // The name of the secret.
+	forceDelete bool             // Whether to delete without confirmation.
+	deleteAll   bool             // Whether to delete all secrets.
 )
 
 func NewCommand(secretFilesList []secrets.Secret) *cobra.Command {

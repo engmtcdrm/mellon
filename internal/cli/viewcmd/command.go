@@ -19,9 +19,9 @@ import (
 )
 
 var (
-	secretFiles []secrets.Secret // List of available secrets
-	secretName  string           // The name of the secret
-	output      string           // The file to write decrypted secret to
+	secretFiles []secrets.Secret // List of available secrets.
+	secretName  string           // The name of the secret.
+	output      string           // The file to write decrypted secret to.
 )
 
 func NewCommand(secretFilesList []secrets.Secret) *cobra.Command {
@@ -62,6 +62,7 @@ func NewCommand(secretFilesList []secrets.Secret) *cobra.Command {
 	return viewCmd
 }
 
+// validateViewFlags checks if the flags for viewing a secret are valid.
 func validateViewFlags(cmd *cobra.Command, args []string) error {
 	if output != "" && secretName == "" {
 		return errors.New("flag -o/--output can only be used when -s/--secret is provided")

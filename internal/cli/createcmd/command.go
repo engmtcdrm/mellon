@@ -16,10 +16,10 @@ import (
 )
 
 var (
-	secretFiles []secrets.Secret // List of secrets available
-	secretName  string           // The name of the secret
-	secretFile  string           // The file containing the plain text secret to encrypt
-	cleanupFile bool             // Whether to delete the plain text secret file after encryption
+	secretFiles []secrets.Secret // List of secrets available.
+	secretName  string           // The name of the secret.
+	secretFile  string           // The file containing the plain text secret to encrypt.
+	cleanupFile bool             // Whether to delete the plain text secret file after encryption.
 )
 
 func NewCommand(secretFileList []secrets.Secret) *cobra.Command {

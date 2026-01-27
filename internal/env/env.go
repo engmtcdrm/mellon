@@ -13,7 +13,7 @@ const (
 )
 
 var (
-	Instance *Env // Singleton instance of Env
+	Instance *Env // Singleton instance of Env.
 	once     sync.Once
 )
 
