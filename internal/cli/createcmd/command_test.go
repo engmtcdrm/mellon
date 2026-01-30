@@ -2,12 +2,14 @@ package createcmd
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
 
 	"github.com/engmtcdrm/mellon/internal/env"
+	"github.com/engmtcdrm/mellon/secrets"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,8 +38,8 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-// TestCreateCommand_ValidFlags tests the create command with valid flags.
-func TestCreateCommand_ValidFlags(t *testing.T) {
+// TestCreateCommandValidFlags tests the create command with valid flags.
+func TestCreateCommandValidFlags(t *testing.T) {
 	env.Init()
 	dir := t.TempDir()
 	secretFile := filepath.Join(dir, "secret.txt")
@@ -68,7 +70,7 @@ func TestCreateCommand_ValidFlags(t *testing.T) {
 	}
 }
 
-func TestCreateCommand_CleanupFlag(t *testing.T) {
+func TestCreateCommandCleanupFlag(t *testing.T) {
 	env.Init()
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testcleanup"
@@ -104,7 +106,7 @@ func TestCreateCommand_CleanupFlag(t *testing.T) {
 	}
 }
 
-func TestCreateCommand_Permission0600(t *testing.T) {
+func TestCreateCommandPermission0600(t *testing.T) {
 	env.Init()
 	secretFile := filepath.Join(os.TempDir(), "secret.txt")
 	secretName := "testperm"
@@ -126,7 +128,7 @@ func TestCreateCommand_Permission0600(t *testing.T) {
 	assert.NotEqualf(t, 0600, info.Mode().Perm(), "expected file mode 0600, got %v", info.Mode().Perm())
 }
 
-func TestCreateCommand_TildeExpansion(t *testing.T) {
+func TestCreateCommandTildeExpansion(t *testing.T) {
 	env.Init()
 	home, _ := os.UserHomeDir()
 	secretFile := filepath.Join(home, "secrettilde.txt")
@@ -145,7 +147,7 @@ func TestCreateCommand_TildeExpansion(t *testing.T) {
 	assert.NoErrorf(t, err, "expected success, got error: %v, output: %s", err, output)
 }
 
-func TestCreateCommand_FileNotExist(t *testing.T) {
+func TestCreateCommandFileNotExist(t *testing.T) {
 	secretFile := filepath.Join(t.TempDir(), "doesnotexist.txt")
 	secretName := "testnofile"
 
@@ -154,7 +156,7 @@ func TestCreateCommand_FileNotExist(t *testing.T) {
 	assert.Error(t, err, "expected error for non-existent file, got none, output: %s", output)
 }
 
-func TestCreateCommand_FileNoReadAccess(t *testing.T) {
+func TestCreateCommandFileNoReadAccess(t *testing.T) {
 	secretFile := filepath.Join(t.TempDir(), "noread.txt")
 	secretName := "testnoread"
 	secretContent := "supersecret"
@@ -168,7 +170,7 @@ func TestCreateCommand_FileNoReadAccess(t *testing.T) {
 	assert.Error(t, err, "expected error for no read access, got none, output: %s", output)
 }
 
-func TestCreateCommand_CleanupNoWriteAccess(t *testing.T) {
+func TestCreateCommandCleanupNoWriteAccess(t *testing.T) {
 	dir := t.TempDir()
 	secretFile := filepath.Join(dir, "nowrite.txt")
 	secretName := "testnowrite"
@@ -187,7 +189,7 @@ func TestCreateCommand_CleanupNoWriteAccess(t *testing.T) {
 	assert.Error(t, err, "expected error for no write access to directory, got none, output: %s", output)
 }
 
-func TestCreateCommand_CleanupNoReadWriteAccess(t *testing.T) {
+func TestCreateCommandCleanupNoReadWriteAccess(t *testing.T) {
 	secretFile := filepath.Join(t.TempDir(), "noreadwrite.txt")
 	secretName := "testnoreadwrite"
 	secretContent := "supersecret"
@@ -201,7 +203,7 @@ func TestCreateCommand_CleanupNoReadWriteAccess(t *testing.T) {
 	assert.Error(t, err, "expected error for no read/write access, got none, output: %s", output)
 }
 
-func TestCreateCommand_AlreadyExists(t *testing.T) {
+func TestCreateCommandAlreadyExists(t *testing.T) {
 	env.Init()
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "testexists"
@@ -227,7 +229,7 @@ func TestCreateCommand_AlreadyExists(t *testing.T) {
 	os.Remove(secretOut)
 }
 
-func TestCreateCommand_InvalidSecretName(t *testing.T) {
+func TestCreateCommandInvalidSecretName(t *testing.T) {
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretName := "invalid!name"
 	secretContent := "supersecret"
@@ -240,8 +242,8 @@ func TestCreateCommand_InvalidSecretName(t *testing.T) {
 	assert.Error(t, err, "expected error for invalid secret, got none, output: %s", output)
 }
 
-// TestCreateCommand_PreRunValidation tests the PreRunE validation logic
-func TestCreateCommand_PreRunValidation(t *testing.T) {
+// TestCreateCommandPreRunValidation tests the PreRunE validation logic
+func TestCreateCommandPreRunValidation(t *testing.T) {
 	// Test cleanup flag without required flags
 	cases := []struct {
 		name string
@@ -270,8 +272,8 @@ func TestCreateCommand_PreRunValidation(t *testing.T) {
 	}
 }
 
-// TestCreateCommand_SecretNameValidation tests various invalid secret name patterns
-func TestCreateCommand_SecretNameValidation(t *testing.T) {
+// TestCreateCommandSecretNameValidation tests various invalid secret name patterns
+func TestCreateCommandSecretNameValidation(t *testing.T) {
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretContent := "supersecret"
 
@@ -297,8 +299,8 @@ func TestCreateCommand_SecretNameValidation(t *testing.T) {
 	}
 }
 
-// TestCreateCommand_ValidSecretNames tests valid secret name patterns
-func TestCreateCommand_ValidSecretNames(t *testing.T) {
+// TestCreateCommandValidSecretNames tests valid secret name patterns
+func TestCreateCommandValidSecretNames(t *testing.T) {
 	env.Init()
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
@@ -333,8 +335,8 @@ func TestCreateCommand_ValidSecretNames(t *testing.T) {
 	}
 }
 
-// TestCreateCommand_ForceOverwrite tests the behavior of the --force flag when creating a secret that already exists
-func TestCreateCommand_ForceOverwrite(t *testing.T) {
+// TestCreateCommandForceOverwrite tests the behavior of the --force flag when creating a secret that already exists
+func TestCreateCommandForceOverwrite(t *testing.T) {
 	env.Init()
 
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
@@ -355,4 +357,167 @@ func TestCreateCommand_ForceOverwrite(t *testing.T) {
 	cmd = exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile, "--force")
 	output, err = cmd.CombinedOutput()
 	assert.Error(t, err, "expected error for creating existing secret with --force flag, got none, output: %s", output)
+}
+
+func TestNewCommand(t *testing.T) {
+	emptySecrets := []secrets.Secret{}
+	new := NewCommand(emptySecrets)
+	assert.NotNil(t, new)
+}
+
+func TestValidateFlags(t *testing.T) {
+	t.Run("cleanup without secret and file", func(t *testing.T) {
+		cleanupFile = true
+		secretName = ""
+		secretFile = ""
+
+		err := validateFlags(nil, []string{})
+		assert.Error(t, err)
+	})
+
+	t.Run("cleanup with secret and file", func(t *testing.T) {
+		cleanupFile = true
+		secretName = "mysecret"
+		secretFile = "myfile.txt"
+
+		err := validateFlags(nil, []string{})
+		assert.NoError(t, err)
+	})
+}
+
+func TestRun(t *testing.T) {
+	env.Init()
+	t.Run("run with secretName and secretFile, file does not exist", func(t *testing.T) {
+		secretName = "mysecret"
+		secretFile = "myfile.txt"
+		secretFiles = []secrets.Secret{}
+
+		err := run(nil, []string{})
+		assert.Error(t, err) // file does not exist, so expect error
+	})
+}
+
+func TestValidateSecretName(t *testing.T) {
+	env.Init()
+	tempDir := t.TempDir()
+	keyPath := filepath.Join(tempDir, "TestValidateSecretName.key")
+	secretsPath := filepath.Join(tempDir, "secrets")
+	secretFiles = []secrets.Secret{}
+
+	secret1, err := secrets.NewSecret(keyPath, "secret1", secretsPath)
+	assert.NoError(t, err)
+	secretFiles = append(secretFiles, *secret1)
+
+	t.Run("empty name", func(t *testing.T) {
+		err := validateSecretName("")
+		assert.Error(t, err)
+	})
+
+	t.Run("invalid name", func(t *testing.T) {
+		err := validateSecretName("invalid name!:")
+		assert.Error(t, err)
+	})
+
+	t.Run("secret exists", func(t *testing.T) {
+		err := validateSecretName("secret1")
+		assert.Error(t, err)
+	})
+
+	t.Run("secret does not exist", func(t *testing.T) {
+		err := validateSecretName("newsecret")
+		assert.NoError(t, err)
+	})
+}
+
+func TestEncryptFromFile(t *testing.T) {
+	env.Init()
+	tempDir := t.TempDir()
+	keyPath := filepath.Join(tempDir, "TestValidateSecretName.key")
+	secretsPath := filepath.Join(tempDir, "secrets")
+	secretFiles = []secrets.Secret{}
+
+	secret1, err := secrets.NewSecret(keyPath, "secret1", secretsPath)
+	assert.NoError(t, err)
+	secretFiles = append(secretFiles, *secret1)
+
+	t.Run("invalid secret name", func(t *testing.T) {
+		secretName = "invalid name!:"
+		err := encryptFromFile()
+		assert.Error(t, err)
+	})
+
+	t.Run("secret already exists", func(t *testing.T) {
+		secretName = "secret1"
+		err := encryptFromFile()
+		assert.Error(t, err)
+	})
+
+	t.Run("new secret", func(t *testing.T) {
+		secretName = "secret2"
+		secretFile = filepath.Join(tempDir, "unencrypted-secret2.txt")
+		err := os.WriteFile(secretFile, []byte("supersecret2"), 0644)
+		assert.NoError(t, err)
+
+		err = encryptFromFile()
+		assert.NoError(t, err)
+
+		// Verify the secret file was created
+		secretPath := filepath.Join(env.Instance.SecretsPath(), secretName+env.Instance.SecretExt())
+		_, err = os.Stat(secretPath)
+		assert.NoError(t, err)
+
+		err = os.Remove(secretPath)
+		assert.NoError(t, err)
+	})
+}
+
+func TestResolveSecretName(t *testing.T) {
+	env.Init()
+	tempDir := t.TempDir()
+	keyPath := filepath.Join(tempDir, "TestValidateSecretName.key")
+	secretsPath := filepath.Join(tempDir, "secrets")
+	secretFiles = []secrets.Secret{}
+
+	secret1, err := secrets.NewSecret(keyPath, "secret1", secretsPath)
+	assert.NoError(t, err)
+	secretFiles = append(secretFiles, *secret1)
+
+	t.Run("secretName not set", func(t *testing.T) {
+		// Create a temporary file to simulate os.Stdin
+		tempFile, err := ioutil.TempFile("", "testinput")
+		if err != nil {
+			t.Fatalf("failed to create temp file: %v", err)
+		}
+		defer os.Remove(tempFile.Name()) // Clean up the temp file
+
+		// Write the simulated input to the temp file
+		if _, err := tempFile.WriteString("test"); err != nil {
+			t.Fatalf("failed to write to temp file: %v", err)
+		}
+
+		// Seek to the beginning of the file so it can be read
+		if _, err := tempFile.Seek(0, 0); err != nil {
+			t.Fatalf("failed to seek to beginning of temp file: %v", err)
+		}
+
+		// Redirect os.Stdin to the temporary file
+		oldStdin := os.Stdin
+		defer func() { os.Stdin = oldStdin }() // Restore original Stdin after the test
+		os.Stdin = tempFile
+
+		err = resolveSecretName()
+		assert.NoError(t, err)
+	})
+
+	t.Run("secretName exists", func(t *testing.T) {
+		secretName = "secret1"
+		err := resolveSecretName()
+		assert.Error(t, err)
+	})
+
+	t.Run("secretName does not exist", func(t *testing.T) {
+		secretName = "secret2"
+		err := resolveSecretName()
+		assert.NoError(t, err)
+	})
 }
