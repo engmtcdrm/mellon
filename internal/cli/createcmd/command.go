@@ -30,34 +30,8 @@ func NewCommand(secretFileList []secrets.Secret) *cobra.Command {
 		Short:   "Create a secret",
 		Long:    "Create a secret.\n\nWhen using the flags -s/--secret and -f/--file, the secret will be read from the specified file and encrypted.\n\nIf no flags are provided, an interactive prompt will be used to enter the secret and its name.",
 		Example: fmt.Sprintf("  %s create\n  %s create -s my_secret -f /path/to/secret.txt", app.Name, app.Name),
-		PreRunE: validateUpdateCreateFlags,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if secretName != "" && secretFile != "" {
-				return encryptFromFile()
-			}
-
-			header.PrintHeader()
-
-			if err := resolveSecretName(); err != nil {
-				return err
-			}
-
-			if secretFile == "" {
-				if err := encryptSecret(); err != nil {
-					return err
-				}
-			} else {
-				if err := encryptFromFile(); err != nil {
-					return err
-				}
-			}
-
-			fmt.Println(pp.Complete("Secret encrypted and saved"))
-			fmt.Println()
-			fmt.Printf("You can run the commmand %s to view the unencrypted secret\n", pp.Greenf("%s view -s %s", env.Instance.ExeCmd(), secretName))
-
-			return nil
-		},
+		PreRunE: validateFlags,
+		RunE:    run,
 	}
 
 	createCmd.Flags().StringVarP(
@@ -87,11 +61,39 @@ func NewCommand(secretFileList []secrets.Secret) *cobra.Command {
 	return createCmd
 }
 
-// validateUpdateCreateFlags checks if the flags for creating or updating a secret are valid.
-func validateUpdateCreateFlags(cmd *cobra.Command, args []string) error {
+// validateFlags checks if the flags for creating or updating a secret are valid.
+func validateFlags(cmd *cobra.Command, args []string) error {
 	if cleanupFile && (secretName == "" || secretFile == "") {
 		return errors.New("flag -c/--cleanup can only be used when -s/--secret and -f/--file are provided")
 	}
+
+	return nil
+}
+
+func run(cmd *cobra.Command, args []string) error {
+	if secretName != "" && secretFile != "" {
+		return encryptFromFile()
+	}
+
+	header.PrintHeader()
+
+	if err := resolveSecretName(); err != nil {
+		return err
+	}
+
+	if secretFile == "" {
+		if err := encryptSecret(); err != nil {
+			return err
+		}
+	} else {
+		if err := encryptFromFile(); err != nil {
+			return err
+		}
+	}
+
+	fmt.Println(pp.Complete("Secret encrypted and saved"))
+	fmt.Println()
+	fmt.Printf("You can run the commmand %s to view the unencrypted secret\n", pp.Greenf("%s view -s %s", env.Instance.ExeCmd(), secretName))
 
 	return nil
 }
