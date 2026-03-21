@@ -12,30 +12,28 @@ import (
 	"github.com/engmtcdrm/mellon/secrets"
 )
 
-var (
+type cmd struct {
 	secretFiles []secrets.Secret // List of available secrets.
 	print       bool             // Whether to print only the names of the secrets.
-)
+}
 
-func NewCommand(secretFilesList []secrets.Secret) *cobra.Command {
-	secretFiles = secretFilesList
+func NewCommand(secretFiles []secrets.Secret) *cobra.Command {
+	if secretFiles == nil {
+		secretFiles = []secrets.Secret{}
+	}
+
+	c := &cmd{secretFiles: secretFiles}
 
 	listCmd := &cobra.Command{
 		Use:     "list",
 		Short:   "List available secrets",
 		Long:    "List available secrets",
 		Example: fmt.Sprintf("  %s list", app.Name),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if print {
-				return printSecrets()
-			}
-
-			return listSecrets()
-		},
+		RunE:    c.runE,
 	}
 
 	listCmd.Flags().BoolVarP(
-		&print,
+		&c.print,
 		"print",
 		"p",
 		false,
@@ -45,20 +43,11 @@ func NewCommand(secretFilesList []secrets.Secret) *cobra.Command {
 	return listCmd
 }
 
-// printSecrets prints only the names of the secrets.
-func printSecrets() error {
-	for _, secret := range secretFiles {
-		fmt.Println(secret.Name())
-	}
-
-	return nil
-}
-
 // listSecrets lists all available secrets.
-func listSecrets() error {
+func (c *cmd) listSecrets() error {
 	header.PrintHeader()
 
-	if len(secretFiles) == 0 {
+	if len(c.secretFiles) == 0 {
 		fmt.Printf("No available secrets to list\n\nUse command %s to create a secret", pp.Greenf("%s create", env.Instance.ExeCmd()))
 		return nil
 	}
@@ -66,9 +55,27 @@ func listSecrets() error {
 	fmt.Println(pp.Info("Available secrets"))
 	fmt.Println()
 
-	for _, secret := range secretFiles {
+	for _, secret := range c.secretFiles {
 		fmt.Printf("  - %s\n", pp.Green(secret.Name()))
 	}
 
 	return nil
+}
+
+// printSecrets prints only the names of the secrets.
+func (c *cmd) printSecrets() error {
+	for _, secret := range c.secretFiles {
+		fmt.Println(secret.Name())
+	}
+
+	return nil
+}
+
+// runE is the main execution function for the command.
+func (c *cmd) runE(cmd *cobra.Command, args []string) error {
+	if c.print {
+		return c.printSecrets()
+	}
+
+	return c.listSecrets()
 }
