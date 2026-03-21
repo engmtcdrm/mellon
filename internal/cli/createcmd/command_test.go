@@ -504,7 +504,7 @@ func TestResolveSecretName(t *testing.T) {
 		defer os.Remove(tempFile.Name()) // Clean up the temp file
 
 		// Write the simulated input to the temp file
-		if _, err := tempFile.WriteString("test"); err != nil {
+		if _, err := tempFile.WriteString("test\n"); err != nil {
 			t.Fatalf("failed to write to temp file: %v", err)
 		}
 
