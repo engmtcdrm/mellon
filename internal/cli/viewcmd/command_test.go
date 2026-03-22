@@ -5,10 +5,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/engmtcdrm/mellon/internal/env"
+	"github.com/stretchr/testify/assert"
 )
 
 var testBinary string
@@ -50,16 +50,13 @@ func TestViewCommand_ValidFlags(t *testing.T) {
 	defer os.Remove(secretOut)
 
 	// Create secret file
-	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
-		t.Fatalf("failed to write secret file: %v", err)
-	}
+	err := os.WriteFile(secretFile, []byte(secretContent), 0644)
+	assert.NoErrorf(t, err, "failed to write secret file: %v", err)
 
 	// First create a secret to view
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err := createCmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("failed to create initial secret: %v", err)
-	}
+	_, err = createCmd.CombinedOutput()
+	assert.NoErrorf(t, err, "failed to create initial secret: %v", err)
 
 	// Test each permutation of view flags
 	cases := [][]string{
@@ -70,16 +67,11 @@ func TestViewCommand_ValidFlags(t *testing.T) {
 	for _, args := range cases {
 		cmd := exec.Command(testBinary, append([]string{"view"}, args...)...)
 		output, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Errorf("expected success for args %v, got error: %v, output: %s", args, err, output)
-			continue
-		}
+		assert.NoErrorf(t, err, "expected success for args %v, got error: %v, output: %s", args, err, output)
 
 		// Verify the output contains the secret content
 		outputStr := string(output)
-		if !strings.Contains(outputStr, secretContent) {
-			t.Errorf("expected output to contain secret content '%s', got: %s", secretContent, outputStr)
-		}
+		assert.Containsf(t, outputStr, secretContent, "expected output to contain secret content '%s', got: %s", secretContent, outputStr)
 	}
 }
 
@@ -97,16 +89,13 @@ func TestViewCommand_OutputFlag(t *testing.T) {
 	defer os.Remove(secretOut)
 
 	// Create secret file
-	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
-		t.Fatalf("failed to write secret file: %v", err)
-	}
+	err := os.WriteFile(secretFile, []byte(secretContent), 0644)
+	assert.NoErrorf(t, err, "failed to write secret file: %v", err)
 
 	// First create a secret to view
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err := createCmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("failed to create initial secret: %v", err)
-	}
+	_, err = createCmd.CombinedOutput()
+	assert.NoErrorf(t, err, "failed to create initial secret: %v", err)
 
 	// Test output flag variations
 	cases := [][]string{
@@ -120,32 +109,19 @@ func TestViewCommand_OutputFlag(t *testing.T) {
 
 		cmd := exec.Command(testBinary, append([]string{"view"}, args...)...)
 		_, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Errorf("expected success for args %v, got error: %v", args, err)
-			continue
-		}
+		assert.NoErrorf(t, err, "expected success for args %v, got error: %v", args, err)
 
 		// Verify the output file was created and contains the secret
 		outputContent, err := os.ReadFile(outputFile)
-		if err != nil {
-			t.Errorf("failed to read output file: %v", err)
-			continue
-		}
+		assert.NoErrorf(t, err, "failed to read output file: %v", err)
 
-		if string(outputContent) != secretContent {
-			t.Errorf("expected output file content '%s', got '%s'", secretContent, string(outputContent))
-		}
+		assert.Equalf(t, secretContent, string(outputContent), "expected output file content '%s', got '%s'", secretContent, string(outputContent))
 
 		// Verify file permissions
 		info, err := os.Stat(outputFile)
-		if err != nil {
-			t.Errorf("failed to stat output file: %v", err)
-			continue
-		}
+		assert.NoErrorf(t, err, "failed to stat output file: %v", err)
 
-		if info.Mode().Perm() != 0600 {
-			t.Errorf("expected output file mode 0600, got %o", info.Mode().Perm())
-		}
+		assert.Equalf(t, os.FileMode(0600), info.Mode().Perm(), "expected output file mode 0600, got %o", info.Mode().Perm())
 	}
 }
 
@@ -154,9 +130,7 @@ func TestViewCommand_SecretNotExist(t *testing.T) {
 
 	cmd := exec.Command(testBinary, "view", "--secret", secretName)
 	_, err := cmd.CombinedOutput()
-	if err == nil {
-		t.Errorf("expected error for non-existent secret, got none")
-	}
+	assert.Error(t, err, "expected error for non-existent secret, got none")
 }
 
 func TestViewCommand_InvalidSecretName(t *testing.T) {
@@ -164,9 +138,7 @@ func TestViewCommand_InvalidSecretName(t *testing.T) {
 
 	cmd := exec.Command(testBinary, "view", "--secret", secretName)
 	_, err := cmd.CombinedOutput()
-	if err == nil {
-		t.Errorf("expected error for invalid secret name, got none")
-	}
+	assert.Error(t, err, "expected error for invalid secret name, got none")
 }
 
 func TestViewCommand_ValidSecretNames(t *testing.T) {
@@ -175,9 +147,8 @@ func TestViewCommand_ValidSecretNames(t *testing.T) {
 	secretFile := filepath.Join(t.TempDir(), "secret.txt")
 	secretContent := "viewsecretcontent"
 
-	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
-		t.Fatalf("failed to write secret file: %v", err)
-	}
+	err := os.WriteFile(secretFile, []byte(secretContent), 0644)
+	assert.NoErrorf(t, err, "failed to write secret file: %v", err)
 
 	validNames := []string{
 		"simple",
@@ -195,23 +166,16 @@ func TestViewCommand_ValidSecretNames(t *testing.T) {
 			// Create the secret
 			createCmd := exec.Command(testBinary, "create", "--secret", validName, "--file", secretFile)
 			_, err := createCmd.CombinedOutput()
-			if err != nil {
-				t.Fatalf("failed to create secret '%s': %v", validName, err)
-			}
+			assert.NoErrorf(t, err, "failed to create secret with valid name '%s': %v", validName, err)
 
 			// View the secret
 			viewCmd := exec.Command(testBinary, "view", "--secret", validName)
 			output, err := viewCmd.CombinedOutput()
-			if err != nil {
-				t.Errorf("expected success for valid secret name '%s', got error: %v", validName, err)
-				return
-			}
+			assert.NoErrorf(t, err, "failed to view secret with valid name '%s': %v, output: %s", validName, err, output)
 
 			// Verify content
 			outputStr := string(output)
-			if !strings.Contains(outputStr, secretContent) {
-				t.Errorf("expected output to contain secret content for name '%s'", validName)
-			}
+			assert.Containsf(t, outputStr, secretContent, "expected output to contain secret content for name '%s'", validName)
 		})
 	}
 }
@@ -222,9 +186,7 @@ func TestViewCommand_PreRunValidation(t *testing.T) {
 
 	cmd := exec.Command(testBinary, "view", "--output", outputFile)
 	_, err := cmd.CombinedOutput()
-	if err == nil {
-		t.Errorf("expected error for output flag without secret flag, got none")
-	}
+	assert.Error(t, err, "expected error for output flag without secret flag, got none")
 }
 
 func TestViewCommand_OutputDirectoryCreation(t *testing.T) {
@@ -242,36 +204,26 @@ func TestViewCommand_OutputDirectoryCreation(t *testing.T) {
 	defer os.Remove(secretOut)
 
 	// Create secret file
-	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
-		t.Fatalf("failed to write secret file: %v", err)
-	}
+	err := os.WriteFile(secretFile, []byte(secretContent), 0644)
+	assert.NoErrorf(t, err, "failed to write secret file: %v", err)
 
 	// First create a secret to view
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err := createCmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("failed to create initial secret: %v", err)
-	}
+	_, err = createCmd.CombinedOutput()
+	assert.NoErrorf(t, err, "failed to create initial secret: %v", err)
 
 	// Test that output directory is created
 	cmd := exec.Command(testBinary, "view", "--secret", secretName, "--output", outputFile)
 	_, err = cmd.CombinedOutput()
-	if err != nil {
-		t.Errorf("expected success for nested output directory, got error: %v", err)
-	}
+	assert.NoErrorf(t, err, "expected success for nested output directory, got error: %v", err)
 
 	// Verify the output file was created
-	if _, err := os.Stat(outputFile); os.IsNotExist(err) {
-		t.Errorf("expected output file to be created")
-	}
+	assert.FileExistsf(t, outputFile, "expected output file to be created at %s", outputFile)
 
 	// Verify directory was created with correct permissions
 	info, err := os.Stat(outputDir)
-	if err != nil {
-		t.Errorf("failed to stat output directory: %v", err)
-	} else if info.Mode().Perm() != 0700 {
-		t.Errorf("expected output directory mode 0700, got %o", info.Mode().Perm())
-	}
+	assert.NoErrorf(t, err, "failed to stat output directory: %v", err)
+	assert.Equalf(t, os.FileMode(0700), info.Mode().Perm(), "expected output directory mode 0700, got %o", info.Mode().Perm())
 }
 
 func TestViewCommand_NoFlags(t *testing.T) {

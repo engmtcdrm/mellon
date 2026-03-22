@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // TestValidateUpdateCreateFlags tests the validateUpdateCreateFlags function
@@ -208,30 +210,21 @@ func TestMkdir(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create directory if it should exist beforehand
 			if tt.existing && tt.path != tempDir {
-				if err := os.MkdirAll(tt.path, 0755); err != nil {
-					t.Fatalf("failed to create existing directory: %v", err)
-				}
+				err := os.MkdirAll(tt.path, 0755)
+				assert.NoErrorf(t, err, "failed to create existing directory: %v", err)
 			}
 
 			// Test mkdir function
 			mkdir(tt.path, tt.mode)
 
 			// Verify directory exists
-			info, err := os.Stat(tt.path)
-			if err != nil {
-				t.Errorf("directory %s should exist after mkdir: %v", tt.path, err)
-				return
-			}
-
-			if !info.IsDir() {
-				t.Errorf("%s should be a directory", tt.path)
-			}
+			assert.DirExists(t, tt.path, "expected directory to exist at %s", tt.path)
 
 			// Verify permissions (only for new directories, as tempDir might have different perms)
 			if !tt.existing || tt.path != tempDir {
-				if info.Mode().Perm() != tt.mode {
-					t.Errorf("expected mode %o, got %o", tt.mode, info.Mode().Perm())
-				}
+				info, err := os.Stat(tt.path)
+				assert.NoErrorf(t, err, "failed to stat directory: %v", err)
+				assert.Equalf(t, tt.mode, info.Mode().Perm(), "expected directory mode %o, got %o", tt.mode, info.Mode().Perm())
 			}
 		})
 	}
@@ -243,19 +236,17 @@ func TestSecureFiles(t *testing.T) {
 
 	// Create test structure
 	subDir := filepath.Join(tempDir, "subdir")
-	if err := os.MkdirAll(subDir, 0755); err != nil {
-		t.Fatalf("failed to create subdirectory: %v", err)
-	}
+	err := os.MkdirAll(subDir, 0755)
+	assert.NoErrorf(t, err, "failed to create subdirectory: %v", err)
 
 	file1 := filepath.Join(tempDir, "file1.txt")
 	file2 := filepath.Join(subDir, "file2.txt")
 
-	if err := os.WriteFile(file1, []byte("test"), 0644); err != nil {
-		t.Fatalf("failed to create file1: %v", err)
-	}
-	if err := os.WriteFile(file2, []byte("test"), 0644); err != nil {
-		t.Fatalf("failed to create file2: %v", err)
-	}
+	err = os.WriteFile(file1, []byte("test"), 0644)
+	assert.NoErrorf(t, err, "failed to create file1: %v", err)
+
+	err = os.WriteFile(file2, []byte("test"), 0644)
+	assert.NoErrorf(t, err, "failed to create file2: %v", err)
 
 	// Test secureFiles
 	dirMode := os.FileMode(0700)
@@ -265,38 +256,22 @@ func TestSecureFiles(t *testing.T) {
 
 	// Check root directory permissions
 	info, err := os.Stat(tempDir)
-	if err != nil {
-		t.Fatalf("failed to stat root directory: %v", err)
-	}
-	if info.Mode().Perm() != dirMode {
-		t.Errorf("root directory: expected mode %o, got %o", dirMode, info.Mode().Perm())
-	}
+	assert.NoErrorf(t, err, "failed to stat root directory: %v", err)
+	assert.Equalf(t, dirMode, info.Mode().Perm(), "root directory: expected mode %o, got %o", dirMode, info.Mode().Perm())
 
 	// Check subdirectory permissions
 	info, err = os.Stat(subDir)
-	if err != nil {
-		t.Fatalf("failed to stat subdirectory: %v", err)
-	}
-	if info.Mode().Perm() != dirMode {
-		t.Errorf("subdirectory: expected mode %o, got %o", dirMode, info.Mode().Perm())
-	}
+	assert.NoErrorf(t, err, "failed to stat subdirectory: %v", err)
+	assert.Equalf(t, dirMode, info.Mode().Perm(), "subdirectory: expected mode %o, got %o", dirMode, info.Mode().Perm())
 
 	// Check file permissions
 	info, err = os.Stat(file1)
-	if err != nil {
-		t.Fatalf("failed to stat file1: %v", err)
-	}
-	if info.Mode().Perm() != fileMode {
-		t.Errorf("file1: expected mode %o, got %o", fileMode, info.Mode().Perm())
-	}
+	assert.NoErrorf(t, err, "failed to stat file1: %v", err)
+	assert.Equalf(t, fileMode, info.Mode().Perm(), "file1: expected mode %o, got %o", fileMode, info.Mode().Perm())
 
 	info, err = os.Stat(file2)
-	if err != nil {
-		t.Fatalf("failed to stat file2: %v", err)
-	}
-	if info.Mode().Perm() != fileMode {
-		t.Errorf("file2: expected mode %o, got %o", fileMode, info.Mode().Perm())
-	}
+	assert.NoErrorf(t, err, "failed to stat file2: %v", err)
+	assert.Equalf(t, fileMode, info.Mode().Perm(), "file2: expected mode %o, got %o", fileMode, info.Mode().Perm())
 }
 
 // TestGetSemVer tests the getSemVer function
@@ -371,9 +346,7 @@ func TestGetSemVer(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := getSemVer(tt.input)
-			if result != tt.expected {
-				t.Errorf("getSemVer(%q) = %q, expected %q", tt.input, result, tt.expected)
-			}
+			assert.Equalf(t, tt.expected, result, "getSemVer(%q) = %q, expected %q", tt.input, result, tt.expected)
 		})
 	}
 }

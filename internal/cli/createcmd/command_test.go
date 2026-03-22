@@ -498,20 +498,16 @@ func TestResolveSecretName(t *testing.T) {
 	t.Run("secretName not set", func(t *testing.T) {
 		// Create a temporary file to simulate os.Stdin
 		tempFile, err := os.CreateTemp("", "testinput")
-		if err != nil {
-			t.Fatalf("failed to create temp file: %v", err)
-		}
+		assert.NoError(t, err)
 		defer os.Remove(tempFile.Name()) // Clean up the temp file
 
 		// Write the simulated input to the temp file
-		if _, err := tempFile.WriteString("test\n"); err != nil {
-			t.Fatalf("failed to write to temp file: %v", err)
-		}
+		_, err = tempFile.WriteString("test\n")
+		assert.NoError(t, err)
 
 		// Seek to the beginning of the file so it can be read
-		if _, err := tempFile.Seek(0, 0); err != nil {
-			t.Fatalf("failed to seek to beginning of temp file: %v", err)
-		}
+		_, err = tempFile.Seek(0, 0)
+		assert.NoError(t, err)
 
 		// Redirect os.Stdin to the temporary file
 		oldStdin := os.Stdin

@@ -5,71 +5,34 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEnvFields(t *testing.T) {
 	Init()
-
-	// Test Home field
-	if Instance.Home() == "" {
-		t.Errorf("Home field should not be empty")
-	}
+	assert.NotNil(t, Instance, "Instance should not be nil")
+	assert.NotEmpty(t, Instance.Home(), "Home field should not be empty")
 
 	expectedHome, _ := os.UserHomeDir()
-	if Instance.Home() != expectedHome {
-		t.Errorf("Home field should be user home directory, got: %s, expected: %s", Instance.Home(), expectedHome)
-	}
+	assert.Equalf(t, expectedHome, Instance.Home(), "Home field should be user home directory, got: %s, expected: %s", Instance.Home(), expectedHome)
 
-	// Test AppHomeDir field
-	if Instance.AppHomeDir() == "" {
-		t.Errorf("AppHomeDir field should not be empty")
-	}
-
-	if !strings.HasPrefix(Instance.AppHomeDir(), Instance.Home()) {
-		t.Errorf("AppHomeDir should be within Home directory")
-	}
-
-	// Test SecretExt field
-	if Instance.SecretExt() == "" {
-		t.Errorf("SecretExt field should not be empty")
-	}
-
-	if Instance.SecretExt() != ".thurin" {
-		t.Errorf("SecretExt should be '.thurin', got: %s", Instance.SecretExt())
-	}
-
-	// Test KeyPath field
-	if Instance.KeyPath() == "" {
-		t.Errorf("KeyPath field should not be empty")
-	}
-
-	if !strings.HasPrefix(Instance.KeyPath(), Instance.AppHomeDir()) {
-		t.Errorf("KeyPath should be within AppHomeDir")
-	}
+	assert.NotEmpty(t, Instance.AppHomeDir(), "AppHomeDir field should not be empty")
+	assert.Truef(t, strings.HasPrefix(Instance.AppHomeDir(), Instance.Home()), "AppHomeDir should be within Home directory, got: %s, Home: %s", Instance.AppHomeDir(), Instance.Home())
+	assert.NotEmpty(t, Instance.SecretExt(), "SecretExt field should not be empty")
+	assert.Equalf(t, ".thurin", Instance.SecretExt(), "SecretExt should be '.thurin', got: %s", Instance.SecretExt())
+	assert.NotEmpty(t, Instance.KeyPath(), "KeyPath field should not be empty")
+	assert.Truef(t, strings.HasPrefix(Instance.KeyPath(), Instance.AppHomeDir()), "KeyPath should be within AppHomeDir, got: %s, AppHomeDir: %s", Instance.KeyPath(), Instance.AppHomeDir())
 
 	expectedKeyPath := filepath.Join(Instance.AppHomeDir(), ".key")
-	if Instance.KeyPath() != expectedKeyPath {
-		t.Errorf("KeyPath should be %s, got: %s", expectedKeyPath, Instance.KeyPath())
-	}
-
-	// Test SecretsPath field
-	if Instance.SecretsPath() == "" {
-		t.Errorf("SecretsPath field should not be empty")
-	}
-
-	if !strings.HasPrefix(Instance.SecretsPath(), Instance.AppHomeDir()) {
-		t.Errorf("SecretsPath should be within AppHomeDir")
-	}
+	assert.Equalf(t, expectedKeyPath, Instance.KeyPath(), "KeyPath should be %s, got: %s", expectedKeyPath, Instance.KeyPath())
+	assert.NotEmpty(t, Instance.SecretsPath(), "SecretsPath field should not be empty")
+	assert.Truef(t, strings.HasPrefix(Instance.SecretsPath(), Instance.AppHomeDir()), "SecretsPath should be within AppHomeDir, got: %s, AppHomeDir: %s", Instance.SecretsPath(), Instance.AppHomeDir())
 
 	expectedSecretsPath := filepath.Join(Instance.AppHomeDir(), Instance.SecretExt())
-	if Instance.SecretsPath() != expectedSecretsPath {
-		t.Errorf("SecretsPath should be %s, got: %s", expectedSecretsPath, Instance.SecretsPath())
-	}
+	assert.Equalf(t, expectedSecretsPath, Instance.SecretsPath(), "SecretsPath should be %s, got: %s", expectedSecretsPath, Instance.SecretsPath())
 
-	// Test ExeCmd field
-	if Instance.ExeCmd() == "" {
-		t.Errorf("ExeCmd field should not be empty")
-	}
+	assert.NotEmpty(t, Instance.ExeCmd(), "ExeCmd field should not be empty")
 }
 
 func TestEnvSingleton(t *testing.T) {
@@ -88,8 +51,6 @@ func TestEnvSingleton(t *testing.T) {
 	// Verify all instances are the same
 	firstInstance := instances[0]
 	for i, instance := range instances {
-		if instance != firstInstance {
-			t.Errorf("Instance %d is different from first instance (singleton violation)", i)
-		}
+		assert.Equalf(t, firstInstance, instance, "Instance %d is different from first instance (singleton violation)", i)
 	}
 }
