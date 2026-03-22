@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIsInPath(t *testing.T) {
@@ -24,24 +26,18 @@ func TestIsInPath(t *testing.T) {
 	testExecutable := filepath.Join(testDir, "test-executable")
 
 	result := IsInPath(testExecutable)
-	if !result {
-		t.Errorf("IsInPath() should return true for path in PATH: %s", testExecutable)
-	}
+	assert.Truef(t, result, "IsInPath() should return true for path in PATH: %s", testExecutable)
 
 	// Test with a path that should not be in PATH
 	nonExistentPath := filepath.Join(os.TempDir(), "non-existent-dir", "executable")
 	result = IsInPath(nonExistentPath)
-	if result {
-		t.Errorf("IsInPath() should return false for path not in PATH: %s", nonExistentPath)
-	}
+	assert.Falsef(t, result, "IsInPath() should return false for path not in PATH: %s", nonExistentPath)
 }
 
 func TestIsInPathEdgeCases(t *testing.T) {
 	// Test with empty path
 	result := IsInPath("")
-	if result {
-		t.Errorf("IsInPath() should return false for empty path")
-	}
+	assert.False(t, result, "IsInPath() should return false for empty path")
 
 	// Test with root path
 	result = IsInPath("/")
@@ -51,9 +47,7 @@ func TestIsInPathEdgeCases(t *testing.T) {
 
 func TestExpandTilde(t *testing.T) {
 	home, err := os.UserHomeDir()
-	if err != nil {
-		t.Fatalf("Failed to get user home directory: %v", err)
-	}
+	assert.NoErrorf(t, err, "Failed to get user home directory: %v", err)
 
 	testCases := []struct {
 		name     string
@@ -100,23 +94,15 @@ func TestExpandTilde(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			result, err := ExpandTilde(tc.input)
-			if err != nil {
-				t.Errorf("ExpandTilde(%q) returned error: %v", tc.input, err)
-				return
-			}
-
-			if result != tc.expected {
-				t.Errorf("ExpandTilde(%q) = %q, expected %q", tc.input, result, tc.expected)
-			}
+			assert.NoErrorf(t, err, "ExpandTilde(%q) returned error: %v", tc.input, err)
+			assert.Equalf(t, tc.expected, result, "ExpandTilde(%q) = %q, expected %q", tc.input, result, tc.expected)
 		})
 	}
 }
 
 func TestExpandTildePathSeparators(t *testing.T) {
 	home, err := os.UserHomeDir()
-	if err != nil {
-		t.Fatalf("Failed to get user home directory: %v", err)
-	}
+	assert.NoErrorf(t, err, "Failed to get user home directory: %v", err)
 
 	// Test with different path separators
 	testCases := []struct {
@@ -131,20 +117,9 @@ func TestExpandTildePathSeparators(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			result, err := ExpandTilde(tc.input)
-			if err != nil {
-				t.Errorf("ExpandTilde(%q) returned error: %v", tc.input, err)
-				return
-			}
-
-			// Should start with home directory
-			if !strings.HasPrefix(result, home) {
-				t.Errorf("ExpandTilde(%q) result should start with home directory %q, got: %q", tc.input, home, result)
-			}
-
-			// Should be a valid path
-			if !filepath.IsAbs(result) {
-				t.Errorf("ExpandTilde(%q) should return absolute path, got: %q", tc.input, result)
-			}
+			assert.NoErrorf(t, err, "ExpandTilde(%q) returned error: %v", tc.input, err)
+			assert.Truef(t, strings.HasPrefix(result, home), "ExpandTilde(%q) result should start with home directory %q, got: %q", tc.input, home, result)
+			assert.Truef(t, filepath.IsAbs(result), "ExpandTilde(%q) should return absolute path, got: %q", tc.input, result)
 		})
 	}
 }

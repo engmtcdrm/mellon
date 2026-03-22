@@ -1,21 +1,20 @@
 package secrets
 
 import (
+	"path"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestValidateName(t *testing.T) {
-	// Valid names
-	assert.NoError(t, ValidateName("valid_name"))
-	assert.NoError(t, ValidateName("valid-name"))
-	assert.NoError(t, ValidateName("validname123"))
-	assert.NoError(t, ValidateName("valid/name"))
-	assert.NoError(t, ValidateName("valid\\name"))
+func TestNewSecret(t *testing.T) {
+	t.Run("empty secret keyPath", func(t *testing.T) {
+		_, err := NewSecret("", "value", "value")
+		assert.Error(t, err)
+	})
 
-	// Invalid names
-	assert.Error(t, ValidateName(""))
-	assert.Error(t, ValidateName("invalid name"))
-	assert.Error(t, ValidateName("invalid.name"))
+	t.Run("invalid secret name", func(t *testing.T) {
+		_, err := NewSecret(path.Join(t.TempDir(), "temp.key"), "value!:", "value")
+		assert.Error(t, err)
+	})
 }

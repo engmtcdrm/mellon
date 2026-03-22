@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/engmtcdrm/mellon/app"
+	"github.com/engmtcdrm/mellon/internal/app"
 )
 
 const (
@@ -13,7 +13,7 @@ const (
 )
 
 var (
-	Instance *Env // Singleton instance of Env
+	Instance *Env // Singleton instance of Env.
 	once     sync.Once
 )
 

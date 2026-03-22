@@ -8,7 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/engmtcdrm/mellon/app"
+	"github.com/engmtcdrm/mellon/internal/app"
+	"github.com/engmtcdrm/mellon/internal/constants"
 )
 
 // detectShell attempts to detect the current user's shell.
@@ -79,7 +80,7 @@ func findInFile(filePath, searchTerm string) (bool, error) {
 	return false, scanner.Err()
 }
 
-// genZshCompletion generates zsh completion and appends necessary configurations to .zshrc
+// genZshCompletion generates zsh completion and appends necessary configurations to .zshrc.
 func genZshCompletion(file *os.File, homeDir string) {
 	if err := rootCmd.GenZshCompletion(file); err != nil {
 		fmt.Printf("Failed to generate zsh completion script: %v\n", err)
@@ -122,7 +123,8 @@ func genZshCompletion(file *os.File, homeDir string) {
 	}
 }
 
-// genPowerShellCompletion generates PowerShell completion and appends necessary configurations to the PowerShell profile
+// genPowerShellCompletion generates PowerShell completion and appends necessary
+// configurations to the PowerShell profile.
 func genPowerShellCompletion(file *os.File) {
 	profileFilePathByte, _ := exec.Command("powershell", "-Command", "$PROFILE").Output()
 	profileFilePath := strings.TrimSpace(string(profileFilePathByte))
@@ -175,7 +177,7 @@ func initShellCompletion(homeDir string) {
 		// Create parent directories if they don't exist
 		completionDir := filepath.Dir(completionPath)
 		if _, err := os.Stat(completionDir); os.IsNotExist(err) {
-			err = os.MkdirAll(completionDir, dirMode)
+			err = os.MkdirAll(completionDir, constants.SecureDirMode)
 			if err != nil {
 				fmt.Printf("Failed to create directory for shell completion: %v\n", err)
 				return

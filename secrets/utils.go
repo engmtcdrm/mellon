@@ -11,12 +11,7 @@ import (
 
 const reValidName = `^[\w\/\\\-]+$`
 
-var (
-	dirMode    os.FileMode = 0700 // Default directory mode for secrets
-	secretMode os.FileMode = 0600 // Default file mode for secret files
-)
-
-// Returns a slice of all available secrets
+// GetSecretFiles returns a slice of all available secrets.
 func GetSecretFiles(keyPath, secretsPath, secretExt string) ([]Secret, error) {
 	var secretFiles []Secret
 
@@ -48,7 +43,7 @@ func GetSecretFiles(keyPath, secretsPath, secretExt string) ([]Secret, error) {
 	return secretFiles, nil
 }
 
-// RemoveSecret removes a secret from the specified secrets path
+// RemoveSecret removes a secret from the specified secrets path.
 func RemoveSecret(secretsPath string, secret Secret) error {
 	if secret.Path() == "" {
 		return errors.New("secret path cannot be empty")
@@ -77,7 +72,7 @@ func RemoveSecret(secretsPath string, secret Secret) error {
 	return nil
 }
 
-// ValidateName checks if a string is a valid secret name
+// ValidateName checks if a string is a valid secret name.
 func ValidateName(s string) error {
 	var re = regexp.MustCompile(reValidName)
 

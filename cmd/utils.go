@@ -1,40 +1,10 @@
 package cmd
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 	"regexp"
-
-	"github.com/engmtcdrm/mellon/secrets"
-	"github.com/spf13/cobra"
 )
-
-// validateUpdateCreateFlags checks if the flags for creating or updating a secret are valid.
-func validateUpdateCreateFlags(cmd *cobra.Command, args []string) error {
-	if cleanupFile && (secretName == "" || secretFile == "") {
-		return errors.New("flag -c/--cleanup can only be used when -s/--secret and -f/--file are provided")
-	}
-
-	return nil
-}
-
-// validateSecretName checks if the provided secret name is valid.
-func validateSecretName(name string) error {
-	if name == "" {
-		return errors.New("name cannot be empty")
-	}
-
-	if err := secrets.ValidateName(name); err != nil {
-		return err
-	}
-
-	if secretPtr := secrets.FindSecretByName(name, secretFiles); secretPtr != nil {
-		return errors.New("secret with that name already exists")
-	}
-
-	return nil
-}
 
 // mkdir creates a directory at the specified path with the given mode.
 func mkdir(path string, dirMode os.FileMode) {
@@ -55,7 +25,7 @@ func mkdir(path string, dirMode os.FileMode) {
 
 // secureFiles walks through the given path and sets the permissions
 // for directories and files to the specified modes.
-func secureFiles(path string, dirMode os.FileMode, secretMode os.FileMode) {
+func secureFiles(path string, dirMode, secretMode os.FileMode) {
 	// Directory exists, make sure directories and files are secure
 	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -86,14 +56,4 @@ func getSemVer(input string) string {
 
 	// If no match, return the original input
 	return input
-}
-
-// secretFlagCompletion provides shell completion for the -s/--secret flag.
-func secretFlagCompletion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	var secretNames []string
-
-	for _, secret := range secretFiles {
-		secretNames = append(secretNames, secret.Name())
-	}
-	return secretNames, cobra.ShellCompDirectiveNoFileComp
 }

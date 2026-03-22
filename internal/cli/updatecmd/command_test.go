@@ -1,4 +1,4 @@
-package cmd
+package updatecmd
 
 import (
 	"fmt"
@@ -7,8 +7,34 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/engmtcdrm/mellon/env"
+	"github.com/engmtcdrm/mellon/internal/env"
+	"github.com/stretchr/testify/assert"
 )
+
+var testBinary string
+
+// TestMain builds the CLI binary once for all tests and cleans up after.
+func TestMain(m *testing.M) {
+	testBinary = filepath.Join(os.TempDir(), "mellon-test-bin-updatecmd")
+	projectRoot, err := filepath.Abs(filepath.Join("..", "..", ".."))
+	if err != nil {
+		panic("failed to determine project root: " + err.Error())
+	}
+
+	// Build the test binary
+	cmd := exec.Command("go", "build", "-o", testBinary, ".")
+	cmd.Dir = projectRoot
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		panic("failed to build test binary: " + err.Error() + "\n" + string(out))
+	}
+
+	code := m.Run()
+
+	// Clean up the test binary after tests
+	os.Remove(testBinary)
+	os.Exit(code)
+}
 
 // TestUpdateCommand_ValidFlags tests the update command with valid flags.
 func TestUpdateCommand_ValidFlags(t *testing.T) {
@@ -24,15 +50,12 @@ func TestUpdateCommand_ValidFlags(t *testing.T) {
 	os.Remove(secretOut)
 
 	// First create a secret to update
-	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
-		t.Fatalf("failed to write temp file: %v", err)
-	}
+	err := os.WriteFile(secretFile, []byte(secretContent), 0644)
+	assert.NoErrorf(t, err, "failed to write temp file: %v", err)
 
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err := createCmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("failed to create initial secret: %v", err)
-	}
+	_, err = createCmd.CombinedOutput()
+	assert.NoErrorf(t, err, "failed to create initial secret: %v", err)
 	defer os.Remove(secretOut) // Clean up after test
 
 	// Test each permutation of update flags
@@ -44,23 +67,16 @@ func TestUpdateCommand_ValidFlags(t *testing.T) {
 	}
 
 	for _, args := range cases {
-		if err := os.WriteFile(updateFile, []byte(updateContent), 0644); err != nil {
-			t.Fatalf("failed to write update file: %v", err)
-		}
+		err := os.WriteFile(updateFile, []byte(updateContent), 0644)
+		assert.NoError(t, err, "failed to write update file")
 
 		cmd := exec.Command(testBinary, append([]string{"update"}, args...)...)
 		output, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Errorf("expected success, got error: %v, output: %s", err, output)
-		}
+		assert.NoErrorf(t, err, "expected success, got error: %v, output: %s", err, output)
 
-		if _, err := os.Stat(updateFile); os.IsNotExist(err) {
-			t.Errorf("update file should not be deleted")
-		}
+		assert.FileExists(t, updateFile, "update file should not be deleted")
 
-		if _, err := os.Stat(secretOut); os.IsNotExist(err) {
-			t.Errorf("expected output file %s to exist, got error: %v", secretOut, err)
-		}
+		assert.FileExistsf(t, secretOut, "expected output file %s to exist", secretOut)
 	}
 }
 
@@ -76,15 +92,12 @@ func TestUpdateCommand_CleanupFlag(t *testing.T) {
 	os.Remove(secretOut)
 
 	// First create a secret to update
-	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
-		t.Fatalf("failed to write temp file: %v", err)
-	}
+	err := os.WriteFile(secretFile, []byte(secretContent), 0644)
+	assert.NoErrorf(t, err, "failed to write temp file: %v", err)
 
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err := createCmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("failed to create initial secret: %v", err)
-	}
+	_, err = createCmd.CombinedOutput()
+	assert.NoErrorf(t, err, "failed to create initial secret: %v", err)
 	defer os.Remove(secretOut) // Clean up after test
 
 	// Test each permutation of flags with --cleanup flag added
@@ -100,23 +113,16 @@ func TestUpdateCommand_CleanupFlag(t *testing.T) {
 	}
 
 	for _, args := range cases {
-		if err := os.WriteFile(updateFile, []byte(updateContent), 0644); err != nil {
-			t.Fatalf("failed to write update file: %v", err)
-		}
+		err := os.WriteFile(updateFile, []byte(updateContent), 0644)
+		assert.NoErrorf(t, err, "failed to write update file: %v", err)
 
 		cmd := exec.Command(testBinary, append([]string{"update"}, args...)...)
 		output, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Errorf("expected success, got error: %v, output: %s", err, output)
-		}
+		assert.NoErrorf(t, err, "expected success, got error: %v, output: %s", err, output)
 
-		if _, err := os.Stat(updateFile); !os.IsNotExist(err) {
-			t.Errorf("update file should be deleted with --cleanup")
-		}
+		assert.NoFileExists(t, updateFile, "update file should be deleted with --cleanup")
 
-		if _, err := os.Stat(secretOut); os.IsNotExist(err) {
-			t.Errorf("expected output file %s to exist, got error: %v", secretOut, err)
-		}
+		assert.FileExistsf(t, secretOut, "expected output file %s to exist", secretOut)
 	}
 }
 
@@ -133,27 +139,21 @@ func TestUpdateCommand_TildeExpansion(t *testing.T) {
 	os.Remove(secretOut)
 
 	// First create a secret to update
-	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
-		t.Fatalf("failed to write temp file: %v", err)
-	}
+	err := os.WriteFile(secretFile, []byte(secretContent), 0644)
+	assert.NoErrorf(t, err, "failed to write temp file: %v", err)
 
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err := createCmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("failed to create initial secret: %v", err)
-	}
+	_, err = createCmd.CombinedOutput()
+	assert.NoErrorf(t, err, "failed to create initial secret: %v", err)
 	defer os.Remove(secretOut) // Clean up after test
 
-	if err := os.WriteFile(updateFile, []byte(updateContent), 0644); err != nil {
-		t.Fatalf("failed to write update file: %v", err)
-	}
+	err = os.WriteFile(updateFile, []byte(updateContent), 0644)
+	assert.NoErrorf(t, err, "failed to write update file: %v", err)
 	defer os.Remove(updateFile)
 
 	cmd := exec.Command(testBinary, "update", "--secret", secretName, "--file", "~/updatetilde.txt")
 	_, err = cmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("expected success, got error: %v", err)
-	}
+	assert.NoErrorf(t, err, "expected success, got error: %v", err)
 }
 
 func TestUpdateCommand_SecretNotExist(t *testing.T) {
@@ -161,15 +161,12 @@ func TestUpdateCommand_SecretNotExist(t *testing.T) {
 	secretName := "nonexistentsecret"
 	updateContent := "updatedsecret"
 
-	if err := os.WriteFile(updateFile, []byte(updateContent), 0644); err != nil {
-		t.Fatalf("failed to write update file: %v", err)
-	}
+	err := os.WriteFile(updateFile, []byte(updateContent), 0644)
+	assert.NoErrorf(t, err, "failed to write update file: %v", err)
 
 	cmd := exec.Command(testBinary, "update", "--secret", secretName, "--file", updateFile)
-	_, err := cmd.CombinedOutput()
-	if err == nil {
-		t.Errorf("expected error for non-existent secret, got none")
-	}
+	_, err = cmd.CombinedOutput()
+	assert.Error(t, err, "expected error for non-existent secret, got none")
 }
 
 func TestUpdateCommand_FileNotExist(t *testing.T) {
@@ -183,22 +180,17 @@ func TestUpdateCommand_FileNotExist(t *testing.T) {
 	os.Remove(secretOut)
 
 	// First create a secret to update
-	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
-		t.Fatalf("failed to write temp file: %v", err)
-	}
+	err := os.WriteFile(secretFile, []byte(secretContent), 0644)
+	assert.NoErrorf(t, err, "failed to write temp file: %v", err)
 
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err := createCmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("failed to create initial secret: %v", err)
-	}
+	_, err = createCmd.CombinedOutput()
+	assert.NoErrorf(t, err, "failed to create initial secret: %v", err)
 	defer os.Remove(secretOut) // Clean up after test
 
 	cmd := exec.Command(testBinary, "update", "--secret", secretName, "--file", updateFile)
 	_, err = cmd.CombinedOutput()
-	if err == nil {
-		t.Errorf("expected error for non-existent update file, got none")
-	}
+	assert.Error(t, err, "expected error for non-existent update file, got none")
 }
 
 func TestUpdateCommand_FileNoReadAccess(t *testing.T) {
@@ -213,27 +205,21 @@ func TestUpdateCommand_FileNoReadAccess(t *testing.T) {
 	os.Remove(secretOut)
 
 	// First create a secret to update
-	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
-		t.Fatalf("failed to write temp file: %v", err)
-	}
+	err := os.WriteFile(secretFile, []byte(secretContent), 0644)
+	assert.NoErrorf(t, err, "failed to write temp file: %v", err)
 
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err := createCmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("failed to create initial secret: %v", err)
-	}
+	_, err = createCmd.CombinedOutput()
+	assert.NoErrorf(t, err, "failed to create initial secret: %v", err)
 	defer os.Remove(secretOut) // Clean up after test
 
-	if err := os.WriteFile(updateFile, []byte(updateContent), 0000); err != nil {
-		t.Fatalf("failed to write update file: %v", err)
-	}
+	err = os.WriteFile(updateFile, []byte(updateContent), 0000)
+	assert.NoErrorf(t, err, "failed to write update file: %v", err)
 	defer os.Chmod(updateFile, 0644)
 
 	cmd := exec.Command(testBinary, "update", "--secret", secretName, "--file", updateFile)
 	_, err = cmd.CombinedOutput()
-	if err == nil {
-		t.Fatalf("expected error for no read access, got none")
-	}
+	assert.Error(t, err, "expected error for no read access")
 }
 
 func TestUpdateCommand_CleanupNoWriteAccess(t *testing.T) {
@@ -249,32 +235,25 @@ func TestUpdateCommand_CleanupNoWriteAccess(t *testing.T) {
 	os.Remove(secretOut)
 
 	// First create a secret to update
-	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
-		t.Fatalf("failed to write temp file: %v", err)
-	}
+	err := os.WriteFile(secretFile, []byte(secretContent), 0644)
+	assert.NoErrorf(t, err, "failed to write temp file: %v", err)
 
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err := createCmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("failed to create initial secret: %v", err)
-	}
+	_, err = createCmd.CombinedOutput()
+	assert.NoErrorf(t, err, "failed to create initial secret: %v", err)
 	defer os.Remove(secretOut) // Clean up after test
 
-	if err := os.WriteFile(updateFile, []byte(updateContent), 0444); err != nil {
-		t.Fatalf("failed to write update file: %v", err)
-	}
+	err = os.WriteFile(updateFile, []byte(updateContent), 0444)
+	assert.NoErrorf(t, err, "failed to write update file: %v", err)
 
 	// Remove write permission from the directory to prevent file deletion
-	if err := os.Chmod(dir, 0555); err != nil {
-		t.Fatalf("failed to remove write permission from dir: %v", err)
-	}
+	err = os.Chmod(dir, 0555)
+	assert.NoErrorf(t, err, "failed to remove write permission from dir: %v", err)
 	defer os.Chmod(dir, 0755)
 
 	cmd := exec.Command(testBinary, "update", "--secret", secretName, "--file", updateFile, "--cleanup")
 	_, err = cmd.CombinedOutput()
-	if err == nil {
-		t.Errorf("expected error for no write access to directory, got none")
-	}
+	assert.Error(t, err, "expected error for no write access to directory, got none")
 }
 
 func TestUpdateCommand_CleanupNoReadWriteAccess(t *testing.T) {
@@ -289,27 +268,21 @@ func TestUpdateCommand_CleanupNoReadWriteAccess(t *testing.T) {
 	os.Remove(secretOut)
 
 	// First create a secret to update
-	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
-		t.Fatalf("failed to write temp file: %v", err)
-	}
+	err := os.WriteFile(secretFile, []byte(secretContent), 0644)
+	assert.NoErrorf(t, err, "failed to write temp file: %v", err)
 
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err := createCmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("failed to create initial secret: %v", err)
-	}
+	_, err = createCmd.CombinedOutput()
+	assert.NoErrorf(t, err, "failed to create initial secret: %v", err)
 	defer os.Remove(secretOut) // Clean up after test
 
-	if err := os.WriteFile(updateFile, []byte(updateContent), 0000); err != nil {
-		t.Fatalf("failed to write update file: %v", err)
-	}
+	err = os.WriteFile(updateFile, []byte(updateContent), 0000)
+	assert.NoErrorf(t, err, "failed to write update file: %v", err)
 	defer os.Chmod(updateFile, 0644)
 
 	cmd := exec.Command(testBinary, "update", "--secret", secretName, "--file", updateFile, "--cleanup")
 	_, err = cmd.CombinedOutput()
-	if err == nil {
-		t.Errorf("expected error for no read/write access, got none")
-	}
+	assert.Error(t, err, "expected error for no read/write access, got none")
 }
 
 // TestUpdateCommand_PreRunValidation tests the PreRunE validation logic
@@ -337,9 +310,7 @@ func TestUpdateCommand_PreRunValidation(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := exec.Command(testBinary, tc.args...)
 			_, err := cmd.CombinedOutput()
-			if err == nil {
-				t.Errorf("expected error for %s, got none", tc.name)
-			}
+			assert.Errorf(t, err, "expected error for %s, got none", tc.name)
 		})
 	}
 }
@@ -357,20 +328,16 @@ func TestUpdateCommand_MissingFlags(t *testing.T) {
 	os.Remove(secretOut)
 
 	// First create a secret to update
-	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
-		t.Fatalf("failed to write temp file: %v", err)
-	}
+	err := os.WriteFile(secretFile, []byte(secretContent), 0644)
+	assert.NoErrorf(t, err, "failed to write temp file: %v", err)
 
 	createCmd := exec.Command(testBinary, "create", "--secret", secretName, "--file", secretFile)
-	_, err := createCmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("failed to create initial secret: %v", err)
-	}
+	_, err = createCmd.CombinedOutput()
+	assert.NoErrorf(t, err, "failed to create initial secret: %v", err)
 	defer os.Remove(secretOut) // Clean up after test
 
-	if err := os.WriteFile(updateFile, []byte(updateContent), 0644); err != nil {
-		t.Fatalf("failed to write update file: %v", err)
-	}
+	err = os.WriteFile(updateFile, []byte(updateContent), 0644)
+	assert.NoErrorf(t, err, "failed to write update file: %v", err)
 
 	// Test cases where only one flag is provided (should work for interactive mode, but we skip those)
 	// The update command allows partial flags for interactive mode, so these should not error
@@ -405,15 +372,12 @@ func TestUpdateCommand_InvalidSecretName(t *testing.T) {
 	secretName := "invalid!name"
 	updateContent := "updatedsecret"
 
-	if err := os.WriteFile(updateFile, []byte(updateContent), 0644); err != nil {
-		t.Fatalf("failed to write update file: %v", err)
-	}
+	err := os.WriteFile(updateFile, []byte(updateContent), 0644)
+	assert.NoErrorf(t, err, "failed to write update file: %v", err)
 
 	cmd := exec.Command(testBinary, "update", "--secret", secretName, "--file", updateFile)
-	_, err := cmd.CombinedOutput()
-	if err == nil {
-		t.Errorf("expected error for invalid secret name, got none")
-	}
+	_, err = cmd.CombinedOutput()
+	assert.Error(t, err, "expected error for invalid secret name, got none")
 }
 
 // TestUpdateCommand_ValidSecretNames tests updating with valid secret name patterns
@@ -425,13 +389,11 @@ func TestUpdateCommand_ValidSecretNames(t *testing.T) {
 	secretContent := "originalsecret"
 	updateContent := "updatedsecret"
 
-	if err := os.WriteFile(secretFile, []byte(secretContent), 0644); err != nil {
-		t.Fatalf("failed to write secret file: %v", err)
-	}
+	err := os.WriteFile(secretFile, []byte(secretContent), 0644)
+	assert.NoErrorf(t, err, "failed to write secret file: %v", err)
 
-	if err := os.WriteFile(updateFile, []byte(updateContent), 0644); err != nil {
-		t.Fatalf("failed to write update file: %v", err)
-	}
+	err = os.WriteFile(updateFile, []byte(updateContent), 0644)
+	assert.NoErrorf(t, err, "failed to write update file: %v", err)
 
 	validNames := []string{
 		"simple",
@@ -450,21 +412,15 @@ func TestUpdateCommand_ValidSecretNames(t *testing.T) {
 			// First create the secret
 			createCmd := exec.Command(testBinary, "create", "--secret", validName, "--file", secretFile)
 			_, err := createCmd.CombinedOutput()
-			if err != nil {
-				t.Fatalf("failed to create initial secret '%s': %v", validName, err)
-			}
+			assert.NoErrorf(t, err, "failed to create initial secret '%s': %v", validName, err)
 
 			// Then update it
 			updateCmd := exec.Command(testBinary, "update", "--secret", validName, "--file", updateFile)
 			_, err = updateCmd.CombinedOutput()
-			if err != nil {
-				t.Errorf("expected success for valid secret name '%s', got error: %v", validName, err)
-			}
+			assert.NoErrorf(t, err, "expected success for valid secret name '%s', got error: %v", validName, err)
 
 			// Verify the file still exists
-			if _, err := os.Stat(secretOut); os.IsNotExist(err) {
-				t.Errorf("expected output file %s to exist for name '%s'", secretOut, validName)
-			}
+			assert.FileExistsf(t, secretOut, "expected output file %s to exist for name '%s'", secretOut, validName)
 		})
 	}
 }
